@@ -8,9 +8,16 @@
 @theme inline {
   --color-cream: var(--cream);
   --color-ink: var(--ink);
+  --color-background: var(--cream);
+  --color-foreground: var(--ink);
   --font-display: var(--font-display);
   --font-serif-italic: var(--font-serif-italic);
   --font-sans: var(--font-body);
+}
+
+html {
+  overflow-y: scroll;
+  scrollbar-gutter: stable;
 }
 
 body {
