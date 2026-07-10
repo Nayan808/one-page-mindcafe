@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --cream: #f6f1e6;
+  --ink: #111110;
+}
+
+@theme inline {
+  --color-cream: var(--cream);
+  --color-ink: var(--ink);
+  --font-display: var(--font-display);
+  --font-serif-italic: var(--font-serif-italic);
+  --font-sans: var(--font-body);
+}
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-body), Arial, Helvetica, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), sans-serif;
+}
+
+.font-tagline {
+  font-family: var(--font-serif-italic), serif;
+  font-style: italic;
+}
+
+.tracking-label {
+  letter-spacing: 0.14em;
+}
+
+.input {
+  @apply w-full rounded-xl border border-ink/20 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-ink focus:outline-none;
+}
+
+.pill-btn {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90 disabled:opacity-40;
+}
+
+.pill-btn-outline {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/25 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5 disabled:opacity-40;
+}
+
+.pill-btn-white {
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-cream px-6 py-3 text-sm font-medium text-ink shadow-sm transition hover:opacity-90;
+}
+
+.badge-pill {
+  @apply rounded-full border border-ink/15 bg-white/70 px-3 py-1 text-[11px] font-medium tracking-[0.14em] text-ink/70;
+}
