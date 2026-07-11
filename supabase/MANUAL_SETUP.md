@@ -92,9 +92,6 @@ supabase secrets set RAZORPAY_KEY_ID=...
 | `SHIPROCKET_PASSWORD` | `create-shiprocket-shipment` | Same |
 | `SHIPROCKET_WEBHOOK_SECRET` | `shiprocket-tracking-webhook` | Make up any random string — you set this same value in both the secret and the Shiprocket webhook URL (step 8) |
 | `EMAIL_PROVIDER_API_KEY` | `order-status-notifier` | [Resend](https://resend.com) API key (or swap the provider in that function) |
-| `TWILIO_ACCOUNT_SID` | `order-status-notifier` (SMS) | Twilio Console |
-| `TWILIO_AUTH_TOKEN` | same | Twilio Console |
-| `TWILIO_FROM_NUMBER` | same | A Twilio phone number capable of sending SMS |
 | `STAFF_DASHBOARD_PASSWORD` | `staff-pickup` | Make up a password — this is what `/staff` is gated behind |
 
 `SUPABASE_URL` / `SUPABASE_ANON_KEY` / `SUPABASE_SERVICE_ROLE_KEY` are

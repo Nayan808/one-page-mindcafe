@@ -1463,7 +1463,6 @@ $$;
 --   - Edge Function secrets (RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET,
 --     RAZORPAY_WEBHOOK_SECRET, SHIPROCKET_EMAIL, SHIPROCKET_PASSWORD,
 --     SHIPROCKET_WEBHOOK_SECRET, STAFF_DASHBOARD_PASSWORD,
---     TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER,
 --     EMAIL_PROVIDER_API_KEY) — set via `supabase secrets set NAME=value`
 --     or the dashboard.
 --   - Google OAuth provider — Authentication > Providers > Google in

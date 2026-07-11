@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ScanLine } from "lucide-react";
 import jsQR from "jsqr";
 
 // Camera-based QR reader for the staff dashboard — pure client-side decode
@@ -75,9 +76,10 @@ export function QrScanner({ onDecode }: { onDecode: (text: string) => void }) {
           setError(null);
           setIsActive(true);
         }}
-        className="pill-btn-outline w-full"
+        className="pill-btn-outline w-full gap-1.5"
       >
-        📷 scan qr code
+        <ScanLine className="h-4 w-4" aria-hidden />
+        scan qr code
       </button>
     );
   }

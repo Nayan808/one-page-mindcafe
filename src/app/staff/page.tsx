@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Lock, LogOut, Package, RefreshCw } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { QrScanner } from "@/components/staff/QrScanner";
 import { formatInr } from "@/lib/utils";
@@ -125,20 +126,36 @@ export default function StaffDashboard() {
 
   if (!authed) {
     return (
-      <div className="mx-auto flex min-h-screen max-w-sm flex-col items-center justify-center gap-4 bg-cream px-4">
-        <h1 className="font-display text-2xl font-bold lowercase">feelz staff</h1>
-        <input
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          onKeyDown={(event) => event.key === "Enter" && void handleUnlock()}
-          placeholder="Dashboard password"
-          className="input"
-        />
-        <button type="button" onClick={handleUnlock} disabled={isCheckingPassword || !password} className="pill-btn w-full">
-          {isCheckingPassword ? "checking…" : "unlock"}
-        </button>
-        {authError && <p className="text-sm text-red-600">{authError}</p>}
+      <div className="flex min-h-screen items-center justify-center bg-cream px-4">
+        <div className="w-full max-w-sm rounded-3xl border border-ink/10 bg-white p-8 text-center shadow-lg">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-ink text-cream">
+            <Lock className="h-5 w-5" aria-hidden />
+          </div>
+          <h1 className="font-display mt-4 text-2xl font-bold lowercase">feelz staff</h1>
+          <p className="mt-1 text-sm text-ink/60">Enter the dashboard password to continue.</p>
+
+          <div className="mt-6 space-y-3">
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              onKeyDown={(event) => event.key === "Enter" && void handleUnlock()}
+              placeholder="Dashboard password"
+              className="input"
+              autoFocus
+            />
+            <button
+              type="button"
+              onClick={handleUnlock}
+              disabled={isCheckingPassword || !password}
+              className="pill-btn w-full gap-2"
+            >
+              <Lock className="h-4 w-4" aria-hidden />
+              {isCheckingPassword ? "checking…" : "unlock"}
+            </button>
+          </div>
+          {authError && <p className="mt-3 text-sm text-red-600">{authError}</p>}
+        </div>
       </div>
     );
   }
@@ -146,7 +163,10 @@ export default function StaffDashboard() {
   return (
     <div className="mx-auto min-h-screen max-w-lg space-y-8 bg-cream px-4 py-8">
       <header className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold lowercase">feelz staff</h1>
+        <div>
+          <h1 className="font-display text-2xl font-bold lowercase">feelz staff</h1>
+          <p className="text-xs text-ink/50">pickup desk</p>
+        </div>
         <button
           type="button"
           onClick={() => {
@@ -154,13 +174,14 @@ export default function StaffDashboard() {
             setAuthed(false);
             setPassword("");
           }}
-          className="text-xs text-ink/60 underline"
+          className="pill-btn-outline gap-1.5 !py-2 text-xs"
         >
+          <LogOut className="h-3.5 w-3.5" aria-hidden />
           lock
         </button>
       </header>
 
-      <section className="space-y-3">
+      <section className="space-y-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">look up an order</h2>
         <QrScanner onDecode={(text) => { setCode(text); void handleLookup(text); }} />
         <div className="flex gap-2">
@@ -178,7 +199,7 @@ export default function StaffDashboard() {
         {lookupError && <p className="text-sm text-red-600">{lookupError}</p>}
 
         {lookedUpOrder && (
-          <div className="space-y-3 rounded-xl border border-ink/15 bg-white p-4 text-sm">
+          <div className="space-y-3 rounded-xl border border-ink/15 bg-cream/60 p-4 text-sm">
             <div className="flex items-center justify-between">
               <p className="font-display text-lg font-bold">{lookedUpOrder.order_number}</p>
               <span
@@ -217,25 +238,35 @@ export default function StaffDashboard() {
         )}
       </section>
 
-      <section className="space-y-3">
+      <section className="space-y-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-sm">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">
-            pending pickups ({pending.length})
+          <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">
+            pending pickups
+            <span className="badge-pill !px-2 !py-0.5 normal-case tracking-normal text-ink">{pending.length}</span>
           </h2>
-          <button type="button" onClick={() => void loadPending()} className="text-xs text-ink underline">
-            {isLoadingPending ? "refreshing…" : "refresh"}
+          <button
+            type="button"
+            onClick={() => void loadPending()}
+            disabled={isLoadingPending}
+            className="pill-btn-outline gap-1.5 !py-2 text-xs"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${isLoadingPending ? "animate-spin" : ""}`} aria-hidden />
+            refresh
           </button>
         </div>
 
         {pending.length === 0 ? (
-          <p className="text-sm text-ink/60">Nothing waiting right now.</p>
+          <p className="flex flex-col items-center gap-2 py-6 text-center text-sm text-ink/50">
+            <Package className="h-6 w-6 opacity-40" aria-hidden />
+            Nothing waiting right now.
+          </p>
         ) : (
           <ul className="space-y-2">
             {pending.map((order) => (
-              <li key={order.id} className="rounded-xl border border-ink/15 bg-white p-3 text-sm">
+              <li key={order.id} className="rounded-xl border border-ink/15 bg-cream/60 p-3 text-sm">
                 <div className="flex items-center justify-between">
-                  <span className="font-medium">{order.order_number}</span>
-                  <span className="text-ink/60">{order.pickup_code}</span>
+                  <span className="font-medium text-ink">{order.order_number}</span>
+                  <span className="font-display font-bold tracking-[0.15em] text-ink/70">{order.pickup_code}</span>
                 </div>
                 <p className="text-ink/60">{order.customer_name}</p>
               </li>

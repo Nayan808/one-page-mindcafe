@@ -73,7 +73,7 @@ export function OrderConfirmation({
                 <img src={qrDataUrl} alt={`QR code for pickup code ${order.pickup_code}`} className="mx-auto mt-3 h-44 w-44" />
               )}
               <p className="font-display mt-3 text-3xl font-bold tracking-[0.3em]">{order.pickup_code}</p>
-              <p className="mt-1 text-xs text-ink/50">Also sent to you by email{order.guest_phone ? " and SMS" : ""}.</p>
+              <p className="mt-1 text-xs text-ink/50">Also sent to you by email.</p>
             </>
           )}
         </div>

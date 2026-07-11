@@ -1,14 +1,14 @@
 // Triggered by a Supabase Database Webhook on `orders` UPDATE (configure
 // in the dashboard: Database -> Webhooks -> orders -> UPDATE -> this
-// function's URL). Notifies the customer by email and SMS when status
-// changes to something worth notifying about. Only acts when `status`
-// actually changed, since the webhook fires on every column update.
+// function's URL). Notifies the customer by email when status changes to
+// something worth notifying about. Only acts when `status` actually
+// changed, since the webhook fires on every column update.
 //
 // Works for both account and guest orders: account orders get the email
-// from auth.users, guest orders get it from orders.guest_email/guest_phone
-// (set by create-order at checkout). 'ready_for_pickup' additionally
-// carries the pickup_code, since that's the customer's only proof-of-
-// purchase at the pickup point if they've closed the confirmation tab.
+// from auth.users, guest orders get it from orders.guest_email (set by
+// create-order at checkout). 'ready_for_pickup' additionally carries the
+// pickup_code, since that's the customer's only proof-of-purchase at the
+// pickup point if they've closed the confirmation tab.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
@@ -48,27 +48,6 @@ async function sendEmail(to: string, subject: string, text: string): Promise<voi
   if (!res.ok) console.error("Email send failed", await res.text());
 }
 
-async function sendSms(to: string, text: string): Promise<void> {
-  const accountSid = Deno.env.get("TWILIO_ACCOUNT_SID");
-  const authToken = Deno.env.get("TWILIO_AUTH_TOKEN");
-  const fromNumber = Deno.env.get("TWILIO_FROM_NUMBER");
-  if (!accountSid || !authToken || !fromNumber) {
-    console.warn("TWILIO_* env vars not set — skipping notification SMS");
-    return;
-  }
-
-  // Swap this block for whichever SMS provider you pick — Twilio's
-  // Messages API shown here (https://www.twilio.com/docs/sms/send-messages).
-  const auth = btoa(`${accountSid}:${authToken}`);
-  const res = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${accountSid}/Messages.json`, {
-    method: "POST",
-    headers: { Authorization: `Basic ${auth}`, "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ To: to, From: fromNumber, Body: text }),
-  });
-
-  if (!res.ok) console.error("SMS send failed", await res.text());
-}
-
 Deno.serve(async (req) => {
   const payload = (await req.json()) as DbWebhookPayload;
   const { record, old_record } = payload;
@@ -84,22 +63,19 @@ Deno.serve(async (req) => {
 
   const { data: order } = await sb
     .from("orders")
-    .select("user_id, order_number, guest_email, guest_phone")
+    .select("user_id, order_number, guest_email")
     .eq("id", record.id)
     .single();
   if (!order) return jsonResponse({ skipped: true, reason: "order not found" });
 
   let email: string | null = order.guest_email;
-  let phone: string | null = order.guest_phone;
 
   if (order.user_id) {
     const { data: authUser } = await sb.auth.admin.getUserById(order.user_id);
     email = authUser?.user?.email ?? null;
-    if (!phone) {
-      const { data: profile } = await sb.from("profiles").select("phone").eq("id", order.user_id).maybeSingle();
-      phone = profile?.phone ?? null;
-    }
   }
+
+  if (!email) return jsonResponse({ skipped: true, reason: "no email on this order" });
 
   const pickupNote =
     record.status === "ready_for_pickup" && record.pickup_code
@@ -107,12 +83,6 @@ Deno.serve(async (req) => {
       : "";
   const fullMessage = `Order ${order.order_number}: ${message}${pickupNote}`;
 
-  const sends: Promise<void>[] = [];
-  if (email) sends.push(sendEmail(email, `Order ${order.order_number}: ${message}`, fullMessage));
-  if (phone) sends.push(sendSms(phone, fullMessage));
-
-  if (sends.length === 0) return jsonResponse({ skipped: true, reason: "no email or phone on this order" });
-
-  await Promise.all(sends);
-  return jsonResponse({ sent: true, email: Boolean(email), sms: Boolean(phone) });
+  await sendEmail(email, `Order ${order.order_number}: ${message}`, fullMessage);
+  return jsonResponse({ sent: true });
 });
