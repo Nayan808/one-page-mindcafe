@@ -1,3 +1,8 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+
 const FAQS = [
   {
     question: "How do I take a feelz strip?",
@@ -22,8 +27,10 @@ const FAQS = [
 ];
 
 export function FaqSection() {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
   return (
-    <section id="faq" className="mx-auto max-w-3xl px-4 py-16 sm:px-6">
+    <section id="faq" className="mx-auto max-w-[52.8rem] px-4 py-16 sm:px-6">
       <div className="text-center">
         <div className="mx-auto flex w-fit items-center gap-3">
           <span className="h-px w-10 bg-ink/20" aria-hidden />
@@ -36,12 +43,33 @@ export function FaqSection() {
       </div>
 
       <div className="mt-10 divide-y divide-ink/10 border-y border-ink/10">
-        {FAQS.map((faq) => (
-          <div key={faq.question} className="py-5">
-            <p className="font-display text-base font-semibold text-ink sm:text-lg">{faq.question}</p>
-            <p className="mt-3 text-sm leading-relaxed text-ink/65 sm:text-base">{faq.answer}</p>
-          </div>
-        ))}
+        {FAQS.map((faq, index) => {
+          const isOpen = openIndex === index;
+          return (
+            <div key={faq.question} className="py-5">
+              <button
+                type="button"
+                onClick={() => setOpenIndex(isOpen ? null : index)}
+                aria-expanded={isOpen}
+                className="flex w-full items-center justify-between gap-4 text-left"
+              >
+                <span className="font-display text-base font-semibold text-ink sm:text-lg">{faq.question}</span>
+                <ChevronDown
+                  className={`h-5 w-5 shrink-0 text-ink/50 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
+                  aria-hidden
+                />
+              </button>
+
+              <div
+                className={`grid transition-all duration-300 ease-out ${isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+              >
+                <p className="overflow-hidden text-sm leading-relaxed text-ink/65 sm:text-base">
+                  <span className="block pt-3">{faq.answer}</span>
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );

@@ -284,6 +284,28 @@ export interface Database {
           },
         ];
       };
+      coupons: {
+        Row: {
+          id: string;
+          code: string;
+          discount_type: "percent" | "fixed";
+          discount_value: number;
+          min_order_amount: number;
+          max_discount_amount: number | null;
+          is_active: boolean;
+          expires_at: string | null;
+          usage_limit: number | null;
+          times_used: number;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["coupons"]["Row"]> & {
+          code: string;
+          discount_type: "percent" | "fixed";
+          discount_value: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["coupons"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

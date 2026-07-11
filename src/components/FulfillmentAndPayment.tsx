@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { createClient } from "@/lib/supabase/client";
-import { checkPincodeServiceability, checkout, getActivePickupLocations } from "@/lib/api";
+import { checkPincodeServiceability, checkout, getActivePickupLocations, validateCoupon, type CouponPreview } from "@/lib/api";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useAddresses } from "@/lib/query/hooks";
 import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
@@ -41,6 +41,9 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [guestEmail, setGuestEmail] = useState("");
 
   const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -75,7 +78,26 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     mode === "delivery" && serviceability !== "unchecked" && serviceability !== "checking" && serviceability.ok
       ? serviceability.fee
       : 0;
-  const total = subtotal + deliveryFee;
+  // Only trust the applied preview while the input still matches what was
+  // checked — editing the code after applying shouldn't silently keep
+  // discounting at the old value.
+  const discountAmount = appliedCoupon?.code === couponCode.trim().toUpperCase() ? appliedCoupon.discountAmount : 0;
+  const total = Math.max(0, subtotal - discountAmount + deliveryFee);
+
+  async function handleApplyCoupon() {
+    setIsCheckingCoupon(true);
+    setCouponError(null);
+    try {
+      const sb = createClient();
+      const result = await validateCoupon(sb, couponCode, subtotal);
+      setAppliedCoupon(result);
+    } catch (err) {
+      setAppliedCoupon(null);
+      setCouponError(err instanceof Error ? err.message : "Couldn't apply coupon");
+    } finally {
+      setIsCheckingCoupon(false);
+    }
+  }
 
   const serviceabilityOk = serviceability !== "unchecked" && serviceability !== "checking" && serviceability.ok;
   const hasDeliveryTarget = user ? Boolean(selectedAddressId) || Boolean(guestAddress) : Boolean(guestAddress);
@@ -293,12 +315,33 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
 
       <div>
         <label className="mb-1 block text-sm text-ink/70">Coupon code (optional)</label>
-        <input
-          value={couponCode}
-          onChange={(event) => setCouponCode(event.target.value)}
-          placeholder="e.g. FEELZ10"
-          className="input uppercase"
-        />
+        <div className="flex gap-2">
+          <input
+            value={couponCode}
+            onChange={(event) => {
+              setCouponCode(event.target.value);
+              setAppliedCoupon(null);
+              setCouponError(null);
+            }}
+            onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), handleApplyCoupon())}
+            placeholder="e.g. FEELZ10"
+            className="input uppercase"
+          />
+          <button
+            type="button"
+            onClick={handleApplyCoupon}
+            disabled={!couponCode.trim() || isCheckingCoupon || discountAmount > 0}
+            className="pill-btn-outline shrink-0 !py-2 text-xs normal-case tracking-normal"
+          >
+            {isCheckingCoupon ? "checking…" : discountAmount > 0 ? "applied" : "apply"}
+          </button>
+        </div>
+        {couponError && <p className="mt-1.5 text-sm text-red-600">{couponError}</p>}
+        {discountAmount > 0 && (
+          <p className="mt-1.5 text-sm text-emerald-700">
+            &ldquo;{appliedCoupon!.code}&rdquo; applied — {formatInr(discountAmount)} off
+          </p>
+        )}
       </div>
 
       <div className="rounded-xl border border-ink/15 bg-white p-4 text-sm">
@@ -306,13 +349,18 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           <span>Subtotal</span>
           <span>{formatInr(subtotal)}</span>
         </div>
+        {discountAmount > 0 && (
+          <div className="flex justify-between text-emerald-700">
+            <span>Coupon ({appliedCoupon!.code})</span>
+            <span>−{formatInr(discountAmount)}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span>{mode === "delivery" ? "Delivery fee" : "Pickup"}</span>
           <span>{deliveryFee === 0 ? "Free" : formatInr(deliveryFee)}</span>
         </div>
-        <p className="mt-1 text-xs text-ink/50">Coupon discount, if any, is applied when you pay.</p>
         <div className="mt-2 flex justify-between border-t border-ink/10 pt-2 font-medium">
-          <span>Total (before coupon)</span>
+          <span>Total</span>
           <span>{formatInr(total)}</span>
         </div>
       </div>

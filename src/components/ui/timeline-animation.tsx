@@ -37,7 +37,19 @@ export function TimelineContent<T extends React.ElementType = "div">({
   ...props
 }: TimelineContentProps<T>) {
   const isInView = useInView(timelineRef, { once: true, amount: 0.2 });
-  const MotionComponent = motion(as ?? "div") as React.ComponentType<Record<string, unknown>>;
+  // motion(...)/motion.create(...) must only be called once per element
+  // type, not on every render — calling it inline in the render body hands
+  // React a new component identity each time, which forces an unmount +
+  // remount of the underlying DOM node on every re-render (e.g. whenever
+  // cart state changes and Hero re-renders). That remount restarts the
+  // "hidden" -> "visible" entrance animation from scratch, which looks
+  // exactly like the whole section "refreshing" on every click elsewhere
+  // on the page. Memoizing keyed on `as` keeps the same component identity
+  // across re-renders, so the animation only ever plays once.
+  const MotionComponent = React.useMemo(
+    () => motion.create(as ?? "div") as React.ComponentType<Record<string, unknown>>,
+    [as],
+  );
 
   return (
     <MotionComponent

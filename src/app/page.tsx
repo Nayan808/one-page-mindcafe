@@ -1,30 +1,25 @@
 "use client";
 
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
-import { useCartContext } from "@/contexts/CartContext";
 import { Header } from "@/components/Header";
 import { Hero } from "@/components/Hero";
-import { MoodProductCard } from "@/components/MoodProductCard";
 import { HowItWorksSection } from "@/components/HowItWorksSection";
+import { ZostelLocationsSection } from "@/components/ZostelLocationsSection";
+import { WhoItsForSection } from "@/components/WhoItsForSection";
 import { StatsBar } from "@/components/StatsBar";
 import { FaqSection } from "@/components/FaqSection";
 import { HeadsUpSection } from "@/components/HeadsUpSection";
 import { Footer } from "@/components/Footer";
-import { FulfillmentAndPayment } from "@/components/FulfillmentAndPayment";
-import { OrderConfirmation } from "@/components/OrderConfirmation";
-import { formatInr } from "@/lib/utils";
+import { CartDrawer } from "@/components/CartDrawer";
+import { LoginModal } from "@/components/LoginModal";
+import { OrdersModal } from "@/components/OrdersModal";
 
 const MOOD_ORDER = ["focus", "extrovert", "joy", "rest", "sleep"];
 
 export default function Home() {
-  const { items, subtotal, updateQuantity, removeItem, isLoading: cartLoading } = useCartContext();
-
-  const [orderId, setOrderId] = useState<string | null>(null);
-
   const catalogQuery = useQuery({
     queryKey: queryKeys.feelzCatalog(),
     queryFn: () => getFeelzCatalog(createClient()),
@@ -43,76 +38,20 @@ export default function Home() {
 
      
 
+      <ZostelLocationsSection />
+
       <HowItWorksSection />
 
+      <WhoItsForSection />
+
       <StatsBar />
-
-      <section id="checkout" className="mx-auto max-w-4xl px-4 sm:px-6">
-        {orderId ? (
-          <div className="py-14">
-            <OrderConfirmation
-              orderId={orderId}
-              onStartNewOrder={() => setOrderId(null)}
-            />
-          </div>
-        ) : cartLoading || items.length === 0 ? null : (
-          <div className="py-14">
-            <h2 className="font-display mb-6 text-center text-3xl font-bold lowercase">your cart</h2>
-
-            <div className="grid gap-8 sm:grid-cols-2">
-              <div className="space-y-3">
-                <ul className="space-y-3">
-                  {items.map((item) => {
-                    const price = item.product_variants.price_override ?? item.product_variants.products.price;
-                    return (
-                      <li key={item.id} className="rounded-xl border border-ink/15 bg-white p-3 text-sm">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-medium text-ink">{item.product_variants.products.name}</span>
-                          <button
-                            type="button"
-                            onClick={() => removeItem.mutate(item.id)}
-                            className="text-xs text-red-600 hover:underline"
-                          >
-                            remove
-                          </button>
-                        </div>
-                        <div className="mt-1 flex items-center justify-between text-ink/60">
-                          <input
-                            type="number"
-                            min={1}
-                            value={item.quantity}
-                            onChange={(event) =>
-                              updateQuantity.mutate({
-                                cartItemId: item.id,
-                                quantity: Math.max(1, Number(event.target.value)),
-                              })
-                            }
-                            className="input w-16"
-                          />
-                          <span>{formatInr(price * item.quantity)}</span>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-
-                <div className="flex items-center justify-between border-t border-ink/10 pt-3 text-sm font-medium">
-                  <span>Subtotal</span>
-                  <span>{formatInr(subtotal)}</span>
-                </div>
-              </div>
-
-              <div>
-                <FulfillmentAndPayment onOrderPlaced={setOrderId} />
-              </div>
-            </div>
-          </div>
-        )}
-      </section>
 
       <FaqSection />
       <HeadsUpSection />
       <Footer />
+      <CartDrawer />
+      <LoginModal />
+      <OrdersModal />
     </>
   );
 }

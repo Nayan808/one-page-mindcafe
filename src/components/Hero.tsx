@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { moodStyleFor } from "@/lib/moodStyles";
 import { formatInr } from "@/lib/utils";
@@ -43,7 +44,8 @@ const revealVariants = {
 
 export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
-  const { addItem, isReady, cartId } = useCartContext();
+  const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
+  const { user, openLoginModal } = useAuth();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -57,12 +59,21 @@ export function Hero() {
     const variant = product?.product_variants[0];
     if (!variant || !isReady || !cartId) return;
 
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+
     setPendingKey(moodKey);
     setErrorKey(null);
     try {
-      await addItem.mutateAsync({ variantId: variant.id, quantity: 1 });
+      await addItem.mutateAsync({
+        variant,
+        product: { id: product!.id, name: product!.name, image_url: product!.image_url, price: product!.price },
+        quantity: 1,
+      });
       setAddedKey(moodKey);
-      scrollTo("checkout");
+      openDrawer();
       window.setTimeout(() => setAddedKey((current) => (current === moodKey ? null : current)), 1800);
     } catch (error) {
       console.error("Failed to add item to cart", error);
@@ -171,6 +182,7 @@ export function Hero() {
             const isPending = pendingKey === mood.key;
             const isAdded = addedKey === mood.key;
             const hasError = errorKey === mood.key;
+            const cartItem = variant ? items.find((item) => item.variant_id === variant.id) : undefined;
 
             return (
               <TimelineContent
@@ -216,21 +228,32 @@ export function Hero() {
                         {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
                       </span>
 
-                      <button
-                        type="button"
-                        onClick={() => handleAddToCart(mood.key, product)}
-                        disabled={!variant || !isReady || !cartId || isPending}
-                        className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-[11px] font-semibold uppercase tracking-label text-cream transition hover:bg-ink/85 disabled:cursor-not-allowed disabled:opacity-40"
-                      >
-                        {isPending ? (
-                          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                        ) : isAdded ? (
-                          <Check className="h-3.5 w-3.5" aria-hidden />
-                        ) : (
+                      {cartItem ? (
+                        <button
+                          type="button"
+                          onClick={openDrawer}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-ink/10 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-label text-ink transition hover:bg-ink/15"
+                        >
                           <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                        )}
-                        {isAdded ? "added" : "add"}
-                      </button>
+                          cart · {cartItem.quantity}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleAddToCart(mood.key, product)}
+                          disabled={!variant || !isReady || !cartId || isPending}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-[11px] font-semibold uppercase tracking-label text-cream transition hover:bg-ink/85 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {isPending ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                          ) : isAdded ? (
+                            <Check className="h-3.5 w-3.5" aria-hidden />
+                          ) : (
+                            <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
+                          )}
+                          {isAdded ? "added" : "add"}
+                        </button>
+                      )}
                     </div>
                     {hasError && <p className="mt-1.5 text-[10px] font-medium text-red-700/80">couldn&apos;t add — try again</p>}
                   </div>

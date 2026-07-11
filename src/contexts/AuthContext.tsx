@@ -15,6 +15,12 @@ type AuthContextValue = {
   profile: Profile | null;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
+  isLoginModalOpen: boolean;
+  openLoginModal: () => void;
+  closeLoginModal: () => void;
+  isOrdersOpen: boolean;
+  openOrders: () => void;
+  closeOrders: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -24,6 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isOrdersOpen, setIsOrdersOpen] = useState(false);
 
   const loadProfile = useCallback(
     async (userId: string) => {
@@ -55,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_IN" && session?.user) {
         void loadProfile(session.user.id);
+        setIsLoginModalOpen(false);
 
         const guestSessionId = readGuestSessionId();
         if (guestSessionId) {
@@ -83,7 +92,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sb.auth.signOut();
   }, [sb]);
 
-  const value: AuthContextValue = { status, user, profile, signInWithGoogle, signOut };
+  const value: AuthContextValue = {
+    status,
+    user,
+    profile,
+    signInWithGoogle,
+    signOut,
+    isLoginModalOpen,
+    openLoginModal: () => setIsLoginModalOpen(true),
+    closeLoginModal: () => setIsLoginModalOpen(false),
+    isOrdersOpen,
+    openOrders: () => setIsOrdersOpen(true),
+    closeOrders: () => setIsOrdersOpen(false),
+  };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

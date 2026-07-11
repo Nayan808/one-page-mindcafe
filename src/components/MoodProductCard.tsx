@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getAvailableStock } from "@/lib/api";
 import { useCartContext } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { formatInr } from "@/lib/utils";
 import { moodStyleFor } from "@/lib/moodStyles";
 import type { ProductWithVariants } from "@/types/domain";
@@ -26,7 +27,8 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   const [quantity, setQuantity] = useState(1);
   const [available, setAvailable] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
-  const { addItem, isReady } = useCartContext();
+  const { addItem, isReady, openDrawer } = useCartContext();
+  const { user, openLoginModal } = useAuth();
 
   useEffect(() => {
     if (!variantId) return;
@@ -49,7 +51,16 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
 
   async function handleAddToCart() {
     if (!variant) return;
-    await addItem.mutateAsync({ variantId: variant.id, quantity });
+    if (!user) {
+      openLoginModal();
+      return;
+    }
+    await addItem.mutateAsync({
+      variant,
+      product: { id: product.id, name: product.name, image_url: product.image_url, price: product.price },
+      quantity,
+    });
+    openDrawer();
   }
 
   return (
@@ -137,7 +148,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
           disabled={!isReady || isOutOfStock || addItem.isPending || !variant}
           className="flex-1 rounded-full bg-black/85 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50"
         >
-          {addItem.isPending ? "adding…" : "add to cart"}
+          {addItem.isPending ? "adding…" : user ? "add to cart" : "sign in to add"}
         </button>
       </div>
 

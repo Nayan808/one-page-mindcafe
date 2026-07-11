@@ -9,47 +9,96 @@ import {
   getCartItems,
   getOrder,
   getUserAddresses,
+  getUserOrders,
   removeCartItem,
   updateCartItemQuantity,
 } from "@/lib/api";
 import type { Database } from "@/types/supabase";
+import type { CartItemWithVariant, Product, ProductVariant } from "@/types/domain";
 
 export const queryKeys = {
   cart: (cartId: string | null) => ["cart", cartId] as const,
   feelzCatalog: () => ["products", "feelz-catalog"] as const,
   order: (orderId: string) => ["orders", orderId] as const,
+  userOrders: (userId: string) => ["orders", "user", userId] as const,
   addresses: (userId: string) => ["addresses", userId] as const,
 };
 
 // Cart *identity* (which cart) lives in CartContext; this hook owns the
 // line-item data so it stays reactive and cache-invalidatable.
+//
+// All three mutations below update the cache optimistically in onMutate
+// (so a +/-/remove/add click reflects instantly, not after a network round
+// trip), roll back on error, and reconcile with the server in the
+// background via onSettled. Without this, every click was: request ->
+// wait -> mutation resolves -> invalidate -> second request -> wait ->
+// THEN the UI updates — two full network round trips of visible lag per
+// click, which is what made add/remove/qty edits feel slow.
 export function useCart(cartId: string | null) {
   const queryClient = useQueryClient();
   const sb = createClient();
+  const queryKey = queryKeys.cart(cartId);
 
   const itemsQuery = useQuery({
-    queryKey: queryKeys.cart(cartId),
+    queryKey,
     queryFn: () => getCartItems(sb, cartId!),
     enabled: Boolean(cartId),
   });
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: queryKeys.cart(cartId) });
+  async function optimisticUpdate(updater: (items: CartItemWithVariant[]) => CartItemWithVariant[]) {
+    await queryClient.cancelQueries({ queryKey });
+    const previous = queryClient.getQueryData<CartItemWithVariant[]>(queryKey);
+    queryClient.setQueryData<CartItemWithVariant[]>(queryKey, (old) => updater(old ?? []));
+    return { previous };
+  }
+
+  function rollback(context: { previous?: CartItemWithVariant[] } | undefined) {
+    if (context?.previous) queryClient.setQueryData(queryKey, context.previous);
+  }
+
+  const settle = () => queryClient.invalidateQueries({ queryKey });
 
   const addItem = useMutation({
-    mutationFn: (args: { variantId: string; quantity: number }) =>
-      addCartItem(sb, cartId!, args.variantId, args.quantity),
-    onSuccess: invalidate,
+    mutationFn: (args: { variant: ProductVariant; product: Pick<Product, "id" | "name" | "image_url" | "price">; quantity: number }) =>
+      addCartItem(sb, cartId!, args.variant.id, args.quantity),
+    onMutate: (args) =>
+      optimisticUpdate((items) => {
+        const existing = items.find((item) => item.variant_id === args.variant.id);
+        if (existing) {
+          return items.map((item) =>
+            item.id === existing.id ? { ...item, quantity: item.quantity + args.quantity } : item,
+          );
+        }
+        const optimisticItem: CartItemWithVariant = {
+          id: `optimistic-${args.variant.id}`,
+          cart_id: cartId!,
+          variant_id: args.variant.id,
+          quantity: args.quantity,
+          created_at: new Date().toISOString(),
+          product_variants: { ...args.variant, products: args.product },
+        };
+        return [...items, optimisticItem];
+      }),
+    onError: (_err, _args, context) => rollback(context),
+    onSettled: settle,
   });
 
   const updateQuantity = useMutation({
     mutationFn: (args: { cartItemId: string; quantity: number }) =>
       updateCartItemQuantity(sb, args.cartItemId, args.quantity),
-    onSuccess: invalidate,
+    onMutate: (args) =>
+      optimisticUpdate((items) =>
+        items.map((item) => (item.id === args.cartItemId ? { ...item, quantity: args.quantity } : item)),
+      ),
+    onError: (_err, _args, context) => rollback(context),
+    onSettled: settle,
   });
 
   const removeItem = useMutation({
     mutationFn: (cartItemId: string) => removeCartItem(sb, cartItemId),
-    onSuccess: invalidate,
+    onMutate: (cartItemId) => optimisticUpdate((items) => items.filter((item) => item.id !== cartItemId)),
+    onError: (_err, _cartItemId, context) => rollback(context),
+    onSettled: settle,
   });
 
   const items = itemsQuery.data ?? [];
@@ -79,6 +128,19 @@ export function useAddresses(userId: string | null) {
   });
 
   return { addresses: addressesQuery.data ?? [], isLoading: addressesQuery.isLoading, addAddress };
+}
+
+// "Your orders" list — no Realtime subscription here (that's what the
+// expanded single-order view via useOrderTracking is for); this just needs
+// a fresh snapshot whenever the modal opens.
+export function useUserOrders(userId: string | null) {
+  const sb = createClient();
+  const query = useQuery({
+    queryKey: queryKeys.userOrders(userId ?? ""),
+    queryFn: () => getUserOrders(sb, userId!),
+    enabled: Boolean(userId),
+  });
+  return { orders: query.data ?? [], isLoading: query.isLoading };
 }
 
 // Order confirmation / tracking: subscribes to this order's status so it

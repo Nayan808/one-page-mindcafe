@@ -58,3 +58,36 @@ body {
 .badge-pill {
   @apply rounded-full border border-ink/15 bg-white/70 px-3 py-1 text-[11px] font-medium tracking-[0.14em] text-ink/70;
 }
+
+/* Keeps scroll working inside popups (cart, orders, login) without the
+   scrollbar track/thumb visibly taking up space in a small modal. */
+.scrollbar-hide {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Continuously-scrolling ticker (e.g. Zostel pickup points on mobile).
+   Animates a track containing the content duplicated back-to-back;
+   translating exactly -50% loops seamlessly since both halves are
+   identical widths, so there's no visible snap/reset at the loop point.
+   The duration is set per-instance via inline style (varies with content
+   length), so this class only carries the reduced-motion override — which
+   needs !important specifically because it must beat that inline style. */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    animation: none !important;
+  }
+}

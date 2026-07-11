@@ -4,6 +4,7 @@ import type {
   Address,
   Cart,
   CartItemWithVariant,
+  OrderWithItemDetails,
   OrderWithItems,
   PickupLocation,
   Profile,
@@ -174,12 +175,63 @@ export async function getActivePickupLocations(sb: Sb, city?: string): Promise<P
   return data ?? [];
 }
 
+// --- Coupons --------------------------------------------------------------
+
+export type CouponPreview = { code: string; discountAmount: number };
+
+// Client-side "Apply" preview only — reads the same public, RLS-gated
+// coupons row (coupons_select already restricts this to is_active +
+// unexpired) and reproduces create-order's discount math so the checkout
+// summary can show the real number before payment. This is NOT the
+// authoritative check: create-order revalidates everything (including
+// usage_limit, which this preview can't safely enforce client-side
+// without a race) server-side at pay time regardless of what this
+// returns, so there's nothing to trust here beyond UX.
+export async function validateCoupon(sb: Sb, code: string, subtotal: number): Promise<CouponPreview> {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) throw new ApiError("validateCoupon", { message: "Enter a coupon code" });
+
+  const { data: coupon, error } = await sb.from("coupons").select("*").eq("code", normalized).maybeSingle();
+  throwOnError("validateCoupon", error);
+
+  if (!coupon || !coupon.is_active || (coupon.expires_at && new Date(coupon.expires_at) < new Date())) {
+    throw new ApiError("validateCoupon", { message: "Invalid or expired coupon code" });
+  }
+  if (coupon.usage_limit !== null && coupon.times_used >= coupon.usage_limit) {
+    throw new ApiError("validateCoupon", { message: "This coupon has reached its usage limit" });
+  }
+  if (subtotal < Number(coupon.min_order_amount)) {
+    throw new ApiError("validateCoupon", {
+      message: `This coupon needs a minimum order of ₹${coupon.min_order_amount}`,
+    });
+  }
+
+  let discountAmount =
+    coupon.discount_type === "percent" ? subtotal * (Number(coupon.discount_value) / 100) : Number(coupon.discount_value);
+  if (coupon.max_discount_amount !== null) discountAmount = Math.min(discountAmount, Number(coupon.max_discount_amount));
+  discountAmount = Math.min(discountAmount, subtotal);
+
+  return { code: coupon.code, discountAmount };
+}
+
 // --- Orders -------------------------------------------------------------
 
 export async function getOrder(sb: Sb, orderId: string): Promise<OrderWithItems | null> {
   const { data, error } = await sb.from("orders").select("*, order_items(*)").eq("id", orderId).maybeSingle();
   throwOnError("getOrder", error);
   return data as unknown as OrderWithItems | null;
+}
+
+// "Your orders" — order_items joined with the variant/product so the list
+// can show what was actually bought, not just totals.
+export async function getUserOrders(sb: Sb, userId: string): Promise<OrderWithItemDetails[]> {
+  const { data, error } = await sb
+    .from("orders")
+    .select("*, order_items(*, product_variants(variant_label, products(name)))")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  throwOnError("getUserOrders", error);
+  return (data as unknown as OrderWithItemDetails[]) ?? [];
 }
 
 // --- Checkout (server-side price/coupon validation + Razorpay order) ---

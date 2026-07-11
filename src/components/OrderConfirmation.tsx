@@ -5,7 +5,7 @@ import QRCode from "qrcode";
 import { useOrderTracking } from "@/lib/query/hooks";
 import { formatInr } from "@/lib/utils";
 
-const STATUS_LABELS: Record<string, string> = {
+export const STATUS_LABELS: Record<string, string> = {
   placed: "Placed",
   confirmed: "Confirmed",
   packed: "Packed",
@@ -21,7 +21,15 @@ const STATUS_LABELS: Record<string, string> = {
 // subscribes to Realtime so it flips from "pending" once the
 // payment-webhook confirms, and picks up Shiprocket tracking once it's
 // created — no navigation away from the one page.
-export function OrderConfirmation({ orderId, onStartNewOrder }: { orderId: string; onStartNewOrder: () => void }) {
+export function OrderConfirmation({
+  orderId,
+  onStartNewOrder,
+  backLabel = "place another order",
+}: {
+  orderId: string;
+  onStartNewOrder: () => void;
+  backLabel?: string;
+}) {
   const { data: order, isLoading } = useOrderTracking(orderId);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
@@ -103,7 +111,7 @@ export function OrderConfirmation({ orderId, onStartNewOrder }: { orderId: strin
       )}
 
       <button type="button" onClick={onStartNewOrder} className="pill-btn-outline w-full">
-        place another order
+        {backLabel}
       </button>
     </div>
   );
