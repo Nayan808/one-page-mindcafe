@@ -16,6 +16,11 @@ const STEPS = [
   { title: "Anywhere You Go", description: "From pocket to peace of mind.", src: "/how-it-works/step-5.webp" },
 ];
 
+// A connected step-path rather than a plain photo-card grid — the
+// through-line (vertical on mobile, horizontal on desktop) reinforces that
+// this is a sequence, not just five unrelated tiles. Circular photo nodes
+// + ghost numerals keep it on-theme with the rest of the site's visual
+// language (cream/ink, numbered "0X" labels) instead of a generic gallery.
 export function HowItWorksSection() {
   return (
     <section id="how-it-works" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
@@ -30,29 +35,44 @@ export function HowItWorksSection() {
         </h2>
       </div>
 
-      <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-3 sm:gap-5 lg:grid-cols-5">
-        {STEPS.map((step, index) => (
-          <div
-            key={step.title}
-            className={`flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_1px_2px_rgba(17,17,16,0.04),0_16px_32px_-16px_rgba(17,17,16,0.25)] ${
-              index === STEPS.length - 1 ? "col-span-2 mx-auto w-1/2 sm:col-span-1 sm:mx-0 sm:w-auto" : ""
-            }`}
-          >
-            <div className="relative aspect-[4/3] w-full overflow-hidden">
-              <Image
-                src={step.src}
-                alt={step.title}
-                fill
-                sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 45vw"
-                className="object-cover"
-              />
+      <div className="relative mt-16 sm:mt-20">
+        {/* Vertical line (mobile) */}
+        <div className="absolute bottom-6 left-8 top-6 w-px bg-ink/15 sm:hidden" aria-hidden />
+        {/* Horizontal line (desktop) — spans between the first and last node centers */}
+        <div
+          className="absolute top-8 hidden h-px bg-ink/15 sm:block"
+          style={{ left: "10%", right: "10%" }}
+          aria-hidden
+        />
+
+        <div className="relative flex flex-col gap-10 sm:flex-row sm:justify-between sm:gap-4">
+          {STEPS.map((step, index) => (
+            <div key={step.title} className="relative flex items-start gap-5 sm:flex-1 sm:flex-col sm:items-center sm:text-center">
+              <span
+                className="font-display pointer-events-none absolute -top-3 left-1/2 hidden -translate-x-1/2 select-none text-6xl font-bold text-ink/[0.06] sm:block"
+                aria-hidden
+              >
+                0{index + 1}
+              </span>
+
+              <div className="relative shrink-0">
+                <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-ink bg-white shadow-sm sm:h-20 sm:w-20">
+                  <Image src={step.src} alt={step.title} fill sizes="80px" className="object-cover" />
+                </div>
+                <span className="font-display absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-cream bg-ink text-[11px] font-bold text-cream">
+                  {index + 1}
+                </span>
+              </div>
+
+              <div className="relative pt-1 sm:mt-4 sm:pt-0">
+                <h3 className="font-display text-base font-bold text-ink sm:text-lg">{step.title}</h3>
+                <p className="mt-1 max-w-[16rem] text-xs leading-snug text-ink/60 sm:mx-auto sm:text-sm">
+                  {step.description}
+                </p>
+              </div>
             </div>
-            <div className="flex flex-1 flex-col gap-1.5 p-4 text-left">
-              <h3 className="font-display text-base font-bold text-ink sm:text-lg">{step.title}</h3>
-              <p className="text-xs leading-snug text-ink/60 sm:text-sm">{step.description}</p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

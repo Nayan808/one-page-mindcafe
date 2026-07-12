@@ -1,8 +1,11 @@
-// Hand-written subset of Mindcafe/frontend's Database type — only the
-// tables this order page actually touches (products through order_items).
-// Same Supabase project/schema; regenerate from there with
+// Hand-written subset of Mindcafe's Database type — only the tables the
+// frontend actually touches so far (Feelz commerce + Phase 1's site_settings/
+// newsletter_subscribers/reviews). The full schema has more tables (experts,
+// appointments, assessments, business_leads, feeds_posts, faqs,
+// therapy_categories, milestones, inventory) added incrementally as each
+// phase builds the page that needs them. Regenerate from the live schema with
 //   npx supabase gen types typescript --project-id <ref>
-// if the schema changes.
+// if you'd rather have the full set at once.
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
@@ -20,7 +23,7 @@ type OrderStatus =
 type PaymentMethod = "razorpay" | "cash_on_pickup";
 type PaymentStatus = "pending" | "pending_cash" | "paid" | "refund_required" | "refunded" | "failed";
 type FulfillmentType = "delivery" | "takeaway";
-type ProfileRole = "customer" | "expert" | "employer" | "admin";
+type ProfileRole = "customer" | "expert" | "employer" | "admin" | "super_admin";
 type AuthProvider = "email" | "google";
 type CartStatus = "active" | "merged" | "abandoned" | "converted";
 
@@ -304,6 +307,165 @@ export interface Database {
           discount_value: number;
         };
         Update: Partial<Database["public"]["Tables"]["coupons"]["Row"]>;
+        Relationships: [];
+      };
+      site_settings: {
+        Row: {
+          key: string;
+          value: Json;
+          updated_at: string;
+        };
+        Insert: { key: string; value: Json; updated_at?: string };
+        Update: Partial<Database["public"]["Tables"]["site_settings"]["Row"]>;
+        Relationships: [];
+      };
+      newsletter_subscribers: {
+        Row: {
+          id: string;
+          email: string;
+          subscribed_at: string;
+          confirmed: boolean;
+        };
+        Insert: Partial<Database["public"]["Tables"]["newsletter_subscribers"]["Row"]> & { email: string };
+        Update: Partial<Database["public"]["Tables"]["newsletter_subscribers"]["Row"]>;
+        Relationships: [];
+      };
+      reviews: {
+        Row: {
+          id: string;
+          reviewer_id: string | null;
+          reviewer_name: string;
+          city: string | null;
+          rating: number;
+          comment: string | null;
+          related_expert_id: string | null;
+          is_corporate: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["reviews"]["Row"]> & {
+          reviewer_name: string;
+          rating: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["reviews"]["Row"]>;
+        Relationships: [];
+      };
+      experts: {
+        Row: {
+          id: string;
+          profile_id: string | null;
+          name: string;
+          photo_url: string | null;
+          bio: string | null;
+          specialties: string[];
+          certifications: string[];
+          rating: number | null;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["experts"]["Row"]> & { name: string };
+        Update: Partial<Database["public"]["Tables"]["experts"]["Row"]>;
+        Relationships: [];
+      };
+      therapy_categories: {
+        Row: {
+          slug: string;
+          title: string;
+          body: string;
+          hero_image: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["therapy_categories"]["Row"]> & {
+          slug: string;
+          title: string;
+          body: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["therapy_categories"]["Row"]>;
+        Relationships: [];
+      };
+      appointments: {
+        Row: {
+          id: string;
+          user_id: string;
+          expert_id: string | null;
+          therapy_category: string;
+          scheduled_at: string | null;
+          status: "pending" | "confirmed" | "completed" | "cancelled";
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["appointments"]["Row"]> & {
+          user_id: string;
+          therapy_category: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["appointments"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "appointments_expert_id_fkey";
+            columns: ["expert_id"];
+            isOneToOne: false;
+            referencedRelation: "experts";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      assessments: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          guest_session_id: string | null;
+          answers: Json;
+          recommended_category: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["assessments"]["Row"]> & { answers: Json };
+        Update: Partial<Database["public"]["Tables"]["assessments"]["Row"]>;
+        Relationships: [];
+      };
+      business_leads: {
+        Row: {
+          id: string;
+          company_name: string;
+          contact_name: string;
+          email: string;
+          phone: string | null;
+          message: string | null;
+          status: "new" | "contacted" | "closed";
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["business_leads"]["Row"]> & {
+          company_name: string;
+          contact_name: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["business_leads"]["Row"]>;
+        Relationships: [];
+      };
+      faqs: {
+        Row: {
+          id: string;
+          category: string;
+          question: string;
+          answer: string;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["faqs"]["Row"]> & {
+          category: string;
+          question: string;
+          answer: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["faqs"]["Row"]>;
+        Relationships: [];
+      };
+      milestones: {
+        Row: {
+          id: string;
+          year: string;
+          title: string;
+          description: string | null;
+          sort_order: number;
+        };
+        Insert: Partial<Database["public"]["Tables"]["milestones"]["Row"]> & { year: string; title: string };
+        Update: Partial<Database["public"]["Tables"]["milestones"]["Row"]>;
         Relationships: [];
       };
     };

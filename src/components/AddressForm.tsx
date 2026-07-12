@@ -22,14 +22,15 @@ type AddressFormProps = {
   onSubmit: (values: AddressFormValues) => void | Promise<void>;
   isSubmitting?: boolean;
   submitLabel?: string;
+  defaultValues?: Partial<AddressFormValues>;
 };
 
-export function AddressForm({ onSubmit, isSubmitting, submitLabel = "Use this address" }: AddressFormProps) {
+export function AddressForm({ onSubmit, isSubmitting, submitLabel = "Use this address", defaultValues }: AddressFormProps) {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<AddressFormValues>({ resolver: zodResolver(addressSchema) });
+  } = useForm<AddressFormValues>({ resolver: zodResolver(addressSchema), defaultValues });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 sm:grid-cols-2">

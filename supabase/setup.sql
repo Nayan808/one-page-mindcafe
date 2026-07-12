@@ -34,11 +34,17 @@ create table if not exists public.profiles (
   gender text,
   auth_provider text not null default 'email' check (auth_provider in ('email', 'google')),
   avatar_url text,
-  role text not null default 'customer' check (role in ('customer', 'expert', 'employer', 'admin')),
+  role text not null default 'customer' check (role in ('customer', 'expert', 'employer', 'admin', 'super_admin')),
   created_at timestamptz not null default now()
 );
 
-comment on table public.profiles is 'App-level profile extending auth.users. role=admin can only be set manually (see MANUAL_SETUP.md) or by admin-create-expert for role=expert.';
+-- Loosens an already-deployed database's role check constraint to match
+-- the above (adds 'super_admin') — idempotent, safe to re-run.
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check
+  check (role in ('customer', 'expert', 'employer', 'admin', 'super_admin'));
+
+comment on table public.profiles is 'App-level profile extending auth.users. role=admin/super_admin can only be set manually (see AUTH_AND_ROLES.md) or by admin-create-expert for role=expert. super_admin is a superset of admin (see is_admin()/is_super_admin()) that additionally can change anyone''s role — plain admin cannot change roles at all, see prevent_role_self_escalation().';
 
 -- ---- from migrations/0003_products.sql ----
 -- One row per Feelz product line (Focus, Joy, Extrovert, Rest, ...).
@@ -258,12 +264,15 @@ create table if not exists public.order_items (
 create index if not exists order_items_order_id_idx on public.order_items (order_id);
 
 -- ---- from migrations/0014_experts.sql ----
--- Certified counsellors/psychologists. profile_id links to a profiles row
--- with role='expert', created only via the admin-create-expert Edge
--- Function (never a direct client insert, even by an admin).
+-- Certified counsellors/psychologists. profile_id optionally links to a
+-- profiles row with role='expert' (for an expert who has platform login
+-- access, created only via the admin-create-expert Edge Function, never a
+-- direct client insert). Nullable because a directory listing shouldn't
+-- require a login-capable account to exist — e.g. featured experts seeded
+-- from marketing content before they're onboarded with real credentials.
 create table if not exists public.experts (
   id uuid primary key default gen_random_uuid(),
-  profile_id uuid not null unique references public.profiles (id) on delete cascade,
+  profile_id uuid unique references public.profiles (id) on delete cascade,
   name text not null,
   photo_url text,
   bio text,
@@ -273,6 +282,10 @@ create table if not exists public.experts (
   is_active boolean not null default true,
   created_at timestamptz not null default now()
 );
+
+-- Loosens an already-deployed database's profile_id to match the above —
+-- safe/idempotent to re-run (no-ops once already nullable).
+alter table public.experts alter column profile_id drop not null;
 
 create index if not exists experts_is_active_idx on public.experts (is_active);
 
@@ -719,6 +732,10 @@ create or replace trigger on_auth_user_created
 -- create, so it cannot enforce the merge on its own. See MANUAL_SETUP.md
 -- step 4 (Google OAuth) for the dashboard setting this depends on.
 
+-- super_admin is a superset of admin for every ordinary admin-gated
+-- action (products, coupons, business_leads, etc. RLS all key off this) —
+-- the two roles only diverge for role-management itself, guarded
+-- separately by is_super_admin() below.
 create or replace function public.is_admin() returns boolean
 language sql
 stable
@@ -726,12 +743,29 @@ security definer
 set search_path = public
 as $$
   select exists (
-    select 1 from profiles where id = auth.uid() and role = 'admin'
+    select 1 from profiles where id = auth.uid() and role in ('admin', 'super_admin')
   )
 $$;
 
 revoke execute on function public.is_admin() from public;
 grant execute on function public.is_admin() to anon, authenticated;
+
+-- Strictly super_admin only — used solely to gate changing someone's
+-- role (see prevent_role_self_escalation()). A plain admin passes
+-- is_admin() but not this.
+create or replace function public.is_super_admin() returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from profiles where id = auth.uid() and role = 'super_admin'
+  )
+$$;
+
+revoke execute on function public.is_super_admin() from public;
+grant execute on function public.is_super_admin() to anon, authenticated;
 
 -- ---- from migrations/0028_rls_policies.sql ----
 -- Consolidated Row Level Security policy map (backend doc Section 4).
@@ -813,6 +847,12 @@ create policy profiles_update on public.profiles
 -- RLS alone can't stop a user from setting their own role='admin' via the
 -- above update policy (id = auth.uid() still matches). Guard the role
 -- column specifically with a trigger.
+--
+-- Deliberately gated on is_super_admin(), not is_admin(): a plain admin
+-- can update any other field on any profile (profiles_update above), but
+-- role changes are a super_admin-only action — including promoting
+-- someone TO admin, so a compromised/rogue admin account can't mint more
+-- admins or demote other admins on its own.
 create or replace function public.prevent_role_self_escalation() returns trigger
 language plpgsql
 security definer
@@ -821,10 +861,10 @@ as $$
 begin
   -- service_role (used by the admin-create-expert Edge Function to
   -- promote a freshly-created profile to role='expert') has no auth.uid(),
-  -- so is_admin() would always read false for it — explicitly exempt it
-  -- rather than block a legitimate, already-privileged caller.
-  if new.role is distinct from old.role and not public.is_admin() and auth.role() <> 'service_role' then
-    raise exception 'Only admins can change role';
+  -- so is_super_admin() would always read false for it — explicitly
+  -- exempt it rather than block a legitimate, already-privileged caller.
+  if new.role is distinct from old.role and not public.is_super_admin() and auth.role() <> 'service_role' then
+    raise exception 'Only a super_admin can change role';
   end if;
   return new;
 end;

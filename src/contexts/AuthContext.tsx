@@ -13,14 +13,11 @@ type AuthContextValue = {
   status: AuthStatus;
   user: User | null;
   profile: Profile | null;
-  signInWithGoogle: () => Promise<{ error: string | null }>;
+  signInWithGoogle: (returnTo?: string) => Promise<{ error: string | null }>;
+  signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
+  signUpWithPassword: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  isLoginModalOpen: boolean;
-  openLoginModal: () => void;
-  closeLoginModal: () => void;
-  isOrdersOpen: boolean;
-  openOrders: () => void;
-  closeOrders: () => void;
+  refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -30,8 +27,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<AuthStatus>("loading");
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isOrdersOpen, setIsOrdersOpen] = useState(false);
 
   const loadProfile = useCallback(
     async (userId: string) => {
@@ -63,7 +58,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (event === "SIGNED_IN" && session?.user) {
         void loadProfile(session.user.id);
-        setIsLoginModalOpen(false);
 
         const guestSessionId = readGuestSessionId();
         if (guestSessionId) {
@@ -80,30 +74,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [sb, loadProfile]);
 
-  const signInWithGoogle = useCallback(async () => {
-    const { error } = await sb.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: new URL("/auth/callback", window.location.origin).toString() },
-    });
-    return { error: error?.message ?? null };
-  }, [sb]);
+  const signInWithGoogle = useCallback(
+    async (returnTo?: string) => {
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      if (returnTo) callbackUrl.searchParams.set("returnTo", returnTo);
+      const { error } = await sb.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: callbackUrl.toString() },
+      });
+      return { error: error?.message ?? null };
+    },
+    [sb],
+  );
+
+  const signInWithPassword = useCallback(
+    async (email: string, password: string) => {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      return { error: error?.message ?? null };
+    },
+    [sb],
+  );
+
+  const signUpWithPassword = useCallback(
+    async (email: string, password: string, fullName: string) => {
+      const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+      return { error: error?.message ?? null };
+    },
+    [sb],
+  );
 
   const signOut = useCallback(async () => {
     await sb.auth.signOut();
   }, [sb]);
+
+  const refreshProfile = useCallback(async () => {
+    if (user) await loadProfile(user.id);
+  }, [user, loadProfile]);
 
   const value: AuthContextValue = {
     status,
     user,
     profile,
     signInWithGoogle,
+    signInWithPassword,
+    signUpWithPassword,
     signOut,
-    isLoginModalOpen,
-    openLoginModal: () => setIsLoginModalOpen(true),
-    closeLoginModal: () => setIsLoginModalOpen(false),
-    isOrdersOpen,
-    openOrders: () => setIsOrdersOpen(true),
-    closeOrders: () => setIsOrdersOpen(false),
+    refreshProfile,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

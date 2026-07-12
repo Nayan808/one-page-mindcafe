@@ -15,6 +15,9 @@
 # env
 .env*.local
 
+# real login credentials — never commit these
+TESTING_CREDENTIALS.md
+
 # typescript
 next-env.d.ts
 *.tsbuildinfo

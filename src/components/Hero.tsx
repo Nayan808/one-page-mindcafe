@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Check, Loader2, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -45,7 +46,8 @@ const revealVariants = {
 export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
-  const { user, openLoginModal } = useAuth();
+  const { user } = useAuth();
+  const router = useRouter();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -60,7 +62,7 @@ export function Hero() {
     if (!variant || !isReady || !cartId) return;
 
     if (!user) {
-      openLoginModal();
+      router.push("/login?returnTo=%2Ffeelz");
       return;
     }
 

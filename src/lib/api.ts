@@ -2,14 +2,23 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/supabase";
 import type {
   Address,
+  Appointment,
+  AppointmentWithExpert,
   Cart,
   CartItemWithVariant,
+  Expert,
+  Faq,
+  Milestone,
   OrderWithItemDetails,
   OrderWithItems,
   PickupLocation,
+  Product,
   Profile,
   ProductWithVariants,
+  Review,
+  TherapyCategory,
 } from "@/types/domain";
+import type { Json } from "@/types/supabase";
 
 // Normalized error shape thrown by every function below, so callers don't
 // have to know about PostgREST's raw error format.
@@ -43,6 +52,16 @@ export async function fetchProfile(sb: Sb, userId: string): Promise<Profile | nu
   return data;
 }
 
+export async function updateProfile(
+  sb: Sb,
+  userId: string,
+  input: Database["public"]["Tables"]["profiles"]["Update"],
+): Promise<Profile> {
+  const { data, error } = await sb.from("profiles").update(input).eq("id", userId).select("*").single();
+  throwOnError("updateProfile", error);
+  return data!;
+}
+
 // --- Products -----------------------------------------------------------
 
 export async function getFeelzCatalog(sb: Sb): Promise<ProductWithVariants[]> {
@@ -53,6 +72,19 @@ export async function getFeelzCatalog(sb: Sb): Promise<ProductWithVariants[]> {
     .order("name");
   throwOnError("getFeelzCatalog", error);
   return (data as ProductWithVariants[]) ?? [];
+}
+
+// Lighter than getFeelzCatalog — the homepage teaser only shows name+image,
+// no pricing/variant data, so there's no reason to fetch or couple to it.
+export async function getFeelzTeaser(sb: Sb, limit = 4): Promise<Pick<Product, "id" | "name" | "image_url">[]> {
+  const { data, error } = await sb
+    .from("products")
+    .select("id, name, image_url")
+    .eq("is_active", true)
+    .order("name")
+    .limit(limit);
+  throwOnError("getFeelzTeaser", error);
+  return data ?? [];
 }
 
 export async function getAvailableStock(sb: Sb, variantId: string, locationId: string | null = null) {
@@ -159,6 +191,21 @@ export async function createAddress(
   return data!;
 }
 
+export async function updateAddress(
+  sb: Sb,
+  addressId: string,
+  input: Database["public"]["Tables"]["addresses"]["Update"],
+): Promise<Address> {
+  const { data, error } = await sb.from("addresses").update(input).eq("id", addressId).select("*").single();
+  throwOnError("updateAddress", error);
+  return data!;
+}
+
+export async function deleteAddress(sb: Sb, addressId: string): Promise<void> {
+  const { error } = await sb.from("addresses").delete().eq("id", addressId);
+  throwOnError("deleteAddress", error);
+}
+
 export async function checkPincodeServiceability(sb: Sb, pincode: string) {
   const { data, error } = await sb.from("serviceable_pincodes").select("*").eq("pincode", pincode).maybeSingle();
   throwOnError("checkPincodeServiceability", error);
@@ -173,6 +220,175 @@ export async function getActivePickupLocations(sb: Sb, city?: string): Promise<P
   const { data, error } = await query.order("name");
   throwOnError("getActivePickupLocations", error);
   return data ?? [];
+}
+
+// --- Marketing / CMS (site_settings, newsletter, reviews) -----------------
+
+// Generic key/value CMS store — the announcement bar and homepage stat
+// chips read from this so marketing can change copy without a deploy.
+// Returns null (not a thrown error) when the key hasn't been configured
+// yet, so callers can fall back to a sensible hardcoded default.
+export async function getSiteSetting<T = unknown>(sb: Sb, key: string): Promise<T | null> {
+  const { data, error } = await sb.from("site_settings").select("value").eq("key", key).maybeSingle();
+  throwOnError("getSiteSetting", error);
+  return (data?.value as T | undefined) ?? null;
+}
+
+// Public insert-only per RLS — a duplicate email is a user-facing
+// "already subscribed" state, not an error to surface as broken.
+export async function subscribeToNewsletter(sb: Sb, email: string): Promise<{ alreadySubscribed: boolean }> {
+  const { error } = await sb.from("newsletter_subscribers").insert({ email: email.trim().toLowerCase() });
+  if (error) {
+    if (error.code === "23505") return { alreadySubscribed: true };
+    throw new ApiError("subscribeToNewsletter", error);
+  }
+  return { alreadySubscribed: false };
+}
+
+export async function getRecentReviews(sb: Sb, limit = 4): Promise<Review[]> {
+  const { data, error } = await sb.from("reviews").select("*").order("created_at", { ascending: false }).limit(limit);
+  throwOnError("getRecentReviews", error);
+  return data ?? [];
+}
+
+// Full /reviews page — paginated, optionally filtered to a star rating.
+export async function getReviewsPage(
+  sb: Sb,
+  options: { page: number; pageSize: number; rating?: number },
+): Promise<{ reviews: Review[]; total: number }> {
+  const from = options.page * options.pageSize;
+  const to = from + options.pageSize - 1;
+  let query = sb.from("reviews").select("*", { count: "exact" }).eq("is_corporate", false);
+  if (options.rating) query = query.eq("rating", options.rating);
+  const { data, error, count } = await query.order("created_at", { ascending: false }).range(from, to);
+  throwOnError("getReviewsPage", error);
+  return { reviews: data ?? [], total: count ?? 0 };
+}
+
+// --- Counselling (experts, therapy categories) -----------------------------
+
+// Public read is already scoped to is_active by RLS (experts_select), but
+// filtering here too keeps the query self-documenting and lets a future
+// admin-only view reuse the same table without a second function.
+export async function getActiveExperts(sb: Sb, specialty?: string): Promise<Expert[]> {
+  let query = sb.from("experts").select("*").eq("is_active", true);
+  if (specialty) query = query.contains("specialties", [specialty]);
+  const { data, error } = await query.order("rating", { ascending: false, nullsFirst: false });
+  throwOnError("getActiveExperts", error);
+  return data ?? [];
+}
+
+export async function getTherapyCategories(sb: Sb): Promise<TherapyCategory[]> {
+  const { data, error } = await sb.from("therapy_categories").select("*").order("title");
+  throwOnError("getTherapyCategories", error);
+  return data ?? [];
+}
+
+export async function getTherapyCategory(sb: Sb, slug: string): Promise<TherapyCategory | null> {
+  const { data, error } = await sb.from("therapy_categories").select("*").eq("slug", slug).maybeSingle();
+  throwOnError("getTherapyCategory", error);
+  return data;
+}
+
+// --- Appointments -----------------------------------------------------------
+
+// Direct client insert (not an Edge Function): unlike orders, there's no
+// price/stock integrity to protect here — RLS's `user_id = auth.uid()`
+// check is what actually stops someone from booking on another account's
+// behalf. Always lands on 'pending' (the table default) since there's no
+// real-time expert availability to confirm against yet.
+export async function createAppointment(
+  sb: Sb,
+  input: {
+    userId: string;
+    therapyCategory: string;
+    expertId?: string;
+    scheduledAt?: string;
+    notes?: string;
+  },
+): Promise<Appointment> {
+  const { data, error } = await sb
+    .from("appointments")
+    .insert({
+      user_id: input.userId,
+      therapy_category: input.therapyCategory,
+      expert_id: input.expertId,
+      scheduled_at: input.scheduledAt,
+      notes: input.notes,
+    })
+    .select("*")
+    .single();
+  throwOnError("createAppointment", error);
+  return data!;
+}
+
+export async function getAppointment(sb: Sb, appointmentId: string): Promise<AppointmentWithExpert | null> {
+  const { data, error } = await sb
+    .from("appointments")
+    .select("*, experts(name, photo_url)")
+    .eq("id", appointmentId)
+    .maybeSingle();
+  throwOnError("getAppointment", error);
+  return data as unknown as AppointmentWithExpert | null;
+}
+
+export async function getUserAppointments(sb: Sb, userId: string): Promise<AppointmentWithExpert[]> {
+  const { data, error } = await sb
+    .from("appointments")
+    .select("*, experts(name, photo_url)")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false });
+  throwOnError("getUserAppointments", error);
+  return (data as unknown as AppointmentWithExpert[]) ?? [];
+}
+
+// --- Expert dashboard ---------------------------------------------------
+
+export async function getExpertByProfileId(sb: Sb, profileId: string): Promise<Expert | null> {
+  const { data, error } = await sb.from("experts").select("*").eq("profile_id", profileId).maybeSingle();
+  throwOnError("getExpertByProfileId", error);
+  return data;
+}
+
+export async function getExpertAppointments(sb: Sb, expertId: string): Promise<Appointment[]> {
+  const { data, error } = await sb
+    .from("appointments")
+    .select("*")
+    .eq("expert_id", expertId)
+    .order("created_at", { ascending: false });
+  throwOnError("getExpertAppointments", error);
+  return data ?? [];
+}
+
+// RLS (appointments_update) only lets the assigned expert or an admin do
+// this — the same guard that stops a customer from marking their own
+// booking "completed".
+export async function updateAppointmentStatus(
+  sb: Sb,
+  appointmentId: string,
+  status: Appointment["status"],
+): Promise<void> {
+  const { error } = await sb.from("appointments").update({ status }).eq("id", appointmentId);
+  throwOnError("updateAppointmentStatus", error);
+}
+
+// --- Self-assessment ---------------------------------------------------------
+
+// Scoring happens client-side (spec 4.10 allows either) — this just
+// persists the answers + result. Works signed-in or guest, mirroring the
+// cart's guest_session_id pattern; RLS treats user_id IS NULL rows as
+// world-writable/readable, the same accepted tradeoff carts already use.
+export async function submitAssessment(
+  sb: Sb,
+  input: { userId?: string; guestSessionId?: string; answers: Json; recommendedCategory: string },
+): Promise<void> {
+  const { error } = await sb.from("assessments").insert({
+    user_id: input.userId,
+    guest_session_id: input.guestSessionId,
+    answers: input.answers,
+    recommended_category: input.recommendedCategory,
+  });
+  throwOnError("submitAssessment", error);
 }
 
 // --- Coupons --------------------------------------------------------------
@@ -288,4 +504,38 @@ export async function checkout(sb: Sb, input: CheckoutInput): Promise<CheckoutRe
     throw new ApiError("checkout", { message: detail?.error ?? error.message });
   }
   return data as CheckoutResponse;
+}
+
+// --- Business leads (corporate/EAP contact form) ----------------------------
+
+// Public insert-only per RLS — the sales team reads these from the
+// dashboard (or a future admin view), not the frontend.
+export async function submitBusinessLead(
+  sb: Sb,
+  input: { companyName: string; contactName: string; email: string; phone?: string; message?: string },
+): Promise<void> {
+  const { error } = await sb.from("business_leads").insert({
+    company_name: input.companyName,
+    contact_name: input.contactName,
+    email: input.email,
+    phone: input.phone,
+    message: input.message,
+  });
+  throwOnError("submitBusinessLead", error);
+}
+
+// --- FAQs, milestones (CMS content) ------------------------------------------
+
+export async function getFaqs(sb: Sb, category?: string): Promise<Faq[]> {
+  let query = sb.from("faqs").select("*");
+  if (category) query = query.eq("category", category);
+  const { data, error } = await query.order("category").order("sort_order");
+  throwOnError("getFaqs", error);
+  return data ?? [];
+}
+
+export async function getMilestones(sb: Sb): Promise<Milestone[]> {
+  const { data, error } = await sb.from("milestones").select("*").order("sort_order");
+  throwOnError("getMilestones", error);
+  return data ?? [];
 }

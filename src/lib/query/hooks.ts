@@ -6,11 +6,16 @@ import { createClient } from "@/lib/supabase/client";
 import {
   addCartItem,
   createAddress,
+  createAppointment,
+  deleteAddress,
+  getAppointment,
   getCartItems,
   getOrder,
   getUserAddresses,
+  getUserAppointments,
   getUserOrders,
   removeCartItem,
+  updateAddress,
   updateCartItemQuantity,
 } from "@/lib/api";
 import type { Database } from "@/types/supabase";
@@ -22,6 +27,8 @@ export const queryKeys = {
   order: (orderId: string) => ["orders", orderId] as const,
   userOrders: (userId: string) => ["orders", "user", userId] as const,
   addresses: (userId: string) => ["addresses", userId] as const,
+  appointment: (appointmentId: string) => ["appointments", appointmentId] as const,
+  userAppointments: (userId: string) => ["appointments", "user", userId] as const,
 };
 
 // Cart *identity* (which cart) lives in CartContext; this hook owns the
@@ -127,7 +134,18 @@ export function useAddresses(userId: string | null) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey }),
   });
 
-  return { addresses: addressesQuery.data ?? [], isLoading: addressesQuery.isLoading, addAddress };
+  const editAddress = useMutation({
+    mutationFn: (args: { addressId: string; input: Database["public"]["Tables"]["addresses"]["Update"] }) =>
+      updateAddress(sb, args.addressId, args.input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  const removeAddress = useMutation({
+    mutationFn: (addressId: string) => deleteAddress(sb, addressId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey }),
+  });
+
+  return { addresses: addressesQuery.data ?? [], isLoading: addressesQuery.isLoading, addAddress, editAddress, removeAddress };
 }
 
 // "Your orders" list — no Realtime subscription here (that's what the
@@ -176,4 +194,59 @@ export function useOrderTracking(orderId: string | null) {
   }, [orderId]);
 
   return orderQuery;
+}
+
+export function useCreateAppointment() {
+  const sb = createClient();
+  return useMutation({
+    mutationFn: (input: Parameters<typeof createAppointment>[1]) => createAppointment(sb, input),
+  });
+}
+
+// "Your appointments" — same no-realtime rationale as useUserOrders; the
+// expanded single-appointment view (useAppointmentTracking) is what
+// subscribes live.
+export function useUserAppointments(userId: string | null) {
+  const sb = createClient();
+  const query = useQuery({
+    queryKey: queryKeys.userAppointments(userId ?? ""),
+    queryFn: () => getUserAppointments(sb, userId!),
+    enabled: Boolean(userId),
+  });
+  return { appointments: query.data ?? [], isLoading: query.isLoading };
+}
+
+// Mirrors useOrderTracking exactly: poll + Realtime subscription so a
+// pending -> confirmed status change (an expert/admin confirming the
+// booking) shows up without the user refreshing.
+export function useAppointmentTracking(appointmentId: string | null) {
+  const queryClient = useQueryClient();
+  const sb = createClient();
+  const queryKey = queryKeys.appointment(appointmentId ?? "");
+
+  const appointmentQuery = useQuery({
+    queryKey,
+    queryFn: () => getAppointment(sb, appointmentId!),
+    enabled: Boolean(appointmentId),
+    refetchInterval: (query) => (query.state.data?.status === "cancelled" ? false : 20_000),
+  });
+
+  useEffect(() => {
+    if (!appointmentId) return;
+    const channel = sb
+      .channel(`appointment-${appointmentId}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "appointments", filter: `id=eq.${appointmentId}` },
+        () => queryClient.invalidateQueries({ queryKey }),
+      )
+      .subscribe();
+
+    return () => {
+      sb.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [appointmentId]);
+
+  return appointmentQuery;
 }

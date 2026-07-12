@@ -12,6 +12,18 @@ export type CartItem = Tables["cart_items"]["Row"];
 export type Order = Tables["orders"]["Row"];
 export type OrderItem = Tables["order_items"]["Row"];
 export type Coupon = Tables["coupons"]["Row"];
+export type SiteSetting = Tables["site_settings"]["Row"];
+export type NewsletterSubscriber = Tables["newsletter_subscribers"]["Row"];
+export type Review = Tables["reviews"]["Row"];
+export type Expert = Tables["experts"]["Row"];
+export type TherapyCategory = Tables["therapy_categories"]["Row"];
+export type Appointment = Tables["appointments"]["Row"];
+export type Assessment = Tables["assessments"]["Row"];
+export type BusinessLead = Tables["business_leads"]["Row"];
+export type Faq = Tables["faqs"]["Row"];
+export type Milestone = Tables["milestones"]["Row"];
+
+export type AppointmentWithExpert = Appointment & { experts: Pick<Expert, "name" | "photo_url"> | null };
 
 export type ProductWithVariants = Product & { product_variants: ProductVariant[] };
 export type CartItemWithVariant = CartItem & {

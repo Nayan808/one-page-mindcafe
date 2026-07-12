@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getAvailableStock } from "@/lib/api";
 import { useCartContext } from "@/contexts/CartContext";
@@ -28,7 +29,8 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   const [available, setAvailable] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const { addItem, isReady, openDrawer } = useCartContext();
-  const { user, openLoginModal } = useAuth();
+  const { user } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     if (!variantId) return;
@@ -52,7 +54,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   async function handleAddToCart() {
     if (!variant) return;
     if (!user) {
-      openLoginModal();
+      router.push("/login?returnTo=%2Ffeelz");
       return;
     }
     await addItem.mutateAsync({

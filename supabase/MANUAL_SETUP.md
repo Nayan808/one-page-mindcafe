@@ -9,6 +9,11 @@ later steps depend on earlier ones.
 Replace `<project-ref>` below with your actual Supabase project ref
 (Dashboard → Project Settings → General → Reference ID).
 
+For how login routes, roles (customer/expert/employer/admin), and the
+staff dashboard password all fit together — including the one manual step
+needed to create your first admin account — see
+[`AUTH_AND_ROLES.md`](./AUTH_AND_ROLES.md).
+
 ## 1. Create the Supabase project (if you haven't already)
 
 [supabase.com/dashboard](https://supabase.com/dashboard) → New project.
@@ -65,9 +70,11 @@ supabase functions deploy payment-webhook --no-verify-jwt
 supabase functions deploy create-shiprocket-shipment --no-verify-jwt
 supabase functions deploy shiprocket-tracking-webhook --no-verify-jwt
 supabase functions deploy order-status-notifier --no-verify-jwt
+supabase functions deploy appointment-notifier --no-verify-jwt
 supabase functions deploy merge-guest-cart --no-verify-jwt
 supabase functions deploy cleanup-reservations --no-verify-jwt
 supabase functions deploy staff-pickup --no-verify-jwt
+supabase functions deploy admin-create-expert --no-verify-jwt
 ```
 
 `--no-verify-jwt` matters — `create-order` and `merge-guest-cart` accept
@@ -141,9 +148,11 @@ Dashboard → Database → Webhooks → **Create a new hook**, twice:
 | --- | --- | --- | --- |
 | `orders` | Update | HTTP Request | `https://<project-ref>.supabase.co/functions/v1/order-status-notifier` |
 | `orders` | Update | HTTP Request | `https://<project-ref>.supabase.co/functions/v1/create-shiprocket-shipment` |
+| `appointments` | Insert, Update | HTTP Request | `https://<project-ref>.supabase.co/functions/v1/appointment-notifier` |
 
-Both no-op harmlessly on updates they don't care about, so it's safe to
-point both at every `orders` UPDATE.
+All three no-op harmlessly on events they don't care about, so it's safe
+to point the `orders` ones at every UPDATE and the `appointments` one at
+every Insert + Update.
 
 ## 10. Schedule `cleanup-reservations`
 

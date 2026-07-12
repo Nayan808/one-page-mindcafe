@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar } from "@/components/Avatar";
 
-// Avatar button in the header — click to reveal "your orders" / "sign out"
+// Avatar button in the header — click to reveal "your account" / "sign out"
 // instead of showing both as always-visible pills.
 export function ProfileMenu() {
-  const { user, profile, openOrders, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -45,16 +46,13 @@ export function ProfileMenu() {
 
       {isOpen && (
         <div className="absolute left-1/2 top-full mt-2 w-48 -translate-x-1/2 divide-y divide-ink/10 overflow-hidden rounded-2xl border border-ink/15 bg-cream text-center shadow-lg">
-          <button
-            type="button"
-            onClick={() => {
-              setIsOpen(false);
-              openOrders();
-            }}
+          <Link
+            href="/account"
+            onClick={() => setIsOpen(false)}
             className="block w-full px-4 py-3 text-xs font-medium uppercase tracking-label text-ink/70 transition hover:bg-ink/5 hover:text-ink"
           >
-            your orders
-          </button>
+            your account
+          </Link>
           <button
             type="button"
             onClick={() => {

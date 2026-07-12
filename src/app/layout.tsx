@@ -2,6 +2,10 @@ import type { Metadata } from "next";
 import { Space_Grotesk, Instrument_Serif, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
+import { CartDrawer } from "@/components/CartDrawer";
 
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["500", "700"] });
 const serifItalic = Instrument_Serif({
@@ -21,7 +25,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${display.variable} ${serifItalic.variable} ${body.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-cream text-ink">
-        <Providers>{children}</Providers>
+        <Providers>
+          <AnnouncementBar />
+          <Header />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <CartDrawer />
+        </Providers>
       </body>
     </html>
   );

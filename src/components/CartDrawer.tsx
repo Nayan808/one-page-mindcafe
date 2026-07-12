@@ -1,24 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2, X } from "lucide-react";
 import { useCartContext } from "@/contexts/CartContext";
-import { FulfillmentAndPayment } from "@/components/FulfillmentAndPayment";
-import { OrderConfirmation } from "@/components/OrderConfirmation";
 import { formatInr } from "@/lib/utils";
 
-function goToProducts(closeDrawer: () => void) {
-  closeDrawer();
-  document.getElementById("mood-picks")?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
-// Cart + checkout as a centered popup rather than a page section — opened
-// from the header cart button or right after an "add to cart". Always
-// mounted (not conditionally rendered) so the open/close transition can
-// actually animate instead of popping in and out.
+// Mini-cart popup — line items + qty + subtotal, then a single "go to
+// checkout" that navigates to /checkout. Fulfillment/payment/tracking all
+// live on that route now, not here; this stays a lightweight, always-
+// mounted popup so the header cart button and "add to cart" success both
+// keep their instant open/close animation.
 export function CartDrawer() {
   const { isDrawerOpen, closeDrawer, items, subtotal, updateQuantity, removeItem, isLoading } = useCartContext();
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -35,6 +30,16 @@ export function CartDrawer() {
       document.body.style.overflow = previousOverflow;
     };
   }, [isDrawerOpen, closeDrawer]);
+
+  function goToProducts() {
+    closeDrawer();
+    router.push("/feelz");
+  }
+
+  function handleCheckout() {
+    closeDrawer();
+    router.push("/checkout");
+  }
 
   return (
     <div
@@ -53,7 +58,7 @@ export function CartDrawer() {
         className={`relative flex max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-cream shadow-2xl transition-all duration-300 ${isDrawerOpen ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0"}`}
       >
         <div className="flex items-center justify-between border-b border-ink/10 px-5 py-4">
-          <h2 className="font-display text-xl font-bold lowercase">{orderId ? "order placed" : "your cart"}</h2>
+          <h2 className="font-display text-xl font-bold lowercase">your cart</h2>
           <button
             type="button"
             onClick={closeDrawer}
@@ -65,20 +70,12 @@ export function CartDrawer() {
         </div>
 
         <div className="scrollbar-hide flex-1 overflow-y-auto px-5 py-4">
-          {orderId ? (
-            <OrderConfirmation
-              orderId={orderId}
-              onStartNewOrder={() => {
-                setOrderId(null);
-                closeDrawer();
-              }}
-            />
-          ) : isLoading ? (
+          {isLoading ? (
             <p className="text-sm text-ink/60">Loading cart…</p>
           ) : items.length === 0 ? (
             <div className="space-y-4 text-center">
               <p className="text-sm text-ink/60">Your cart is empty — add a mood strip to get started.</p>
-              <button type="button" onClick={() => goToProducts(closeDrawer)} className="pill-btn">
+              <button type="button" onClick={goToProducts} className="pill-btn">
                 buy feelz
               </button>
             </div>
@@ -138,7 +135,9 @@ export function CartDrawer() {
                 <span>{formatInr(subtotal)}</span>
               </div>
 
-              <FulfillmentAndPayment onOrderPlaced={setOrderId} />
+              <button type="button" onClick={handleCheckout} className="pill-btn w-full">
+                go to checkout
+              </button>
             </div>
           )}
         </div>

@@ -1,14 +1,6 @@
 import Image from "next/image";
-import { moodStyleFor } from "@/lib/moodStyles";
 
 type MoodKey = "focus" | "extrovert" | "joy" | "rest";
-
-const TEXT_COLOR: Record<MoodKey, string> = {
-  focus: "#f6f1e6",
-  extrovert: "#111110",
-  joy: "#111110",
-  rest: "#f6f1e6",
-};
 
 const MOOD_IMAGE: Record<MoodKey, string> = {
   focus: "/products/focus.png",
@@ -83,16 +75,13 @@ export function WhoItsForSection() {
       <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {PERSONAS.map((persona, index) => {
           const primaryMood = persona.moods[0];
-          const style = moodStyleFor(primaryMood);
-          const textColor = TEXT_COLOR[primaryMood];
           return (
             <div
               key={persona.title}
-              className={`relative flex flex-col overflow-hidden rounded-[1.75rem] p-6 shadow-lg sm:p-7 ${persona.wide ? "lg:col-span-2" : ""}`}
-              style={{ background: style.gradient, color: textColor }}
+              className={`relative flex flex-col overflow-hidden rounded-[1.75rem] border border-ink bg-white p-6 text-ink shadow-lg sm:p-7 ${persona.wide ? "lg:col-span-2" : ""}`}
             >
               <div
-                className={`pointer-events-none absolute -right-4 -top-6 h-32 w-28 shrink-0 overflow-hidden rounded-xl border-2 border-white/30 shadow-2xl sm:-right-3 sm:h-40 sm:w-32 ${persona.tilt}`}
+                className={`pointer-events-none absolute -right-4 -top-6 h-32 w-28 shrink-0 overflow-hidden rounded-xl border-2 border-ink shadow-2xl sm:-right-3 sm:h-40 sm:w-32 ${persona.tilt}`}
                 aria-hidden
               >
                 <Image
@@ -122,7 +111,7 @@ export function WhoItsForSection() {
                   {persona.moods.map((mood) => (
                     <span
                       key={mood}
-                      className="rounded-full bg-black/15 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label backdrop-blur"
+                      className="rounded-full border border-ink px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label"
                     >
                       {mood}
                     </span>
