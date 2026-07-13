@@ -324,7 +324,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
               setCouponError(null);
             }}
             onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), handleApplyCoupon())}
-            placeholder="e.g. FEELZ10"
+            placeholder="Enter coupon code"
             className="input uppercase"
           />
           <button

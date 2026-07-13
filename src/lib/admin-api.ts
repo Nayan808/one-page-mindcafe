@@ -89,15 +89,27 @@ export async function getSalesSummary(sb: Sb): Promise<SalesSummary> {
 
 // --- Orders ---------------------------------------------------------------
 
+// PostgREST's .or() filter syntax uses "," and "()" as separators — a raw
+// search term containing them would break the filter string rather than
+// just fail to match, so they're stripped (not escaped; admin search
+// input, not something that needs to preserve exact punctuation).
+function sanitizeSearchTerm(term: string): string {
+  return term.trim().replace(/[,()]/g, "");
+}
+
 export async function getOrdersAdmin(
   sb: Sb,
-  options: { page: number; pageSize: number; status?: string },
+  options: { page: number; pageSize: number; status?: string; search?: string },
 ): Promise<{ orders: OrderWithItems[]; total: number }> {
   const from = options.page * options.pageSize;
   const to = from + options.pageSize - 1;
   let query = sb.from("orders").select("*, order_items(*)", { count: "exact" });
   if (options.status) {
     query = query.eq("status", options.status as Database["public"]["Tables"]["orders"]["Row"]["status"]);
+  }
+  const term = options.search ? sanitizeSearchTerm(options.search) : "";
+  if (term) {
+    query = query.or(`order_number.ilike.%${term}%,guest_name.ilike.%${term}%,guest_phone.ilike.%${term}%`);
   }
   const { data, error, count } = await query.order("created_at", { ascending: false }).range(from, to);
   throwOnError("getOrdersAdmin", error);
@@ -117,13 +129,20 @@ export async function updateOrderStatusAdmin(
 
 export async function getAppointmentsAdmin(
   sb: Sb,
-  options: { page: number; pageSize: number; status?: string },
+  options: { page: number; pageSize: number; status?: string; search?: string },
 ): Promise<{ appointments: AppointmentWithExpert[]; total: number }> {
   const from = options.page * options.pageSize;
   const to = from + options.pageSize - 1;
   let query = sb.from("appointments").select("*, experts(name, photo_url)", { count: "exact" });
   if (options.status) {
     query = query.eq("status", options.status as Database["public"]["Tables"]["appointments"]["Row"]["status"]);
+  }
+  // Only base-table columns are searchable via .or() — the joined expert's
+  // name can't be combined into the same OR filter, so this covers notes/
+  // category, not "search by customer or expert name".
+  const term = options.search ? sanitizeSearchTerm(options.search) : "";
+  if (term) {
+    query = query.or(`notes.ilike.%${term}%,therapy_category.ilike.%${term}%`);
   }
   const { data, error, count } = await query.order("created_at", { ascending: false }).range(from, to);
   throwOnError("getAppointmentsAdmin", error);
@@ -264,7 +283,17 @@ export async function getInventoryAdmin(sb: Sb, locationId: string | null): Prom
   query = locationId === null ? query.is("location_id", null) : query.eq("location_id", locationId);
   const { data, error } = await query;
   throwOnError("getInventoryAdmin", error);
-  return (data as unknown as InventoryWithVariant[]) ?? [];
+  const rows = (data as unknown as InventoryWithVariant[]) ?? [];
+  // Without an explicit order, Postgres doesn't guarantee row order between
+  // calls — an UPDATE can visibly reshuffle the list on the very next
+  // refetch, which reads as "I changed the wrong row" even though nothing
+  // is actually wrong. Sorted client-side (not via .order() on a joined
+  // column, which the embedded product_variants(products(name)) shape
+  // doesn't support directly) for a stable, human-readable order.
+  return rows.sort((a, b) => {
+    const nameCompare = a.product_variants.products.name.localeCompare(b.product_variants.products.name);
+    return nameCompare !== 0 ? nameCompare : a.product_variants.variant_label.localeCompare(b.product_variants.variant_label);
+  });
 }
 
 export async function updateInventoryQuantityAdmin(sb: Sb, id: string, quantity: number): Promise<void> {
@@ -323,6 +352,31 @@ export async function updateExpertAdmin(
 export async function deleteExpertAdmin(sb: Sb, id: string): Promise<void> {
   const { error } = await sb.from("experts").delete().eq("id", id);
   throwOnError("deleteExpertAdmin", error);
+}
+
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// Uploads directly to the public expert-photos bucket (see setup.sql —
+// public read, is_admin() write) and returns the public URL to store on
+// experts.photo_url. A random filename avoids collisions between two
+// admins uploading around the same time; nothing here needs to be
+// human-readable since it's never linked to from anywhere but that column.
+export async function uploadExpertPhotoAdmin(sb: Sb, file: File): Promise<string> {
+  if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+    throw new ApiError("uploadExpertPhotoAdmin", { message: "Please upload a JPEG, PNG, or WebP image" });
+  }
+  if (file.size > MAX_PHOTO_BYTES) {
+    throw new ApiError("uploadExpertPhotoAdmin", { message: "Image must be under 5MB" });
+  }
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await sb.storage.from("expert-photos").upload(path, file, { upsert: false });
+  throwOnError("uploadExpertPhotoAdmin", uploadError);
+
+  const { data } = sb.storage.from("expert-photos").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 // Links an ALREADY-SIGNED-UP account to a directory-only expert row (the

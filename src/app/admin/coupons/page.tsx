@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getCouponsAdmin, createCouponAdmin, updateCouponAdmin, deleteCouponAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { formatInr } from "@/lib/utils";
 import type { Coupon } from "@/types/domain";
 
@@ -34,11 +36,21 @@ const EMPTY: Form = {
 };
 
 export default function AdminCouponsPage() {
+  const confirmDialog = useConfirmDialog();
   const queryClient = useQueryClient();
   const couponsQuery = useQuery({ queryKey: ["admin", "coupons"], queryFn: () => getCouponsAdmin(createClient()) });
   const [editing, setEditing] = useState<Coupon | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
+
+  const rows = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const all = couponsQuery.data ?? [];
+    if (!term) return all;
+    return all.filter((c) => c.code.toLowerCase().includes(term));
+  }, [couponsQuery.data, search]);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "coupons"] });
 
@@ -60,12 +72,21 @@ export default function AdminCouponsPage() {
       return createCouponAdmin(sb, input);
     },
     onSuccess: () => {
+      setError(null);
       invalidate();
       setIsOpen(false);
     },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to save coupon"),
   });
 
-  const remove = useMutation({ mutationFn: (id: string) => deleteCouponAdmin(createClient(), id), onSuccess: invalidate });
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteCouponAdmin(createClient(), id),
+    onSuccess: () => {
+      setError(null);
+      invalidate();
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to delete coupon"),
+  });
 
   function openNew() {
     setEditing(null);
@@ -100,13 +121,20 @@ export default function AdminCouponsPage() {
   return (
     <div>
       <AdminPageHeader title="coupons" action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new coupon</button>} />
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by code…" />
       <AdminTable
         columns={columns}
-        rows={couponsQuery.data ?? []}
+        rows={rows}
         getRowId={(c) => c.id}
         isLoading={couponsQuery.isLoading}
         onEdit={openEdit}
-        onDelete={(c) => confirm(`Delete ${c.code}?`) && remove.mutate(c.id)}
+        onDelete={async (c) => {
+          if (await confirmDialog({ title: "delete coupon", message: `Delete "${c.code}"? This can't be undone.`, danger: true })) {
+            remove.mutate(c.id);
+          }
+        }}
+        emptyLabel="No matching coupons."
       />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit coupon" : "new coupon"}>

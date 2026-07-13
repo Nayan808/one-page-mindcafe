@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getInventoryAdmin, getPickupLocationsAdmin, updateInventoryQuantityAdmin } from "@/lib/admin-api";
@@ -10,10 +10,24 @@ import type { InventoryWithVariant } from "@/types/domain";
 function QuantityCell({ row }: { row: InventoryWithVariant }) {
   const queryClient = useQueryClient();
   const [value, setValue] = useState(String(row.quantity_available));
+  const [justSaved, setJustSaved] = useState(false);
+
+  // Table rows are matched by row.id across refetches (see <tr key={row.id}>
+  // below), so this component instance survives a refetch instead of
+  // remounting — without this effect the input would keep showing
+  // whatever was last typed/saved and never pick up a quantity that
+  // changed for some other reason (e.g. a purchase decrementing stock).
+  useEffect(() => {
+    setValue(String(row.quantity_available));
+  }, [row.quantity_available]);
 
   const save = useMutation({
     mutationFn: (quantity: number) => updateInventoryQuantityAdmin(createClient(), row.id, quantity),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1800);
+    },
   });
 
   const dirty = Number(value) !== row.quantity_available && value !== "";
@@ -24,7 +38,10 @@ function QuantityCell({ row }: { row: InventoryWithVariant }) {
         type="number"
         min="0"
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          save.reset();
+        }}
         className="input !w-24 !py-1.5 text-sm"
       />
       <button
@@ -35,7 +52,15 @@ function QuantityCell({ row }: { row: InventoryWithVariant }) {
       >
         {save.isPending ? "saving…" : "save"}
       </button>
-      {row.quantity_available === 0 && <span className="text-xs font-medium text-red-600">out of stock</span>}
+      {justSaved && <span className="text-xs font-medium text-emerald-700">✓ saved</span>}
+      {save.isError && (
+        <span className="text-xs font-medium text-red-600">
+          {save.error instanceof Error ? save.error.message : "Failed to save"}
+        </span>
+      )}
+      {!save.isError && !justSaved && row.quantity_available === 0 && (
+        <span className="text-xs font-medium text-red-600">out of stock</span>
+      )}
     </div>
   );
 }

@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { getAppointmentsAdmin, updateAppointmentAdmin, getAllExpertsAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import type { AppointmentWithExpert } from "@/types/domain";
 
 const STATUSES = ["pending", "confirmed", "completed", "cancelled"];
@@ -14,11 +16,15 @@ const PAGE_SIZE = 20;
 export default function AdminAppointmentsPage() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const queryClient = useQueryClient();
 
+  const appointmentsQueryKey = ["admin", "appointments", page, status, debouncedSearch] as const;
+
   const appointmentsQuery = useQuery({
-    queryKey: ["admin", "appointments", page, status],
-    queryFn: () => getAppointmentsAdmin(createClient(), { page, pageSize: PAGE_SIZE, status: status || undefined }),
+    queryKey: appointmentsQueryKey,
+    queryFn: () => getAppointmentsAdmin(createClient(), { page, pageSize: PAGE_SIZE, status: status || undefined, search: debouncedSearch || undefined }),
   });
 
   const expertsQuery = useQuery({
@@ -26,10 +32,26 @@ export default function AdminAppointmentsPage() {
     queryFn: () => getAllExpertsAdmin(createClient()),
   });
 
+  // Optimistic: the status/expert selects flip instantly instead of
+  // waiting on a full 20-row page refetch to come back first.
   const update = useMutation({
     mutationFn: (args: { id: string; input: Parameters<typeof updateAppointmentAdmin>[2] }) =>
       updateAppointmentAdmin(createClient(), args.id, args.input),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "appointments"] }),
+    onMutate: async (args) => {
+      await queryClient.cancelQueries({ queryKey: appointmentsQueryKey });
+      const previous = queryClient.getQueryData<{ appointments: AppointmentWithExpert[]; total: number }>(appointmentsQueryKey);
+      queryClient.setQueryData<{ appointments: AppointmentWithExpert[]; total: number }>(appointmentsQueryKey, (old) =>
+        old && {
+          ...old,
+          appointments: old.appointments.map((a) => (a.id === args.id ? { ...a, ...args.input } : a)),
+        },
+      );
+      return { previous };
+    },
+    onError: (_err, _args, context) => {
+      if (context?.previous) queryClient.setQueryData(appointmentsQueryKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "appointments"] }),
   });
 
   const appointments = appointmentsQuery.data?.appointments ?? [];
@@ -81,6 +103,15 @@ export default function AdminAppointmentsPage() {
   return (
     <div>
       <AdminPageHeader title="appointments" description={`${total} total`} />
+
+      <AdminSearchInput
+        value={search}
+        onChange={(v) => {
+          setSearch(v);
+          setPage(0);
+        }}
+        placeholder="Search by notes or category…"
+      />
 
       <div className="mb-4 flex flex-wrap gap-2">
         <button

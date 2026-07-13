@@ -11,17 +11,23 @@ get past the door. This doc is the map.
 | --- | --- | --- | --- | --- |
 | `/login` | Customers | Google OAuth + email/password | `?returnTo=` path, or `/` | Yes, at `/signup` |
 | `/signup` | Customers | Google OAuth + email/password | Same as `/login` | — |
-| `/expert/login` | Experts | Email/password only | `/expert/dashboard` | **No** — admin-provisioned only |
-| `/employer/login` | Employers | Email/password only | `/employer/dashboard` | **No** — provisioned only (manually, see §4) |
+| `/expert/login` | Experts | Google OAuth + email/password | `/expert/dashboard` | **No** — admin-provisioned only |
+| `/employer/login` | Employers | Google OAuth + email/password | `/employer/dashboard` | **No** — provisioned only (manually, see §4) |
 | `/staff` | Pickup-desk staff | **Not Supabase Auth at all** — a single shared password | Same page, unlocked | N/A |
 
-**Why expert/employer login skips Google and signup:** these aren't
-public self-serve accounts — someone (an admin, or you by hand) has to
-grant the role first. Google OAuth would let anyone create an account,
-but a fresh Google sign-in always lands as `role='customer'` (see §2), so
-it wouldn't get them anywhere on those two routes anyway. Keeping it to
-email/password only avoids a confusing "why did Google sign-in not work"
-moment.
+**Why Google is safe to offer on `/expert/login` and `/employer/login`
+even though there's no self-serve path to either role:** a fresh Google
+sign-in always lands as `role='customer'` (see §2) — that's unavoidable,
+`handle_new_user()` fires the same way regardless of which page the
+sign-in started from. What matters is that `RoleLoginForm` never trusts a
+successful Google (or password) sign-in as success on its own: right
+after, it checks `profiles.role` and, on any mismatch, immediately signs
+the session back out with an explicit "permissions haven't been assigned
+to this account" message instead of leaving them half-logged-in or
+silently failing. So Google sign-in on these routes can create a *plain
+customer* account (same as it would on `/login`) but never grants
+expert/employer access by itself — that still requires the admin-
+provisioned steps in §4.
 
 **`/staff` is a completely separate mechanism.** It doesn't use
 `auth.users`/`profiles` at all — it's gated by either the

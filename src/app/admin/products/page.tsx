@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -14,7 +14,9 @@ import {
 } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { formatInr } from "@/lib/utils";
 import type { ProductWithVariants, ProductVariant } from "@/types/domain";
 
@@ -25,17 +27,26 @@ type VariantForm = { variant_label: string; price_override: string; sku: string 
 const EMPTY_VARIANT: VariantForm = { variant_label: "", price_override: "", sku: "" };
 
 export default function AdminProductsPage() {
+  const confirmDialog = useConfirmDialog();
   const queryClient = useQueryClient();
   const productsQuery = useQuery({ queryKey: ["admin", "products"], queryFn: () => getProductsAdmin(createClient()) });
   const products = productsQuery.data ?? [];
+  const [search, setSearch] = useState("");
+  const filteredProducts = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) return products;
+    return products.filter((p) => p.name.toLowerCase().includes(term) || p.slug.toLowerCase().includes(term));
+  }, [products, search]);
 
   const [editing, setEditing] = useState<ProductWithVariants | null>(null);
   const [form, setForm] = useState<ProductForm>(EMPTY_PRODUCT);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const [variantsFor, setVariantsFor] = useState<ProductWithVariants | null>(null);
   const [variantForm, setVariantForm] = useState<VariantForm>(EMPTY_VARIANT);
   const [editingVariant, setEditingVariant] = useState<ProductVariant | null>(null);
+  const [variantError, setVariantError] = useState<string | null>(null);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "products"] });
 
@@ -54,19 +65,26 @@ export default function AdminProductsPage() {
       return createProductAdmin(sb, input);
     },
     onSuccess: () => {
+      setError(null);
       invalidate();
       setIsFormOpen(false);
     },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to save product"),
   });
 
   const deleteProduct = useMutation({
     mutationFn: (id: string) => deleteProductAdmin(createClient(), id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      setError(null);
+      invalidate();
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to delete product"),
   });
 
   function openNew() {
     setEditing(null);
     setForm(EMPTY_PRODUCT);
+    setError(null);
     setIsFormOpen(true);
   }
   function openEdit(product: ProductWithVariants) {
@@ -79,6 +97,7 @@ export default function AdminProductsPage() {
       image_url: product.image_url ?? "",
       is_active: product.is_active,
     });
+    setError(null);
     setIsFormOpen(true);
   }
 
@@ -94,22 +113,28 @@ export default function AdminProductsPage() {
       return createVariantAdmin(sb, { ...input, product_id: variantsFor!.id });
     },
     onSuccess: () => {
+      setVariantError(null);
       invalidate();
       setEditingVariant(null);
       setVariantForm(EMPTY_VARIANT);
     },
+    onError: (err) => setVariantError(err instanceof Error ? err.message : "Failed to save variant"),
   });
 
   const deleteVariant = useMutation({
     mutationFn: (id: string) => deleteVariantAdmin(createClient(), id),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      setVariantError(null);
+      invalidate();
+    },
+    onError: (err) => setVariantError(err instanceof Error ? err.message : "Failed to delete variant"),
   });
 
   const columns: AdminColumn<ProductWithVariants>[] = [
     { key: "name", label: "name", render: (p) => <span className="font-medium text-ink">{p.name}</span> },
     { key: "price", label: "price", render: (p) => <span>{formatInr(p.price)}</span> },
     { key: "variants", label: "variants", render: (p) => (
-      <button type="button" onClick={() => setVariantsFor(p)} className="text-xs font-medium text-ink underline">
+      <button type="button" onClick={() => { setVariantsFor(p); setVariantError(null); }} className="text-xs font-medium text-ink underline">
         {p.product_variants.length} — manage
       </button>
     ) },
@@ -124,13 +149,19 @@ export default function AdminProductsPage() {
         action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new product</button>}
       />
 
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
+      <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name or slug…" />
       <AdminTable
         columns={columns}
-        rows={products}
+        rows={filteredProducts}
         getRowId={(p) => p.id}
         isLoading={productsQuery.isLoading}
         onEdit={openEdit}
-        onDelete={(p) => confirm(`Delete ${p.name}?`) && deleteProduct.mutate(p.id)}
+        onDelete={async (p) => {
+          if (await confirmDialog({ title: "delete product", message: `Delete "${p.name}"? This can't be undone.`, danger: true })) {
+            deleteProduct.mutate(p.id);
+          }
+        }}
       />
 
       <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={editing ? "edit product" : "new product"}>
@@ -159,6 +190,7 @@ export default function AdminProductsPage() {
             <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
             Active (shown on site)
           </label>
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => saveProduct.mutate()} disabled={saveProduct.isPending} className="pill-btn w-full">
             {saveProduct.isPending ? "saving…" : "save"}
           </button>
@@ -167,6 +199,7 @@ export default function AdminProductsPage() {
 
       <Modal isOpen={Boolean(variantsFor)} onClose={() => setVariantsFor(null)} title={`variants — ${variantsFor?.name ?? ""}`}>
         <div className="space-y-3">
+          {variantError && <p className="text-sm text-red-600">{variantError}</p>}
           {(variantsFor
             ? (products.find((p) => p.id === variantsFor.id)?.product_variants ?? [])
             : []

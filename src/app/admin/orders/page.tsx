@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { getOrdersAdmin, updateOrderStatusAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatInr } from "@/lib/utils";
 import type { OrderWithItems } from "@/types/domain";
 
@@ -26,17 +28,37 @@ const PAGE_SIZE = 20;
 export default function AdminOrdersPage() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search);
   const queryClient = useQueryClient();
 
+  const ordersQueryKey = ["admin", "orders", page, status, debouncedSearch] as const;
+
   const ordersQuery = useQuery({
-    queryKey: ["admin", "orders", page, status],
-    queryFn: () => getOrdersAdmin(createClient(), { page, pageSize: PAGE_SIZE, status: status || undefined }),
+    queryKey: ordersQueryKey,
+    queryFn: () => getOrdersAdmin(createClient(), { page, pageSize: PAGE_SIZE, status: status || undefined, search: debouncedSearch || undefined }),
   });
 
+  // Optimistic: the status select flips instantly instead of waiting on a
+  // full 20-row page refetch to come back before the UI shows the change.
   const updateStatus = useMutation({
     mutationFn: (args: { id: string; status: string }) =>
       updateOrderStatusAdmin(createClient(), args.id, args.status as OrderWithItems["status"]),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }),
+    onMutate: async (args) => {
+      await queryClient.cancelQueries({ queryKey: ordersQueryKey });
+      const previous = queryClient.getQueryData<{ orders: OrderWithItems[]; total: number }>(ordersQueryKey);
+      queryClient.setQueryData<{ orders: OrderWithItems[]; total: number }>(ordersQueryKey, (old) =>
+        old && {
+          ...old,
+          orders: old.orders.map((o) => (o.id === args.id ? { ...o, status: args.status as OrderWithItems["status"] } : o)),
+        },
+      );
+      return { previous };
+    },
+    onError: (_err, _args, context) => {
+      if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }),
   });
 
   const orders = ordersQuery.data?.orders ?? [];
@@ -72,6 +94,15 @@ export default function AdminOrdersPage() {
   return (
     <div>
       <AdminPageHeader title="orders" description={`${total} total`} />
+
+      <AdminSearchInput
+        value={search}
+        onChange={(v) => {
+          setSearch(v);
+          setPage(0);
+        }}
+        placeholder="Search by order number, name, or phone…"
+      />
 
       <div className="mb-4 flex flex-wrap gap-2">
         <button

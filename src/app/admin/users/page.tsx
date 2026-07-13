@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { listUsersAdmin, updateUserRoleAdmin, type AdminUserRow } from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 
 const ROLES = ["customer", "expert", "employer", "admin", "super_admin"];
 
@@ -16,15 +17,39 @@ export default function AdminUsersPage() {
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "users"], queryFn: () => listUsersAdmin(createClient()) });
   const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
 
+  const rows = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const all = query.data ?? [];
+    if (!term) return all;
+    return all.filter(
+      (u) => u.email?.toLowerCase().includes(term) || u.full_name?.toLowerCase().includes(term) || u.role.includes(term),
+    );
+  }, [query.data, search]);
+
+  // Optimistic: flips the dropdown instantly instead of waiting on
+  // listUsersAdmin's full admin-list-users Edge Function round trip to
+  // resolve before the UI reflects the change. Rolled back on failure
+  // (e.g. a plain admin somehow reaching this control), reconciled with
+  // the server in the background either way.
   const updateRole = useMutation({
     mutationFn: (args: { id: string; role: string }) =>
       updateUserRoleAdmin(createClient(), args.id, args.role as AdminUserRow["role"]),
-    onSuccess: () => {
+    onMutate: async (args) => {
       setError(null);
-      queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+      await queryClient.cancelQueries({ queryKey: ["admin", "users"] });
+      const previous = queryClient.getQueryData<AdminUserRow[]>(["admin", "users"]);
+      queryClient.setQueryData<AdminUserRow[]>(["admin", "users"], (old) =>
+        old?.map((u) => (u.id === args.id ? { ...u, role: args.role as AdminUserRow["role"] } : u)),
+      );
+      return { previous };
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Role change failed"),
+    onError: (err, _args, context) => {
+      if (context?.previous) queryClient.setQueryData(["admin", "users"], context.previous);
+      setError(err instanceof Error ? err.message : "Role change failed");
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "users"] }),
   });
 
   const columns: AdminColumn<AdminUserRow>[] = [
@@ -53,7 +78,7 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <AdminPageHeader title="users & roles" description={`${query.data?.length ?? 0} accounts`} />
+      <AdminPageHeader title="users & roles" description={`${rows.length} of ${query.data?.length ?? 0} accounts`} />
 
       {!isSuperAdmin && (
         <p className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
@@ -63,7 +88,8 @@ export default function AdminUsersPage() {
       )}
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-      <AdminTable columns={columns} rows={query.data ?? []} getRowId={(u) => u.id} isLoading={query.isLoading} emptyLabel="No users." />
+      <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by email, name, or role…" />
+      <AdminTable columns={columns} rows={rows} getRowId={(u) => u.id} isLoading={query.isLoading} emptyLabel="No matching users." />
     </div>
   );
 }

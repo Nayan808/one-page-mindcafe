@@ -1668,6 +1668,31 @@ create trigger trg_prevent_staff_pin_change
   before update on public.pickup_locations
   for each row execute function public.prevent_staff_pin_change();
 
+-- ---- from migrations/0034_expert_photos_storage.sql ----
+-- Public bucket for expert profile photos, uploaded directly from
+-- /admin/experts instead of admins having to host an image somewhere
+-- else first and paste a URL. Public read (every experts.photo_url is
+-- already shown on public pages like /experts), admin-only write.
+insert into storage.buckets (id, name, public)
+values ('expert-photos', 'expert-photos', true)
+on conflict (id) do nothing;
+
+drop policy if exists expert_photos_select on storage.objects;
+create policy expert_photos_select on storage.objects
+  for select using (bucket_id = 'expert-photos');
+
+drop policy if exists expert_photos_admin_insert on storage.objects;
+create policy expert_photos_admin_insert on storage.objects
+  for insert with check (bucket_id = 'expert-photos' and public.is_admin());
+
+drop policy if exists expert_photos_admin_update on storage.objects;
+create policy expert_photos_admin_update on storage.objects
+  for update using (bucket_id = 'expert-photos' and public.is_admin());
+
+drop policy if exists expert_photos_admin_delete on storage.objects;
+create policy expert_photos_admin_delete on storage.objects
+  for delete using (bucket_id = 'expert-photos' and public.is_admin());
+
 -- ---- realtime (every table, not just orders/inventory) ----
 -- Every table in this schema is added to the supabase_realtime publication,
 -- so any client subscribed via postgres_changes gets live INSERT/UPDATE/

@@ -252,7 +252,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
                   setCouponError(null);
                 }}
                 onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), handleApplyCoupon())}
-                placeholder="e.g. NAYANFREE"
+                placeholder="Enter coupon code"
                 className="input uppercase"
               />
               <button

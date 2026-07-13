@@ -1,10 +1,12 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getBusinessLeadsAdmin, updateBusinessLeadAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import type { BusinessLead } from "@/types/domain";
 
 const STATUSES: BusinessLead["status"][] = ["new", "contacted", "closed"];
@@ -12,10 +14,37 @@ const STATUSES: BusinessLead["status"][] = ["new", "contacted", "closed"];
 export default function AdminBusinessLeadsPage() {
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "business-leads"], queryFn: () => getBusinessLeadsAdmin(createClient()) });
+  const [search, setSearch] = useState("");
 
+  const rows = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const all = query.data ?? [];
+    if (!term) return all;
+    return all.filter(
+      (l) =>
+        l.company_name.toLowerCase().includes(term) ||
+        l.contact_name.toLowerCase().includes(term) ||
+        l.email.toLowerCase().includes(term) ||
+        l.phone?.toLowerCase().includes(term),
+    );
+  }, [query.data, search]);
+
+  // Optimistic: the status select flips instantly instead of waiting on a
+  // full-list refetch to come back first.
   const update = useMutation({
     mutationFn: (args: { id: string; status: BusinessLead["status"] }) => updateBusinessLeadAdmin(createClient(), args.id, args.status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "business-leads"] }),
+    onMutate: async (args) => {
+      await queryClient.cancelQueries({ queryKey: ["admin", "business-leads"] });
+      const previous = queryClient.getQueryData<BusinessLead[]>(["admin", "business-leads"]);
+      queryClient.setQueryData<BusinessLead[]>(["admin", "business-leads"], (old) =>
+        old?.map((l) => (l.id === args.id ? { ...l, status: args.status } : l)),
+      );
+      return { previous };
+    },
+    onError: (_err, _args, context) => {
+      if (context?.previous) queryClient.setQueryData(["admin", "business-leads"], context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "business-leads"] }),
   });
 
   const columns: AdminColumn<BusinessLead>[] = [
@@ -42,8 +71,9 @@ export default function AdminBusinessLeadsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="business leads" description={`${query.data?.length ?? 0} total`} />
-      <AdminTable columns={columns} rows={query.data ?? []} getRowId={(l) => l.id} isLoading={query.isLoading} emptyLabel="No leads yet." />
+      <AdminPageHeader title="business leads" description={`${rows.length} of ${query.data?.length ?? 0} total`} />
+      <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by company, contact, email, or phone…" />
+      <AdminTable columns={columns} rows={rows} getRowId={(l) => l.id} isLoading={query.isLoading} emptyLabel="No matching leads." />
     </div>
   );
 }

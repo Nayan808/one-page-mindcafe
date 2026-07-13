@@ -16,13 +16,16 @@ export default function AdminTherapyCategoriesPage() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [heroImage, setHeroImage] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const save = useMutation({
     mutationFn: () => updateTherapyCategoryAdmin(createClient(), editing!.slug, { title, body, hero_image: heroImage || null }),
     onSuccess: () => {
+      setError(null);
       queryClient.invalidateQueries({ queryKey: ["admin", "therapy-categories"] });
       setEditing(null);
     },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to save changes"),
   });
 
   function openEdit(category: TherapyCategory) {
@@ -30,6 +33,7 @@ export default function AdminTherapyCategoriesPage() {
     setTitle(category.title);
     setBody(category.body);
     setHeroImage(category.hero_image ?? "");
+    setError(null);
   }
 
   return (
@@ -58,6 +62,7 @@ export default function AdminTherapyCategoriesPage() {
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="input" />
           <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Body" rows={4} className="input" />
           <input value={heroImage} onChange={(e) => setHeroImage(e.target.value)} placeholder="Hero image URL (optional)" className="input" />
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
             {save.isPending ? "saving…" : "save"}
           </button>

@@ -25,5 +25,10 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=oauth&returnTo=${encodeURIComponent(returnTo)}`);
+  // Land back on whichever page actually initiated the flow — customer
+  // /login, /signup, /expert/login, or /employer/login — not always the
+  // customer login page, now that Google is offered on all of them.
+  const errorUrl = new URL(returnTo, origin);
+  errorUrl.searchParams.set("error", "oauth");
+  return NextResponse.redirect(errorUrl);
 }

@@ -7,6 +7,7 @@ import { getAllSiteSettingsAdmin, upsertSiteSettingAdmin, deleteSiteSettingAdmin
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { Modal } from "@/components/Modal";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import type { SiteSetting } from "@/types/domain";
 
 const KNOWN_KEYS = [
@@ -15,6 +16,7 @@ const KNOWN_KEYS = [
 ];
 
 export default function AdminSiteSettingsPage() {
+  const confirmDialog = useConfirmDialog();
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "site-settings"], queryFn: () => getAllSiteSettingsAdmin(createClient()) });
   const [editing, setEditing] = useState<SiteSetting | { key: string; value: unknown } | null>(null);
@@ -22,6 +24,7 @@ export default function AdminSiteSettingsPage() {
   const [valueText, setValueText] = useState("");
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [listError, setListError] = useState<string | null>(null);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "site-settings"] });
 
@@ -36,7 +39,14 @@ export default function AdminSiteSettingsPage() {
     },
     onError: (err) => setJsonError(err instanceof Error ? err.message : "Invalid JSON"),
   });
-  const remove = useMutation({ mutationFn: (k: string) => deleteSiteSettingAdmin(createClient(), k), onSuccess: invalidate });
+  const remove = useMutation({
+    mutationFn: (k: string) => deleteSiteSettingAdmin(createClient(), k),
+    onSuccess: () => {
+      setListError(null);
+      invalidate();
+    },
+    onError: (err) => setListError(err instanceof Error ? err.message : "Failed to delete setting"),
+  });
 
   function openNew(prefillKey = "") {
     setEditing(null);
@@ -66,6 +76,8 @@ export default function AdminSiteSettingsPage() {
         action={<button type="button" onClick={() => openNew()} className="pill-btn !py-2 text-xs">+ new key</button>}
       />
 
+      {listError && <p className="mb-4 text-sm text-red-600">{listError}</p>}
+
       <div className="mb-4 flex flex-wrap gap-2">
         {KNOWN_KEYS.filter((k) => !(query.data ?? []).some((s) => s.key === k.key)).map((k) => (
           <button key={k.key} type="button" onClick={() => openNew(k.key)} className="rounded-full border border-dashed border-ink/30 px-3 py-1.5 text-xs text-ink/60">
@@ -80,7 +92,17 @@ export default function AdminSiteSettingsPage() {
         getRowId={(s) => s.key}
         isLoading={query.isLoading}
         onEdit={openEdit}
-        onDelete={(s) => confirm(`Delete key "${s.key}"?`) && remove.mutate(s.key)}
+        onDelete={async (s) => {
+          if (
+            await confirmDialog({
+              title: "delete setting",
+              message: `Delete key "${s.key}"? If this powers the announcement bar or homepage stats, they'll fall back to defaults immediately.`,
+              danger: true,
+            })
+          ) {
+            remove.mutate(s.key);
+          }
+        }}
       />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? `edit — ${key}` : "new setting"}>

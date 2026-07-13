@@ -8,17 +8,20 @@ import { createFaqAdmin, updateFaqAdmin, deleteFaqAdmin } from "@/lib/admin-api"
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { Modal } from "@/components/Modal";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import type { Faq } from "@/types/domain";
 
 type Form = { category: string; question: string; answer: string; sort_order: string };
 const EMPTY: Form = { category: "feelz", question: "", answer: "", sort_order: "0" };
 
 export default function AdminFaqsPage() {
+  const confirmDialog = useConfirmDialog();
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "faqs"], queryFn: () => getFaqs(createClient()) });
   const [editing, setEditing] = useState<Faq | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [isOpen, setIsOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "faqs"] });
 
@@ -30,20 +33,31 @@ export default function AdminFaqsPage() {
       return createFaqAdmin(sb, input);
     },
     onSuccess: () => {
+      setError(null);
       invalidate();
       setIsOpen(false);
     },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to save faq"),
   });
-  const remove = useMutation({ mutationFn: (id: string) => deleteFaqAdmin(createClient(), id), onSuccess: invalidate });
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteFaqAdmin(createClient(), id),
+    onSuccess: () => {
+      setError(null);
+      invalidate();
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to delete faq"),
+  });
 
   function openNew() {
     setEditing(null);
     setForm(EMPTY);
+    setError(null);
     setIsOpen(true);
   }
   function openEdit(faq: Faq) {
     setEditing(faq);
     setForm({ category: faq.category, question: faq.question, answer: faq.answer, sort_order: String(faq.sort_order) });
+    setError(null);
     setIsOpen(true);
   }
 
@@ -56,13 +70,18 @@ export default function AdminFaqsPage() {
   return (
     <div>
       <AdminPageHeader title="faqs" action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new faq</button>} />
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminTable
         columns={columns}
         rows={query.data ?? []}
         getRowId={(f) => f.id}
         isLoading={query.isLoading}
         onEdit={openEdit}
-        onDelete={(f) => confirm(`Delete "${f.question}"?`) && remove.mutate(f.id)}
+        onDelete={async (f) => {
+          if (await confirmDialog({ title: "delete faq", message: `Delete "${f.question}"?`, danger: true })) {
+            remove.mutate(f.id);
+          }
+        }}
       />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit faq" : "new faq"}>
@@ -71,6 +90,7 @@ export default function AdminFaqsPage() {
           <input value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} placeholder="Question" className="input" />
           <textarea value={form.answer} onChange={(e) => setForm({ ...form, answer: e.target.value })} placeholder="Answer" rows={4} className="input" />
           <input value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} placeholder="Sort order" type="number" className="input" />
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
             {save.isPending ? "saving…" : "save"}
           </button>

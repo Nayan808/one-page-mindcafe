@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getPickupLocationsAdmin, createPickupLocationAdmin, updatePickupLocationAdmin, deletePickupLocationAdmin } from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
+import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import type { PickupLocation } from "@/types/domain";
 
 type Form = { name: string; address: string; city: string; is_active: boolean };
@@ -27,16 +29,27 @@ function randomPin(length = 8): string {
 export default function AdminPickupLocationsPage() {
   const { user, profile, signInWithPassword } = useAuth();
   const isSuperAdmin = profile?.role === "super_admin";
+  const confirmDialog = useConfirmDialog();
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "pickup-locations"], queryFn: () => getPickupLocationsAdmin(createClient()) });
   const [editing, setEditing] = useState<PickupLocation | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [pin, setPin] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const [listError, setListError] = useState<string | null>(null);
+
+  const rows = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    const all = query.data ?? [];
+    if (!term) return all;
+    return all.filter((l) => l.name.toLowerCase().includes(term) || l.city.toLowerCase().includes(term) || l.address.toLowerCase().includes(term));
+  }, [query.data, search]);
 
   const [reauthPassword, setReauthPassword] = useState("");
   const [reauthError, setReauthError] = useState<string | null>(null);
   const [isReauthing, setIsReauthing] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const pinChanged = Boolean(editing && pin !== editing.staff_pin);
 
@@ -49,13 +62,22 @@ export default function AdminPickupLocationsPage() {
       return createPickupLocationAdmin(sb, form);
     },
     onSuccess: () => {
+      setSaveError(null);
       invalidate();
       setIsOpen(false);
       setReauthPassword("");
       setReauthError(null);
     },
+    onError: (err) => setSaveError(err instanceof Error ? err.message : "Failed to save location"),
   });
-  const remove = useMutation({ mutationFn: (id: string) => deletePickupLocationAdmin(createClient(), id), onSuccess: invalidate });
+  const remove = useMutation({
+    mutationFn: (id: string) => deletePickupLocationAdmin(createClient(), id),
+    onSuccess: () => {
+      setListError(null);
+      invalidate();
+    },
+    onError: (err) => setListError(err instanceof Error ? err.message : "Failed to delete location"),
+  });
 
   // A changed PIN is a bearer credential, not a routine field edit — the
   // DB (prevent_staff_pin_change trigger) already refuses this write from
@@ -65,6 +87,7 @@ export default function AdminPickupLocationsPage() {
   // sensitive change — a super_admin's already-open laptop shouldn't be
   // enough on its own to hand out a working Zostel PIN.
   async function handleSave() {
+    setSaveError(null);
     if (!pinChanged) {
       save.mutate();
       return;
@@ -89,6 +112,7 @@ export default function AdminPickupLocationsPage() {
     setPin(null);
     setReauthPassword("");
     setReauthError(null);
+    setSaveError(null);
     setIsOpen(true);
   }
   function openEdit(loc: PickupLocation) {
@@ -97,6 +121,7 @@ export default function AdminPickupLocationsPage() {
     setPin(loc.staff_pin);
     setReauthPassword("");
     setReauthError(null);
+    setSaveError(null);
     setIsOpen(true);
   }
 
@@ -111,13 +136,20 @@ export default function AdminPickupLocationsPage() {
   return (
     <div>
       <AdminPageHeader title="pickup locations" action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new location</button>} />
+      {listError && <p className="mb-4 text-sm text-red-600">{listError}</p>}
+      <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, city, or address…" />
       <AdminTable
         columns={columns}
-        rows={query.data ?? []}
+        rows={rows}
         getRowId={(l) => l.id}
         isLoading={query.isLoading}
         onEdit={openEdit}
-        onDelete={(l) => confirm(`Delete ${l.name}?`) && remove.mutate(l.id)}
+        onDelete={async (l) => {
+          if (await confirmDialog({ title: "delete location", message: `Delete "${l.name}"? This can't be undone.`, danger: true })) {
+            remove.mutate(l.id);
+          }
+        }}
+        emptyLabel="No matching locations."
       />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit location" : "new location"}>
@@ -169,6 +201,7 @@ export default function AdminPickupLocationsPage() {
             </div>
           )}
 
+          {saveError && <p className="text-sm text-red-600">{saveError}</p>}
           <button
             type="button"
             onClick={handleSave}

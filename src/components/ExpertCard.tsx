@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
@@ -13,6 +16,13 @@ export function ExpertCard({
    * itself a selection control (e.g. inside the booking form). */
   bookHref?: string;
 }) {
+  // A dead/unreachable photo_url (typo'd in the admin form, or hosted
+  // somewhere that later 404s) used to render as a broken-image icon with
+  // the alt text spilling out of the circle — this falls back to the
+  // same initials treatment a missing photo_url already gets, instead of
+  // leaving a visibly broken card live on the site.
+  const [imageFailed, setImageFailed] = useState(false);
+
   const initials = expert.name
     .split(" ")
     .map((part) => part[0])
@@ -22,9 +32,9 @@ export function ExpertCard({
 
   return (
     <div className="flex flex-col items-center rounded-2xl border border-ink bg-white p-6 text-center shadow-lg">
-      {expert.photo_url ? (
+      {expert.photo_url && !imageFailed ? (
         <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-ink">
-          <Image src={expert.photo_url} alt={expert.name} fill className="object-cover" />
+          <Image src={expert.photo_url} alt={expert.name} fill className="object-cover" onError={() => setImageFailed(true)} />
         </div>
       ) : (
         <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-ink bg-ink text-lg font-bold text-cream">

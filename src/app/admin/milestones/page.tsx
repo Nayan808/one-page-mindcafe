@@ -8,17 +8,20 @@ import { createMilestoneAdmin, updateMilestoneAdmin, deleteMilestoneAdmin } from
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { Modal } from "@/components/Modal";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import type { Milestone } from "@/types/domain";
 
 type Form = { year: string; title: string; description: string; sort_order: string };
 const EMPTY: Form = { year: "", title: "", description: "", sort_order: "0" };
 
 export default function AdminMilestonesPage() {
+  const confirmDialog = useConfirmDialog();
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "milestones"], queryFn: () => getMilestones(createClient()) });
   const [editing, setEditing] = useState<Milestone | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
   const [isOpen, setIsOpen] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "milestones"] });
 
@@ -30,20 +33,31 @@ export default function AdminMilestonesPage() {
       return createMilestoneAdmin(sb, input);
     },
     onSuccess: () => {
+      setError(null);
       invalidate();
       setIsOpen(false);
     },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to save milestone"),
   });
-  const remove = useMutation({ mutationFn: (id: string) => deleteMilestoneAdmin(createClient(), id), onSuccess: invalidate });
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteMilestoneAdmin(createClient(), id),
+    onSuccess: () => {
+      setError(null);
+      invalidate();
+    },
+    onError: (err) => setError(err instanceof Error ? err.message : "Failed to delete milestone"),
+  });
 
   function openNew() {
     setEditing(null);
     setForm(EMPTY);
+    setError(null);
     setIsOpen(true);
   }
   function openEdit(m: Milestone) {
     setEditing(m);
     setForm({ year: m.year, title: m.title, description: m.description ?? "", sort_order: String(m.sort_order) });
+    setError(null);
     setIsOpen(true);
   }
 
@@ -56,13 +70,18 @@ export default function AdminMilestonesPage() {
   return (
     <div>
       <AdminPageHeader title="milestones" description="Shown on /about." action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new milestone</button>} />
+      {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminTable
         columns={columns}
         rows={query.data ?? []}
         getRowId={(m) => m.id}
         isLoading={query.isLoading}
         onEdit={openEdit}
-        onDelete={(m) => confirm(`Delete "${m.title}"?`) && remove.mutate(m.id)}
+        onDelete={async (m) => {
+          if (await confirmDialog({ title: "delete milestone", message: `Delete "${m.title}"?`, danger: true })) {
+            remove.mutate(m.id);
+          }
+        }}
       />
 
       <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit milestone" : "new milestone"}>
@@ -71,6 +90,7 @@ export default function AdminMilestonesPage() {
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Title" className="input" />
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Description (optional)" rows={2} className="input" />
           <input value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} placeholder="Sort order" type="number" className="input" />
+          {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
             {save.isPending ? "saving…" : "save"}
           </button>
