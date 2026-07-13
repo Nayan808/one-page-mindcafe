@@ -24,10 +24,14 @@ email/password only avoids a confusing "why did Google sign-in not work"
 moment.
 
 **`/staff` is a completely separate mechanism.** It doesn't use
-`auth.users`/`profiles` at all — it's gated by the `STAFF_DASHBOARD_PASSWORD`
-Edge Function secret (see `MANUAL_SETUP.md` §6, §11). Anyone with that one
-shared password gets in; there's no per-person staff account, no role, no
-connection to anything below.
+`auth.users`/`profiles` at all — it's gated by either the
+`STAFF_DASHBOARD_PASSWORD` Edge Function secret (see `MANUAL_SETUP.md` §6,
+§11), which sees every pickup location's queue, or a single location's
+`pickup_locations.staff_pin` (set/rotated at `/admin/pickup-locations`),
+which scopes the dashboard to only that location's pickups — a PIN holder
+gets a 404 on another location's pickup code, not just a filtered list.
+Either way there's no per-person staff account, no role, no connection to
+anything below.
 
 ## 2. How role-gating actually works
 

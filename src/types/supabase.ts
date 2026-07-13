@@ -97,6 +97,7 @@ export interface Database {
           lat: number | null;
           lng: number | null;
           is_active: boolean;
+          staff_pin: string;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["pickup_locations"]["Row"]> & {
@@ -106,6 +107,33 @@ export interface Database {
         };
         Update: Partial<Database["public"]["Tables"]["pickup_locations"]["Row"]>;
         Relationships: [];
+      };
+      inventory: {
+        Row: {
+          id: string;
+          variant_id: string;
+          location_id: string | null;
+          quantity_available: number;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["inventory"]["Row"]> & { variant_id: string };
+        Update: Partial<Database["public"]["Tables"]["inventory"]["Row"]>;
+        Relationships: [
+          {
+            foreignKeyName: "inventory_variant_id_fkey";
+            columns: ["variant_id"];
+            isOneToOne: false;
+            referencedRelation: "product_variants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "inventory_location_id_fkey";
+            columns: ["location_id"];
+            isOneToOne: false;
+            referencedRelation: "pickup_locations";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       serviceable_pincodes: {
         Row: {
@@ -299,6 +327,7 @@ export interface Database {
           expires_at: string | null;
           usage_limit: number | null;
           times_used: number;
+          applies_to: "orders" | "appointments" | "both";
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["coupons"]["Row"]> & {
@@ -390,6 +419,13 @@ export interface Database {
           scheduled_at: string | null;
           status: "pending" | "confirmed" | "completed" | "cancelled";
           notes: string | null;
+          price: number | null;
+          discount_amount: number;
+          coupon_code: string | null;
+          total: number | null;
+          payment_status: "pending" | "paid" | "failed";
+          razorpay_order_id: string | null;
+          payment_ref: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["appointments"]["Row"]> & {

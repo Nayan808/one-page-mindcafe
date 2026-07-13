@@ -5,8 +5,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import {
   addCartItem,
+  bookAppointment,
   createAddress,
-  createAppointment,
   deleteAddress,
   getAppointment,
   getCartItems,
@@ -199,7 +199,7 @@ export function useOrderTracking(orderId: string | null) {
 export function useCreateAppointment() {
   const sb = createClient();
   return useMutation({
-    mutationFn: (input: Parameters<typeof createAppointment>[1]) => createAppointment(sb, input),
+    mutationFn: (input: Parameters<typeof bookAppointment>[1]) => bookAppointment(sb, input),
   });
 }
 

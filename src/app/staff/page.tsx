@@ -28,16 +28,19 @@ type StaffOrder = {
 
 const SESSION_KEY = "feelz_staff_password";
 
-// Single shared password, checked server-side by the staff-pickup Edge
-// Function on every request — this page never trusts client state as
-// authorization, just uses it to decide what to render. Not tied to
-// "Zostel" specifically: pickup_locations (and this dashboard) work for
-// any pickup partner, Zostel is just who's stocked today.
+// Two ways to unlock, one input box: the shared dashboard password (sees
+// every location), or a single location's staff_pin (sees only that
+// location's pickups). Whatever's typed gets sent as both `password` and
+// `pin` — the Edge Function tries the password check first, falls back to
+// a PIN lookup, so this page never has to know in advance which kind of
+// credential it was handed. This page never trusts client state as
+// authorization either way — every action re-checks server-side.
 export default function StaffDashboard() {
   const [password, setPassword] = useState("");
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isCheckingPassword, setIsCheckingPassword] = useState(false);
+  const [scopedLocation, setScopedLocation] = useState<{ id: string; name: string; city: string } | null>(null);
 
   const [pending, setPending] = useState<StaffOrder[]>([]);
   const [isLoadingPending, setIsLoadingPending] = useState(false);
@@ -50,7 +53,7 @@ export default function StaffDashboard() {
 
   async function call(action: "lookup" | "collect" | "list_pending", extra: Record<string, string> = {}, pw = password) {
     const sb = createClient();
-    const { data, error } = await sb.functions.invoke("staff-pickup", { body: { action, password: pw, ...extra } });
+    const { data, error } = await sb.functions.invoke("staff-pickup", { body: { action, password: pw, pin: pw, ...extra } });
     if (error) {
       const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
       throw new Error(detail?.error ?? error.message);
@@ -63,6 +66,7 @@ export default function StaffDashboard() {
     try {
       const data = await call("list_pending", {}, pw);
       setPending(data.orders ?? []);
+      setScopedLocation(data.location ?? null);
     } finally {
       setIsLoadingPending(false);
     }
@@ -76,6 +80,7 @@ export default function StaffDashboard() {
       .then((data) => {
         setAuthed(true);
         setPending(data.orders ?? []);
+        setScopedLocation(data.location ?? null);
       })
       .catch(() => sessionStorage.removeItem(SESSION_KEY));
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,7 +137,7 @@ export default function StaffDashboard() {
             <Lock className="h-5 w-5" aria-hidden />
           </div>
           <h1 className="font-display mt-4 text-2xl font-bold lowercase">feelz staff</h1>
-          <p className="mt-1 text-sm text-ink/60">Enter the dashboard password to continue.</p>
+          <p className="mt-1 text-sm text-ink/60">Enter the dashboard password, or your location&apos;s staff PIN.</p>
 
           <div className="mt-6 space-y-3">
             <input
@@ -140,7 +145,7 @@ export default function StaffDashboard() {
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               onKeyDown={(event) => event.key === "Enter" && void handleUnlock()}
-              placeholder="Dashboard password"
+              placeholder="Password or location PIN"
               className="input"
               autoFocus
             />
@@ -165,7 +170,9 @@ export default function StaffDashboard() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold lowercase">feelz staff</h1>
-          <p className="text-xs text-ink/50">pickup desk</p>
+          <p className="text-xs text-ink/50">
+            {scopedLocation ? `pickup desk — ${scopedLocation.name}, ${scopedLocation.city}` : "pickup desk — all locations"}
+          </p>
         </div>
         <button
           type="button"
@@ -173,6 +180,7 @@ export default function StaffDashboard() {
             sessionStorage.removeItem(SESSION_KEY);
             setAuthed(false);
             setPassword("");
+            setScopedLocation(null);
           }}
           className="pill-btn-outline gap-1.5 !py-2 text-xs"
         >

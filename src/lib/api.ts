@@ -292,34 +292,102 @@ export async function getTherapyCategory(sb: Sb, slug: string): Promise<TherapyC
 
 // --- Appointments -----------------------------------------------------------
 
-// Direct client insert (not an Edge Function): unlike orders, there's no
-// price/stock integrity to protect here — RLS's `user_id = auth.uid()`
-// check is what actually stops someone from booking on another account's
-// behalf. Always lands on 'pending' (the table default) since there's no
-// real-time expert availability to confirm against yet.
-export async function createAppointment(
-  sb: Sb,
-  input: {
-    userId: string;
-    therapyCategory: string;
-    expertId?: string;
-    scheduledAt?: string;
-    notes?: string;
-  },
-): Promise<Appointment> {
-  const { data, error } = await sb
-    .from("appointments")
-    .insert({
-      user_id: input.userId,
+export type BookAppointmentInput = {
+  therapyCategory: string;
+  expertId?: string;
+  scheduledAt?: string;
+  notes?: string;
+  couponCode?: string;
+};
+
+export type BookAppointmentResponse =
+  | { appointmentId: string; requiresPayment: false; price: number; discountAmount: number; total: 0 }
+  | {
+      appointmentId: string;
+      requiresPayment: true;
+      razorpayOrderId: string;
+      amount: number;
+      currency: string;
+      keyId: string;
+      price: number;
+      discountAmount: number;
+      total: number;
+    };
+
+// Invokes the create-appointment-order Edge Function: it looks up the
+// real session price, validates the coupon (appointments-scoped codes
+// only), creates the appointment row, and either marks it paid outright
+// (a coupon covering the full price) or creates a matching Razorpay
+// order — same server-side-truth pattern as `checkout` for Feelz orders.
+export async function bookAppointment(sb: Sb, input: BookAppointmentInput): Promise<BookAppointmentResponse> {
+  const { data, error } = await sb.functions.invoke("create-appointment-order", {
+    body: {
       therapy_category: input.therapyCategory,
       expert_id: input.expertId,
       scheduled_at: input.scheduledAt,
       notes: input.notes,
-    })
-    .select("*")
-    .single();
-  throwOnError("createAppointment", error);
-  return data!;
+      coupon_code: input.couponCode || undefined,
+    },
+  });
+  if (error) {
+    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new ApiError("bookAppointment", { message: detail?.error ?? error.message });
+  }
+  return data.requires_payment
+    ? {
+        appointmentId: data.appointment_id,
+        requiresPayment: true,
+        razorpayOrderId: data.razorpay_order_id,
+        amount: data.amount,
+        currency: data.currency,
+        keyId: data.key_id,
+        price: data.price,
+        discountAmount: data.discount_amount,
+        total: data.total,
+      }
+    : {
+        appointmentId: data.appointment_id,
+        requiresPayment: false,
+        price: data.price,
+        discountAmount: data.discount_amount,
+        total: 0,
+      };
+}
+
+// Client-side "Apply" preview only, mirroring validateCoupon for orders —
+// reproduces create-appointment-order's discount math against the real
+// session price so the booking summary can show the real number before
+// payment. Not authoritative: create-appointment-order revalidates
+// everything (including applies_to and usage_limit) server-side at
+// booking time regardless of what this returns.
+export async function validateAppointmentCoupon(sb: Sb, code: string, sessionPrice: number): Promise<CouponPreview> {
+  const normalized = code.trim().toUpperCase();
+  if (!normalized) throw new ApiError("validateAppointmentCoupon", { message: "Enter a coupon code" });
+
+  const { data: coupon, error } = await sb.from("coupons").select("*").eq("code", normalized).maybeSingle();
+  throwOnError("validateAppointmentCoupon", error);
+
+  if (!coupon || !coupon.is_active || (coupon.expires_at && new Date(coupon.expires_at) < new Date())) {
+    throw new ApiError("validateAppointmentCoupon", { message: "Invalid or expired coupon code" });
+  }
+  if (coupon.applies_to !== "appointments" && coupon.applies_to !== "both") {
+    throw new ApiError("validateAppointmentCoupon", { message: "This coupon isn't valid for counselling sessions" });
+  }
+  if (coupon.usage_limit !== null && coupon.times_used >= coupon.usage_limit) {
+    throw new ApiError("validateAppointmentCoupon", { message: "This coupon has reached its usage limit" });
+  }
+  if (sessionPrice < Number(coupon.min_order_amount)) {
+    throw new ApiError("validateAppointmentCoupon", {
+      message: `This coupon needs a minimum order of ₹${coupon.min_order_amount}`,
+    });
+  }
+
+  let discountAmount =
+    coupon.discount_type === "percent" ? sessionPrice * (Number(coupon.discount_value) / 100) : Number(coupon.discount_value);
+  if (coupon.max_discount_amount !== null) discountAmount = Math.min(discountAmount, Number(coupon.max_discount_amount));
+  discountAmount = Math.min(discountAmount, sessionPrice);
+
+  return { code: coupon.code, discountAmount };
 }
 
 export async function getAppointment(sb: Sb, appointmentId: string): Promise<AppointmentWithExpert | null> {

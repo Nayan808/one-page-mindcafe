@@ -1,8 +1,10 @@
 // Razorpay calls this directly when a payment is captured. Verifies the
-// webhook signature, confirms the order via the service-role-only
-// confirm_order_and_decrement_stock() RPC, and issues a refund if stock
-// turned out to be insufficient. The frontend NEVER marks an order paid
-// on its own — this function is the single source of truth.
+// webhook signature, then confirms whichever kind of row the Razorpay
+// order belongs to — a Feelz order (confirm_order_and_decrement_stock,
+// refunding if stock turned out insufficient) or a counselling
+// appointment (confirm_appointment_payment, no stock involved) — by
+// razorpay_order_id. The frontend NEVER marks either paid on its own;
+// this function is the single source of truth for both.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
@@ -61,31 +63,51 @@ Deno.serve(async (req) => {
 
   const sb = serviceRoleClient();
 
-  const { data: order, error: findError } = await sb
+  const { data: order } = await sb
     .from("orders")
     .select("id")
     .eq("razorpay_order_id", razorpayOrderId)
-    .single();
+    .maybeSingle();
 
-  if (findError || !order) {
-    console.error("No order found for razorpay_order_id", razorpayOrderId, findError);
-    return jsonResponse({ error: "Order not found" }, 404);
+  if (order) {
+    const { data: result, error: confirmError } = await sb.rpc("confirm_order_and_decrement_stock", {
+      p_order_id: order.id,
+      p_payment_ref: paymentId,
+    });
+
+    if (confirmError) {
+      console.error("confirm_order_and_decrement_stock failed", confirmError);
+      return jsonResponse({ error: confirmError.message }, 500);
+    }
+
+    if (result === "cancelled_insufficient_stock") {
+      await refundPayment(paymentId);
+      console.warn(`Order ${order.id} cancelled (insufficient stock); refunded payment ${paymentId}`);
+    }
+
+    return jsonResponse({ received: true, result });
   }
 
-  const { data: result, error: confirmError } = await sb.rpc("confirm_order_and_decrement_stock", {
-    p_order_id: order.id,
-    p_payment_ref: paymentId,
-  });
+  const { data: appointment } = await sb
+    .from("appointments")
+    .select("id")
+    .eq("razorpay_order_id", razorpayOrderId)
+    .maybeSingle();
 
-  if (confirmError) {
-    console.error("confirm_order_and_decrement_stock failed", confirmError);
-    return jsonResponse({ error: confirmError.message }, 500);
+  if (appointment) {
+    const { data: result, error: confirmError } = await sb.rpc("confirm_appointment_payment", {
+      p_appointment_id: appointment.id,
+      p_payment_ref: paymentId,
+    });
+
+    if (confirmError) {
+      console.error("confirm_appointment_payment failed", confirmError);
+      return jsonResponse({ error: confirmError.message }, 500);
+    }
+
+    return jsonResponse({ received: true, result });
   }
 
-  if (result === "cancelled_insufficient_stock") {
-    await refundPayment(paymentId);
-    console.warn(`Order ${order.id} cancelled (insufficient stock); refunded payment ${paymentId}`);
-  }
-
-  return jsonResponse({ received: true, result });
+  console.error("No order or appointment found for razorpay_order_id", razorpayOrderId);
+  return jsonResponse({ error: "Order not found" }, 404);
 });

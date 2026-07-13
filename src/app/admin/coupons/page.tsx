@@ -19,8 +19,19 @@ type Form = {
   usage_limit: string;
   expires_at: string;
   is_active: boolean;
+  applies_to: "orders" | "appointments" | "both";
 };
-const EMPTY: Form = { code: "", discount_type: "percent", discount_value: "", min_order_amount: "0", max_discount_amount: "", usage_limit: "", expires_at: "", is_active: true };
+const EMPTY: Form = {
+  code: "",
+  discount_type: "percent",
+  discount_value: "",
+  min_order_amount: "0",
+  max_discount_amount: "",
+  usage_limit: "",
+  expires_at: "",
+  is_active: true,
+  applies_to: "orders",
+};
 
 export default function AdminCouponsPage() {
   const queryClient = useQueryClient();
@@ -42,6 +53,7 @@ export default function AdminCouponsPage() {
         usage_limit: form.usage_limit ? Number(form.usage_limit) : null,
         expires_at: form.expires_at ? new Date(form.expires_at).toISOString() : null,
         is_active: form.is_active,
+        applies_to: form.applies_to,
       };
       const sb = createClient();
       if (editing) return updateCouponAdmin(sb, editing.id, input);
@@ -71,6 +83,7 @@ export default function AdminCouponsPage() {
       usage_limit: coupon.usage_limit ? String(coupon.usage_limit) : "",
       expires_at: coupon.expires_at ? coupon.expires_at.slice(0, 10) : "",
       is_active: coupon.is_active,
+      applies_to: coupon.applies_to,
     });
     setIsOpen(true);
   }
@@ -78,6 +91,7 @@ export default function AdminCouponsPage() {
   const columns: AdminColumn<Coupon>[] = [
     { key: "code", label: "code", render: (c) => <span className="font-medium text-ink">{c.code}</span> },
     { key: "discount", label: "discount", render: (c) => <span>{c.discount_type === "percent" ? `${c.discount_value}%` : formatInr(c.discount_value)}</span> },
+    { key: "applies_to", label: "applies to", render: (c) => <span className="text-ink/60">{c.applies_to}</span> },
     { key: "used", label: "used", render: (c) => <span>{c.times_used}{c.usage_limit ? ` / ${c.usage_limit}` : ""}</span> },
     { key: "expires", label: "expires", render: (c) => <span className="text-ink/60">{c.expires_at ? new Date(c.expires_at).toLocaleDateString() : "never"}</span> },
     { key: "active", label: "active", render: (c) => <span>{c.is_active ? "yes" : "no"}</span> },
@@ -108,6 +122,14 @@ export default function AdminCouponsPage() {
           <input value={form.min_order_amount} onChange={(e) => setForm({ ...form, min_order_amount: e.target.value })} placeholder="Min order amount" type="number" className="input" />
           <input value={form.max_discount_amount} onChange={(e) => setForm({ ...form, max_discount_amount: e.target.value })} placeholder="Max discount amount (optional)" type="number" className="input" />
           <input value={form.usage_limit} onChange={(e) => setForm({ ...form, usage_limit: e.target.value })} placeholder="Usage limit (optional)" type="number" className="input" />
+          <div>
+            <label className="mb-1 block text-sm text-ink/70">Applies to</label>
+            <select value={form.applies_to} onChange={(e) => setForm({ ...form, applies_to: e.target.value as Form["applies_to"] })} className="input">
+              <option value="orders">Feelz orders only</option>
+              <option value="appointments">Counselling sessions only</option>
+              <option value="both">Both</option>
+            </select>
+          </div>
           <div>
             <label className="mb-1 block text-sm text-ink/70">Expires (optional)</label>
             <input value={form.expires_at} onChange={(e) => setForm({ ...form, expires_at: e.target.value })} type="date" className="input" />

@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { Avatar } from "@/components/Avatar";
+import { getDashboardLink } from "@/lib/roleNav";
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -27,6 +28,7 @@ export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   const loginHref = `/login?returnTo=${encodeURIComponent(pathname || "/")}`;
+  const dashboardLink = getDashboardLink(profile?.role);
 
   function handleMobileCart() {
     setMenuOpen(false);
@@ -119,10 +121,19 @@ export function Header() {
 
           {status === "authenticated" ? (
             <>
+              {dashboardLink && (
+                <Link
+                  href={dashboardLink.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="mt-1 w-full border-t border-ink/10 py-2.5 pt-3 text-center uppercase hover:text-ink"
+                >
+                  {dashboardLink.label}
+                </Link>
+              )}
               <Link
                 href="/account"
                 onClick={() => setMenuOpen(false)}
-                className="mt-1 w-full border-t border-ink/10 py-2.5 pt-3 text-center uppercase hover:text-ink"
+                className={`w-full py-2.5 text-center uppercase hover:text-ink ${dashboardLink ? "" : "mt-1 border-t border-ink/10 pt-3"}`}
               >
                 your account
               </Link>

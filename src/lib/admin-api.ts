@@ -14,6 +14,7 @@ import type {
   Coupon,
   Expert,
   Faq,
+  InventoryWithVariant,
   Milestone,
   NewsletterSubscriber,
   OrderWithItems,
@@ -249,6 +250,26 @@ export async function updatePickupLocationAdmin(
 export async function deletePickupLocationAdmin(sb: Sb, id: string): Promise<void> {
   const { error } = await sb.from("pickup_locations").delete().eq("id", id);
   throwOnError("deletePickupLocationAdmin", error);
+}
+
+// --- Inventory (per-location stock) ---------------------------------------
+
+// location_id = null is the central/online pool (used for delivery
+// orders); every other value is a specific pickup_locations row's
+// takeaway stock. Kept as two separate rows per variant on purpose (see
+// setup.sql's inventory table) — an online sale and a walk-in sale at a
+// Zostel never compete for the same units.
+export async function getInventoryAdmin(sb: Sb, locationId: string | null): Promise<InventoryWithVariant[]> {
+  let query = sb.from("inventory").select("*, product_variants(*, products(name))");
+  query = locationId === null ? query.is("location_id", null) : query.eq("location_id", locationId);
+  const { data, error } = await query;
+  throwOnError("getInventoryAdmin", error);
+  return (data as unknown as InventoryWithVariant[]) ?? [];
+}
+
+export async function updateInventoryQuantityAdmin(sb: Sb, id: string, quantity: number): Promise<void> {
+  const { error } = await sb.from("inventory").update({ quantity_available: quantity }).eq("id", id);
+  throwOnError("updateInventoryQuantityAdmin", error);
 }
 
 // --- Serviceable pincodes -------------------------------------------------

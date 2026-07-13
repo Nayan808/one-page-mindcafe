@@ -6,6 +6,7 @@ export type Profile = Tables["profiles"]["Row"];
 export type Product = Tables["products"]["Row"];
 export type ProductVariant = Tables["product_variants"]["Row"];
 export type PickupLocation = Tables["pickup_locations"]["Row"];
+export type Inventory = Tables["inventory"]["Row"];
 export type Address = Tables["addresses"]["Row"];
 export type Cart = Tables["carts"]["Row"];
 export type CartItem = Tables["cart_items"]["Row"];
@@ -26,6 +27,9 @@ export type Milestone = Tables["milestones"]["Row"];
 export type AppointmentWithExpert = Appointment & { experts: Pick<Expert, "name" | "photo_url"> | null };
 
 export type ProductWithVariants = Product & { product_variants: ProductVariant[] };
+export type InventoryWithVariant = Inventory & {
+  product_variants: ProductVariant & { products: Pick<Product, "name"> };
+};
 export type CartItemWithVariant = CartItem & {
   product_variants: ProductVariant & { products: Pick<Product, "id" | "name" | "image_url" | "price"> };
 };

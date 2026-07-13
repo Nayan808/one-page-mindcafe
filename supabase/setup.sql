@@ -1463,6 +1463,211 @@ create policy order_items_select on public.order_items
     )
   );
 
+-- ---- from migrations/0032_staff_pins_and_appointment_payments.sql ----
+-- Per-location staff PINs (staff-pickup dashboard access scoped to one
+-- pickup location instead of the single shared STAFF_DASHBOARD_PASSWORD
+-- seeing every location's queue), plus payment/coupon support for
+-- counselling appointments (mirrors orders: price/discount/total looked
+-- up server-side by an Edge Function, payment_status/razorpay_order_id/
+-- payment_ref tracked the same way, confirmed by the same webhook).
+
+-- generate_staff_pin — 8-char strong PIN, same excluded-ambiguous-chars
+-- alphabet as generate_pickup_code(), retried on collision. Used as the
+-- staff_pin column's default so any new pickup_locations row (however
+-- it's inserted) always gets one without a separate follow-up write.
+create or replace function public.generate_staff_pin() returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_chars text := 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  v_pin text;
+  v_exists boolean;
+begin
+  loop
+    v_pin := '';
+    for i in 1..8 loop
+      v_pin := v_pin || substr(v_chars, floor(random() * length(v_chars) + 1)::int, 1);
+    end loop;
+
+    select exists(select 1 from pickup_locations where staff_pin = v_pin) into v_exists;
+    exit when not v_exists;
+  end loop;
+
+  return v_pin;
+end;
+$$;
+
+revoke execute on function public.generate_staff_pin() from public;
+
+alter table public.pickup_locations add column if not exists staff_pin text;
+update public.pickup_locations set staff_pin = public.generate_staff_pin() where staff_pin is null;
+alter table public.pickup_locations alter column staff_pin set not null;
+alter table public.pickup_locations alter column staff_pin set default public.generate_staff_pin();
+create unique index if not exists pickup_locations_staff_pin_idx on public.pickup_locations (staff_pin);
+
+-- coupons.applies_to — every existing coupon defaults to 'orders' (today's
+-- only use), so nothing already live silently starts applying somewhere
+-- new. create-appointment-order only honors codes with applies_to in
+-- ('appointments', 'both'); create-order keeps checking 'orders'/'both'.
+alter table public.coupons add column if not exists applies_to text not null default 'orders';
+alter table public.coupons drop constraint if exists coupons_applies_to_check;
+alter table public.coupons add constraint coupons_applies_to_check
+  check (applies_to in ('orders', 'appointments', 'both'));
+
+-- appointments — payment columns, same shape as orders' subtotal/discount/
+-- total/payment_status/razorpay_order_id/payment_ref. price/total stay
+-- nullable (a booking made before this migration has neither) rather than
+-- defaulted to 0, so "no price attached" stays visibly distinct from
+-- "free session".
+alter table public.appointments add column if not exists price numeric(10, 2);
+alter table public.appointments add column if not exists discount_amount numeric(10, 2) not null default 0;
+alter table public.appointments add column if not exists coupon_code text;
+alter table public.appointments add column if not exists total numeric(10, 2);
+alter table public.appointments add column if not exists payment_status text not null default 'pending';
+alter table public.appointments drop constraint if exists appointments_payment_status_check;
+alter table public.appointments add constraint appointments_payment_status_check
+  check (payment_status in ('pending', 'paid', 'failed'));
+alter table public.appointments add column if not exists razorpay_order_id text;
+alter table public.appointments add column if not exists payment_ref text;
+
+create index if not exists appointments_razorpay_order_id_idx on public.appointments (razorpay_order_id) where razorpay_order_id is not null;
+
+-- ============================================================
+-- confirm_appointment_payment — the counselling-booking equivalent of
+-- confirm_order_and_decrement_stock: called ONLY by the payment-webhook
+-- (or create-appointment-order's free-coupon-covers-it-fully path) via
+-- the service-role client, never by a browser. No stock/pickup-code logic
+-- here — an appointment is a calendar slot, not inventory.
+-- ============================================================
+create or replace function public.confirm_appointment_payment(
+  p_appointment_id uuid,
+  p_payment_ref text
+) returns text
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_appt record;
+begin
+  select * into v_appt from appointments where id = p_appointment_id for update;
+  if not found then
+    raise exception 'APPOINTMENT_NOT_FOUND: %', p_appointment_id;
+  end if;
+
+  if v_appt.payment_status = 'paid' then
+    return 'already_paid';
+  end if;
+
+  update appointments
+    set payment_status = 'paid', payment_ref = p_payment_ref
+    where id = p_appointment_id;
+
+  return 'paid';
+end;
+$$;
+
+revoke execute on function public.confirm_appointment_payment(uuid, text) from public;
+grant execute on function public.confirm_appointment_payment(uuid, text) to service_role;
+
+-- Sane default session price so create-appointment-order has something to
+-- charge before anyone touches /admin/site-settings. Admin-editable after
+-- the fact; this only seeds it if the key doesn't already exist.
+insert into public.site_settings (key, value)
+values ('counselling_session_price', '999'::jsonb)
+on conflict (key) do nothing;
+
+-- NAYANFREE — 100%-off counselling coupon for testing the booking/payment
+-- UI end-to-end without a real Razorpay charge. Re-running this migration
+-- keeps it active/100%-off/appointments-scoped even if someone edited it.
+insert into public.coupons (code, discount_type, discount_value, min_order_amount, applies_to, is_active)
+values ('NAYANFREE', 'percent', 100, 0, 'appointments', true)
+on conflict (code) do update set
+  discount_type = 'percent', discount_value = 100, applies_to = 'appointments', is_active = true;
+
+-- ---- from migrations/0033_inventory_fix_and_staff_pin_lockdown.sql ----
+
+-- available_stock — FIX: the previous version selected `available_stock`
+-- FROM inventory, so a (variant, location) pair with no inventory row at
+-- all produced no result row, not zero. In plpgsql, `if v_available <
+-- p_quantity` with v_available = NULL evaluates to NULL, which IF treats
+-- as false — so create_stock_reservation never raised INSUFFICIENT_STOCK
+-- for a location with zero seeded inventory, silently allowing checkout
+-- to proceed. It then failed at PAYMENT-CONFIRMATION time instead (inside
+-- _decrement_stock_for_order's UPDATE, which correctly matches zero rows
+-- and returns false), cancelling the order as 'refund_required' — AFTER
+-- the customer had already paid via Razorpay. Every pickup_locations row
+-- had exactly this problem: only the central (location_id IS NULL)
+-- inventory was ever seeded, never per-Zostel stock. This rewrite drops
+-- the shared FROM entirely so each side is its own coalesced scalar
+-- subquery — a missing row now correctly reads as 0, not "unknown".
+create or replace function public.available_stock(
+  p_variant_id uuid,
+  p_location_id uuid default null
+) returns integer
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select
+    coalesce((
+      select i.quantity_available from inventory i
+      where i.variant_id = p_variant_id and i.location_id is not distinct from p_location_id
+    ), 0)
+    - coalesce((
+        select sum(r.quantity)
+        from stock_reservations r
+        where r.variant_id = p_variant_id
+          and r.location_id is not distinct from p_location_id
+          and r.expires_at > now()
+      ), 0)
+$$;
+
+-- Seed a starting per-location stock count for every existing pickup
+-- location so takeaway ordering doesn't go from "silently unenforced" to
+-- "everything shows out of stock" the moment the fix above ships. Smaller
+-- than the 50-unit central/online seed (0029) since this represents
+-- physical stock actually sitting at one branch, not a warehouse.
+-- Admin-adjustable per location at /admin/inventory from here on.
+insert into public.inventory (variant_id, location_id, quantity_available)
+select v.id, l.id, 15
+from public.product_variants v
+cross join public.pickup_locations l
+on conflict do nothing;
+
+-- prevent_staff_pin_change — a Zostel's staff_pin is a bearer credential
+-- (whoever has it sees that location's pickup queue), not a day-to-day
+-- operational field like address/city/is_active — so it gets the same
+-- tier restriction as changing someone's role (see prevent_role_self_
+-- escalation): only super_admin or the service_role key can change it.
+-- A plain admin can still see the current PIN (pickup_locations_admin_
+-- write's is_admin() check still covers every other column and reads),
+-- just not rotate it. The frontend additionally requires the acting
+-- super_admin to re-enter their own password before calling this update
+-- at all — this trigger is the actual enforcement boundary either way.
+create or replace function public.prevent_staff_pin_change() returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if new.staff_pin is distinct from old.staff_pin
+     and not public.is_super_admin()
+     and auth.role() <> 'service_role' then
+    raise exception 'Only a super_admin can change a location''s staff PIN';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_prevent_staff_pin_change on public.pickup_locations;
+create trigger trg_prevent_staff_pin_change
+  before update on public.pickup_locations
+  for each row execute function public.prevent_staff_pin_change();
+
 -- ---- realtime (every table, not just orders/inventory) ----
 -- Every table in this schema is added to the supabase_realtime publication,
 -- so any client subscribed via postgres_changes gets live INSERT/UPDATE/

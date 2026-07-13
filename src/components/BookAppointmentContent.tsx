@@ -5,9 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { getActiveExperts, getTherapyCategories } from "@/lib/api";
+import { getActiveExperts, getSiteSetting, getTherapyCategories, validateAppointmentCoupon, type CouponPreview } from "@/lib/api";
+import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useCreateAppointment, useAppointmentTracking } from "@/lib/query/hooks";
 import { ExpertCard } from "@/components/ExpertCard";
+import { formatInr } from "@/lib/utils";
 
 const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
   pending: "Pending confirmation",
@@ -15,6 +17,14 @@ const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
   completed: "Completed",
   cancelled: "Cancelled",
 };
+
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: "Payment pending",
+  paid: "Paid",
+  failed: "Payment failed",
+};
+
+const DEFAULT_SESSION_PRICE = 999;
 
 function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
   const { data: appointment, isLoading } = useAppointmentTracking(appointmentId);
@@ -45,13 +55,27 @@ function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
           <span className="text-ink/60">Status</span>
           <span className="font-medium text-ink">{APPOINTMENT_STATUS_LABELS[appointment.status] ?? appointment.status}</span>
         </div>
+        {appointment.total !== null && (
+          <div className="mt-2 flex justify-between">
+            <span className="text-ink/60">Payment</span>
+            <span className="font-medium text-ink">
+              {formatInr(appointment.total)} — {PAYMENT_STATUS_LABELS[appointment.payment_status] ?? appointment.payment_status}
+            </span>
+          </div>
+        )}
+        {appointment.coupon_code && (
+          <div className="mt-2 flex justify-between text-emerald-700">
+            <span>Coupon</span>
+            <span>{appointment.coupon_code}</span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
 function BookingForm({ initialCategory, initialExpertId }: { initialCategory: string | null; initialExpertId: string | null }) {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
   const createAppointment = useCreateAppointment();
 
@@ -60,6 +84,17 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
   const [scheduledAt, setScheduledAt] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+
+  const priceQuery = useQuery({
+    queryKey: ["site-settings", "counselling_session_price"],
+    queryFn: () => getSiteSetting<number>(createClient(), "counselling_session_price"),
+  });
+  const sessionPrice = priceQuery.data ?? DEFAULT_SESSION_PRICE;
 
   const categoriesQuery = useQuery({
     queryKey: ["therapy-categories"],
@@ -72,18 +107,58 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     enabled: Boolean(category),
   });
 
+  // Only trust the applied preview while the input still matches what was
+  // checked — editing the code after applying shouldn't silently keep
+  // discounting at the old value.
+  const discountAmount = appliedCoupon?.code === couponCode.trim().toUpperCase() ? appliedCoupon.discountAmount : 0;
+  const total = Math.max(0, sessionPrice - discountAmount);
+
+  async function handleApplyCoupon() {
+    setIsCheckingCoupon(true);
+    setCouponError(null);
+    try {
+      const sb = createClient();
+      const result = await validateAppointmentCoupon(sb, couponCode, sessionPrice);
+      setAppliedCoupon(result);
+    } catch (err) {
+      setAppliedCoupon(null);
+      setCouponError(err instanceof Error ? err.message : "Couldn't apply coupon");
+    } finally {
+      setIsCheckingCoupon(false);
+    }
+  }
+
   async function handleSubmit() {
     if (!user || !category) return;
     setError(null);
     try {
-      const appointment = await createAppointment.mutateAsync({
-        userId: user.id,
+      const result = await createAppointment.mutateAsync({
         therapyCategory: category,
         expertId: expertId ?? undefined,
         scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
         notes: notes.trim() || undefined,
+        couponCode: couponCode.trim() || undefined,
       });
-      router.push(`/book-appointment?confirmed=${appointment.id}`);
+
+      if (!result.requiresPayment) {
+        router.push(`/book-appointment?confirmed=${result.appointmentId}`);
+        return;
+      }
+
+      await openRazorpayCheckout({
+        keyId: result.keyId,
+        amount: result.amount,
+        currency: result.currency,
+        razorpayOrderId: result.razorpayOrderId,
+        name: "MindCafe Counselling",
+        prefill: {
+          name: profile?.full_name ?? undefined,
+          email: user.email ?? undefined,
+          contact: profile?.phone ?? undefined,
+        },
+        onSuccess: () => router.push(`/book-appointment?confirmed=${result.appointmentId}`),
+        onDismiss: () => setError("Payment was cancelled. Your booking is saved as pending payment."),
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong booking your session.");
     }
@@ -163,6 +238,59 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         </div>
       )}
 
+      {category && (
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">4. payment</h2>
+          <div className="mt-3">
+            <label className="mb-1 block text-sm text-ink/70">Coupon code (optional)</label>
+            <div className="flex gap-2">
+              <input
+                value={couponCode}
+                onChange={(event) => {
+                  setCouponCode(event.target.value);
+                  setAppliedCoupon(null);
+                  setCouponError(null);
+                }}
+                onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), handleApplyCoupon())}
+                placeholder="e.g. NAYANFREE"
+                className="input uppercase"
+              />
+              <button
+                type="button"
+                onClick={handleApplyCoupon}
+                disabled={!couponCode.trim() || isCheckingCoupon || discountAmount > 0}
+                className="pill-btn-outline shrink-0 !py-2 text-xs normal-case tracking-normal"
+              >
+                {isCheckingCoupon ? "checking…" : discountAmount > 0 ? "applied" : "apply"}
+              </button>
+            </div>
+            {couponError && <p className="mt-1.5 text-sm text-red-600">{couponError}</p>}
+            {discountAmount > 0 && (
+              <p className="mt-1.5 text-sm text-emerald-700">
+                &ldquo;{appliedCoupon!.code}&rdquo; applied — {formatInr(discountAmount)} off
+              </p>
+            )}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-ink/15 bg-white p-4 text-sm">
+            <div className="flex justify-between">
+              <span>Session fee</span>
+              <span>{formatInr(sessionPrice)}</span>
+            </div>
+            {discountAmount > 0 && (
+              <div className="flex justify-between text-emerald-700">
+                <span>Coupon ({appliedCoupon!.code})</span>
+                <span>−{formatInr(discountAmount)}</span>
+              </div>
+            )}
+            <div className="mt-2 flex justify-between border-t border-ink/10 pt-2 font-medium">
+              <span>Total</span>
+              <span>{total === 0 ? "Free" : formatInr(total)}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button
@@ -171,7 +299,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         disabled={!category || createAppointment.isPending}
         className="pill-btn w-full"
       >
-        {createAppointment.isPending ? "requesting…" : "request this session"}
+        {createAppointment.isPending ? "processing…" : total === 0 ? "confirm free session" : "pay & request this session"}
       </button>
     </div>
   );

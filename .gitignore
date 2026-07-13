@@ -16,7 +16,8 @@
 .env*.local
 
 # real login credentials — never commit these
-TESTING_CREDENTIALS.md
+info_md/TESTING_CREDENTIALS.md
+info_md/zostel-*.md
 
 # typescript
 next-env.d.ts
