@@ -141,7 +141,17 @@ curl -X POST https://<project-ref>.supabase.co/functions/v1/admin-create-expert 
 This does three things atomically-ish: creates the `auth.users` row,
 promotes their `profiles.role` to `'expert'`, and creates the linked
 `experts` row — all in one call, which is exactly why the function exists
-rather than doing this by hand in three places.
+rather than doing this by hand in three places. Use this when the person
+**doesn't have an account yet**.
+
+**If the person already signed up** (e.g. they used Google sign-in as a
+regular customer before you were ready to onboard them) — don't create a
+second account. Instead, in `/admin/experts`, edit their directory entry
+and use **"link this account"**, which finds their existing profile by
+email and links it instead of minting a new login. This is `super_admin`-
+only (linking changes `profiles.role`, same restriction as any other role
+change — see §2); a plain `admin` can see the directory entry is unlinked
+but can't complete the link themselves.
 
 **Important:** the 5 experts currently shown on `/experts` and
 `/counselling` (Arouba Kabir, Swami Mukundananda, Anushka Gaur, Shreyasi

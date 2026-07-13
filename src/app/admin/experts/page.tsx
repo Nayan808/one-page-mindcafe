@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getAllExpertsAdmin, updateExpertAdmin, deleteExpertAdmin } from "@/lib/admin-api";
+import { getAllExpertsAdmin, updateExpertAdmin, deleteExpertAdmin, listUsersAdmin, linkExistingUserAsExpertAdmin, unlinkExpertAdmin } from "@/lib/admin-api";
+import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { Modal } from "@/components/Modal";
@@ -15,11 +16,21 @@ type CreateForm = { email: string; password: string; name: string; photo_url: st
 const EMPTY_CREATE: CreateForm = { email: "", password: "", name: "", photo_url: "", bio: "", certifications: "" };
 
 export default function AdminExpertsPage() {
+  const { profile } = useAuth();
+  const isSuperAdmin = profile?.role === "super_admin";
   const queryClient = useQueryClient();
   const query = useQuery({ queryKey: ["admin", "experts", "all"], queryFn: () => getAllExpertsAdmin(createClient()) });
 
   const [editing, setEditing] = useState<Expert | null>(null);
   const [editForm, setEditForm] = useState<EditForm | null>(null);
+  const [linkUserId, setLinkUserId] = useState("");
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  const usersQuery = useQuery({
+    queryKey: ["admin", "users"],
+    queryFn: () => listUsersAdmin(createClient()),
+    enabled: Boolean(editing) && !editing?.profile_id,
+  });
 
   const [createOpen, setCreateOpen] = useState(false);
   const [createForm, setCreateForm] = useState<CreateForm>(EMPTY_CREATE);
@@ -48,6 +59,24 @@ export default function AdminExpertsPage() {
   });
 
   const remove = useMutation({ mutationFn: (id: string) => deleteExpertAdmin(createClient(), id), onSuccess: invalidate });
+
+  const linkUser = useMutation({
+    mutationFn: () => linkExistingUserAsExpertAdmin(createClient(), editing!.id, linkUserId),
+    onSuccess: () => {
+      invalidate();
+      setLinkError(null);
+      setEditing(null);
+    },
+    onError: (err) => setLinkError(err instanceof Error ? err.message : "Failed to link account"),
+  });
+
+  const unlinkUser = useMutation({
+    mutationFn: () => unlinkExpertAdmin(createClient(), editing!.id),
+    onSuccess: () => {
+      invalidate();
+      setEditing(null);
+    },
+  });
 
   const createExpert = useMutation({
     mutationFn: async () => {
@@ -90,6 +119,8 @@ export default function AdminExpertsPage() {
       is_active: expert.is_active,
       rating: expert.rating ? String(expert.rating) : "",
     });
+    setLinkUserId("");
+    setLinkError(null);
   }
 
   function openCreate() {
@@ -153,6 +184,50 @@ export default function AdminExpertsPage() {
             <button type="button" onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending} className="pill-btn w-full">
               {saveEdit.isPending ? "saving…" : "save"}
             </button>
+
+            <div className="border-t border-ink/10 pt-3">
+              <p className="mb-1 text-sm font-medium text-ink">login access</p>
+              {editing?.profile_id ? (
+                <div className="flex items-center justify-between gap-2 rounded-lg border border-ink/15 bg-cream/60 p-3 text-sm">
+                  <span className="text-emerald-700">Linked to an account.</span>
+                  {isSuperAdmin ? (
+                    <button type="button" onClick={() => unlinkUser.mutate()} disabled={unlinkUser.isPending} className="text-xs font-medium text-red-600 underline">
+                      unlink
+                    </button>
+                  ) : (
+                    <span className="text-xs text-ink/40">super_admin-only to unlink</span>
+                  )}
+                </div>
+              ) : isSuperAdmin ? (
+                <div className="space-y-2">
+                  <p className="text-xs text-ink/50">
+                    Not linked — if this person already signed up (e.g. via Google), link their existing account
+                    here instead of creating a new one with &quot;create expert account&quot;.
+                  </p>
+                  <select value={linkUserId} onChange={(e) => setLinkUserId(e.target.value)} className="input">
+                    <option value="">
+                      {usersQuery.isLoading ? "Loading accounts…" : "Select an account"}
+                    </option>
+                    {(usersQuery.data ?? [])
+                      .filter((u) => u.role === "customer")
+                      .map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.email} {u.full_name ? `(${u.full_name})` : ""}
+                        </option>
+                      ))}
+                  </select>
+                  {linkError && <p className="text-xs text-red-600">{linkError}</p>}
+                  <button type="button" onClick={() => linkUser.mutate()} disabled={!linkUserId || linkUser.isPending} className="pill-btn-outline w-full !py-2 text-xs">
+                    {linkUser.isPending ? "linking…" : "link this account"}
+                  </button>
+                </div>
+              ) : (
+                <p className="text-xs text-ink/50">
+                  Not linked — linking an existing account requires super_admin (it changes the account&apos;s role).
+                  Use &quot;create expert account&quot; for a brand-new login, or ask a super_admin to link one here.
+                </p>
+              )}
+            </div>
           </div>
         )}
       </Modal>

@@ -304,6 +304,30 @@ export async function deleteExpertAdmin(sb: Sb, id: string): Promise<void> {
   throwOnError("deleteExpertAdmin", error);
 }
 
+// Links an ALREADY-SIGNED-UP account to a directory-only expert row (the
+// other path to expert login access, alongside admin-create-expert which
+// creates a brand-new account). Two writes, deliberately in this order:
+// the role change is attempted first because it's the one that requires
+// super_admin (prevent_role_self_escalation) — if it fails, nothing about
+// the experts row has changed yet, so there's no partial link left behind
+// for a plain admin who tries this.
+export async function linkExistingUserAsExpertAdmin(sb: Sb, expertId: string, userId: string): Promise<void> {
+  const { error: roleError } = await sb.from("profiles").update({ role: "expert" }).eq("id", userId);
+  throwOnError("linkExistingUserAsExpertAdmin.role", roleError);
+
+  const { error: linkError } = await sb.from("experts").update({ profile_id: userId }).eq("id", expertId);
+  throwOnError("linkExistingUserAsExpertAdmin.link", linkError);
+}
+
+// Removes login access without touching the person's role — deciding
+// whether they should also stop being 'expert' is a separate call (the
+// /admin/users role dropdown), not implied by unlinking the directory
+// entry.
+export async function unlinkExpertAdmin(sb: Sb, expertId: string): Promise<void> {
+  const { error } = await sb.from("experts").update({ profile_id: null }).eq("id", expertId);
+  throwOnError("unlinkExpertAdmin", error);
+}
+
 // --- Business leads -----------------------------------------------------
 
 export async function getBusinessLeadsAdmin(sb: Sb): Promise<BusinessLead[]> {
