@@ -9,13 +9,17 @@ export function AdminSearchInput({
   value,
   onChange,
   placeholder = "Search…",
+  wrapperClassName = "mb-4 max-w-sm",
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  /** Override when this is placed inside a page's own flex row (e.g.
+   * alongside a FilterDropdown) instead of standing alone. */
+  wrapperClassName?: string;
 }) {
   return (
-    <div className="relative mb-4 max-w-sm">
+    <div className={`relative ${wrapperClassName}`}>
       <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
       <input
         type="text"

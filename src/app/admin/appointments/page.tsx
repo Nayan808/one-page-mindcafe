@@ -7,11 +7,17 @@ import { getAppointmentsAdmin, updateAppointmentAdmin, getAllExpertsAdmin } from
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import type { AppointmentWithExpert } from "@/types/domain";
 
 const STATUSES = ["pending", "confirmed", "completed", "cancelled"];
 const PAGE_SIZE = 20;
+
+const STATUS_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "all statuses" },
+  ...STATUSES.map((s) => ({ value: s, label: s })),
+];
 
 export default function AdminAppointmentsPage() {
   const [page, setPage] = useState(0);
@@ -104,39 +110,25 @@ export default function AdminAppointmentsPage() {
     <div>
       <AdminPageHeader title="appointments" description={`${total} total`} />
 
-      <AdminSearchInput
-        value={search}
-        onChange={(v) => {
-          setSearch(v);
-          setPage(0);
-        }}
-        placeholder="Search by notes or category…"
-      />
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            setStatus("");
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <AdminSearchInput
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
             setPage(0);
           }}
-          className={`rounded-full border px-3 py-1.5 text-xs font-medium ${!status ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/60"}`}
-        >
-          all
-        </button>
-        {STATUSES.map((s) => (
-          <button
-            key={s}
-            type="button"
-            onClick={() => {
-              setStatus(s);
-              setPage(0);
-            }}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium capitalize ${status === s ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/60"}`}
-          >
-            {s}
-          </button>
-        ))}
+          placeholder="Search by notes or category…"
+          wrapperClassName="max-w-sm flex-1"
+        />
+        <FilterDropdown
+          options={STATUS_FILTER_OPTIONS}
+          value={status}
+          onChange={(v) => {
+            setStatus(v);
+            setPage(0);
+          }}
+          searchPlaceholder="Search statuses…"
+        />
       </div>
 
       <AdminTable columns={columns} rows={appointments} getRowId={(a) => a.id} isLoading={appointmentsQuery.isLoading} emptyLabel="No appointments." />

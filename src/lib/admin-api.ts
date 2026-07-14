@@ -34,27 +34,69 @@ function throwOnError(context: string, error: unknown): void {
 
 // --- Sales / analytics ---------------------------------------------------
 
+export type DashboardRange = "1d" | "7d" | "30d" | "all";
+
+// Two different kinds of number here, deliberately kept apart instead of
+// both being "affected by the date picker": pendingAppointments and
+// newBusinessLeadsQueue are the *current* operational queue (appointments
+// nobody's confirmed yet, leads nobody's followed up on) — showing "leads
+// in the last 24h" there would hide a lead that came in 3 days ago and is
+// still sitting unactioned. Everything under `range` is genuinely
+// historical and does move with the picker.
 export type SalesSummary = {
-  totalRevenue: number;
-  paidOrderCount: number;
-  ordersByStatus: Record<string, number>;
-  revenueLast30Days: { date: string; revenue: number }[];
   pendingAppointments: number;
-  newBusinessLeads: number;
-  newsletterSubscribers: number;
+  newBusinessLeadsQueue: number;
+  range: {
+    option: DashboardRange;
+    totalRevenue: number;
+    paidOrderCount: number;
+    ordersByStatus: Record<string, number>;
+    newAppointments: number;
+    newBusinessLeads: number;
+    newNewsletterSubscribers: number;
+    dailyRevenue: { date: string; revenue: number }[];
+    orders: { order_number: string; created_at: string; status: string; payment_status: string; fulfillment_type: string; total: number }[];
+  };
 };
 
-export async function getSalesSummary(sb: Sb): Promise<SalesSummary> {
-  const [ordersRes, appointmentsRes, leadsRes, subscribersRes] = await Promise.all([
-    sb.from("orders").select("total, status, payment_status, created_at"),
+function rangeStartDate(range: DashboardRange): Date | null {
+  if (range === "all") return null;
+  const days = range === "1d" ? 1 : range === "7d" ? 7 : 30;
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d;
+}
+
+export async function getSalesSummary(sb: Sb, range: DashboardRange = "30d"): Promise<SalesSummary> {
+  const rangeStart = rangeStartDate(range);
+  const rangeStartIso = rangeStart?.toISOString();
+
+  let ordersQuery = sb.from("orders").select("order_number, total, status, payment_status, fulfillment_type, created_at");
+  if (rangeStartIso) ordersQuery = ordersQuery.gte("created_at", rangeStartIso);
+
+  let appointmentsRangeQuery = sb.from("appointments").select("id", { count: "exact", head: true });
+  if (rangeStartIso) appointmentsRangeQuery = appointmentsRangeQuery.gte("created_at", rangeStartIso);
+
+  let leadsRangeQuery = sb.from("business_leads").select("id", { count: "exact", head: true });
+  if (rangeStartIso) leadsRangeQuery = leadsRangeQuery.gte("created_at", rangeStartIso);
+
+  let subscribersRangeQuery = sb.from("newsletter_subscribers").select("id", { count: "exact", head: true });
+  if (rangeStartIso) subscribersRangeQuery = subscribersRangeQuery.gte("subscribed_at", rangeStartIso);
+
+  const [ordersRes, pendingAppointmentsRes, newLeadsQueueRes, appointmentsRangeRes, leadsRangeRes, subscribersRangeRes] = await Promise.all([
+    ordersQuery,
     sb.from("appointments").select("id", { count: "exact", head: true }).eq("status", "pending"),
     sb.from("business_leads").select("id", { count: "exact", head: true }).eq("status", "new"),
-    sb.from("newsletter_subscribers").select("id", { count: "exact", head: true }),
+    appointmentsRangeQuery,
+    leadsRangeQuery,
+    subscribersRangeQuery,
   ]);
   throwOnError("getSalesSummary.orders", ordersRes.error);
-  throwOnError("getSalesSummary.appointments", appointmentsRes.error);
-  throwOnError("getSalesSummary.leads", leadsRes.error);
-  throwOnError("getSalesSummary.subscribers", subscribersRes.error);
+  throwOnError("getSalesSummary.pendingAppointments", pendingAppointmentsRes.error);
+  throwOnError("getSalesSummary.newLeadsQueue", newLeadsQueueRes.error);
+  throwOnError("getSalesSummary.appointmentsRange", appointmentsRangeRes.error);
+  throwOnError("getSalesSummary.leadsRange", leadsRangeRes.error);
+  throwOnError("getSalesSummary.subscribersRange", subscribersRangeRes.error);
 
   const orders = ordersRes.data ?? [];
   const paid = orders.filter((o) => o.payment_status === "paid");
@@ -63,27 +105,31 @@ export async function getSalesSummary(sb: Sb): Promise<SalesSummary> {
   const ordersByStatus: Record<string, number> = {};
   for (const o of orders) ordersByStatus[o.status] = (ordersByStatus[o.status] ?? 0) + 1;
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const byDay = new Map<string, number>();
   for (const o of paid) {
-    const createdAt = new Date(o.created_at);
-    if (createdAt < thirtyDaysAgo) continue;
-    const day = createdAt.toISOString().slice(0, 10);
+    const day = new Date(o.created_at).toISOString().slice(0, 10);
     byDay.set(day, (byDay.get(day) ?? 0) + Number(o.total));
   }
-  const revenueLast30Days = Array.from(byDay.entries())
+  const dailyRevenue = Array.from(byDay.entries())
     .map(([date, revenue]) => ({ date, revenue }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   return {
-    totalRevenue,
-    paidOrderCount: paid.length,
-    ordersByStatus,
-    revenueLast30Days,
-    pendingAppointments: appointmentsRes.count ?? 0,
-    newBusinessLeads: leadsRes.count ?? 0,
-    newsletterSubscribers: subscribersRes.count ?? 0,
+    pendingAppointments: pendingAppointmentsRes.count ?? 0,
+    newBusinessLeadsQueue: newLeadsQueueRes.count ?? 0,
+    range: {
+      option: range,
+      totalRevenue,
+      paidOrderCount: paid.length,
+      ordersByStatus,
+      newAppointments: appointmentsRangeRes.count ?? 0,
+      newBusinessLeads: leadsRangeRes.count ?? 0,
+      newNewsletterSubscribers: subscribersRangeRes.count ?? 0,
+      dailyRevenue,
+      orders: orders
+        .map((o) => ({ ...o, total: Number(o.total) }))
+        .sort((a, b) => b.created_at.localeCompare(a.created_at)),
+    },
   };
 }
 

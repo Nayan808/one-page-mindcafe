@@ -5,7 +5,13 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getInventoryAdmin, getPickupLocationsAdmin, updateInventoryQuantityAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
 import type { InventoryWithVariant } from "@/types/domain";
+
+// FilterDropdown works on plain strings; "" stands in for the central/
+// online pool (locationId = null) since no real pickup_locations id can
+// ever be an empty string.
+const ONLINE_VALUE = "";
 
 function QuantityCell({ row }: { row: InventoryWithVariant }) {
   const queryClient = useQueryClient();
@@ -77,6 +83,11 @@ export default function AdminInventoryPage() {
   const locations = locationsQuery.data ?? [];
   const rows = inventoryQuery.data ?? [];
 
+  const locationOptions: FilterOption[] = [
+    { value: ONLINE_VALUE, label: "online / delivery" },
+    ...locations.map((loc) => ({ value: loc.id, label: loc.name })),
+  ];
+
   return (
     <div>
       <AdminPageHeader
@@ -84,24 +95,13 @@ export default function AdminInventoryPage() {
         description="Stock is tracked per location — an online sale and a Zostel walk-in sale never draw from the same pool."
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setLocationId(null)}
-          className={`rounded-full border px-3 py-1.5 text-xs font-medium ${locationId === null ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/70 hover:border-ink/40"}`}
-        >
-          online / delivery
-        </button>
-        {locations.map((loc) => (
-          <button
-            key={loc.id}
-            type="button"
-            onClick={() => setLocationId(loc.id)}
-            className={`rounded-full border px-3 py-1.5 text-xs font-medium ${locationId === loc.id ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/70 hover:border-ink/40"}`}
-          >
-            {loc.name}
-          </button>
-        ))}
+      <div className="mb-4">
+        <FilterDropdown
+          options={locationOptions}
+          value={locationId ?? ONLINE_VALUE}
+          onChange={(v) => setLocationId(v === ONLINE_VALUE ? null : v)}
+          searchPlaceholder="Search locations…"
+        />
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white">

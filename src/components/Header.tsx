@@ -38,8 +38,8 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link href="/" onClick={scrollToTop} className="leading-none">
-          <span className="font-display text-xl font-bold lowercase">mindcafé</span>
+        <Link href="/" onClick={scrollToTop} className="shrink-0 leading-none">
+          <span className="font-display text-xl font-bold">Mindcafe</span>
         </Link>
 
         <nav className="hidden items-center gap-6 text-[11px] font-medium tracking-label text-ink/60 sm:flex">

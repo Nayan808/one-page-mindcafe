@@ -17,7 +17,7 @@ const serifItalic = Instrument_Serif({
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "feelz by mindcafé — order",
+  title: "mindcafe",
   description: "A paper-thin strip. Sixty seconds on the tongue. Four moods, on demand — delivered or picked up at a Zostel.",
 };
 
