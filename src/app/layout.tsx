@@ -6,6 +6,7 @@ import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
+import { AppLoadingOverlay } from "@/components/AppLoadingOverlay";
 
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["500", "700"] });
 const serifItalic = Instrument_Serif({
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="en" className={`${display.variable} ${serifItalic.variable} ${body.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-cream text-ink">
+        <AppLoadingOverlay />
         <Providers>
           <AnnouncementBar />
           <Header />
