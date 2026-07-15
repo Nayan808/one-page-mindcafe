@@ -91,3 +91,26 @@ body {
     animation: none !important;
   }
 }
+
+/* Scroll-reveal entrance, applied via the <Reveal> wrapper component.
+   .reveal-visible is added by IntersectionObserver the first time an
+   element scrolls into view. Reduced-motion gets the final state
+   immediately with no transition, matching the marquee override above. */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

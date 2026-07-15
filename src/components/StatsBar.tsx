@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getSiteSetting } from "@/lib/api";
+import { Reveal } from "@/components/Reveal";
 
 const DEFAULT_CHIPS = ["10 strips per box", "1.5g total", "4 moods × 2.5mg"];
 
@@ -18,19 +19,17 @@ export function StatsBar() {
   const chips = settingQuery.data?.chips?.length ? settingQuery.data.chips : DEFAULT_CHIPS;
 
   return (
-    <div className="border-y border-ink/10 bg-cream px-4 py-6 text-center">
-      <p className="font-display flex flex-wrap items-center justify-center gap-3 text-lg font-bold sm:text-2xl">
-        {chips.map((chip, index) => (
-          <span key={chip} className="contents">
-            {index > 0 && (
-              <span aria-hidden className="text-ink/40">
-                ✦
-              </span>
-            )}
-            <span>{chip}</span>
+    <div className="border-y border-ink/10 bg-cream px-4 py-10 text-center">
+      <Reveal className="flex flex-wrap items-center justify-center gap-3">
+        {chips.map((chip) => (
+          <span
+            key={chip}
+            className="font-display rounded-full border border-ink/15 bg-white px-5 py-2.5 text-sm font-bold text-ink shadow-sm sm:text-base"
+          >
+            {chip}
           </span>
         ))}
-      </p>
+      </Reveal>
     </div>
   );
 }
