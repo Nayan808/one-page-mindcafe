@@ -826,9 +826,12 @@ grant select, insert, update on public.appointments to authenticated;
 grant insert, update, delete on public.feeds_posts to authenticated;
 grant select, insert on public.feeds_reports to authenticated;
 
--- public-insert-only lead capture tables
+-- public-insert-only lead capture tables. business_leads also needs
+-- update (admin status dropdown in /admin/business-leads) — newsletter
+-- subscribers has no admin-facing status field, so stays insert/select-only.
 grant insert on public.newsletter_subscribers, public.business_leads to anon, authenticated;
 grant select on public.newsletter_subscribers, public.business_leads to authenticated;
+grant update on public.business_leads to authenticated;
 
 -- ============================================================
 -- profiles
@@ -1096,6 +1099,9 @@ drop policy if exists business_leads_select on public.business_leads;
 create policy business_leads_select on public.business_leads for select using (public.is_admin());
 drop policy if exists business_leads_insert on public.business_leads;
 create policy business_leads_insert on public.business_leads for insert with check (true);
+drop policy if exists business_leads_admin_update on public.business_leads;
+create policy business_leads_admin_update on public.business_leads
+  for update using (public.is_admin()) with check (public.is_admin());
 
 -- ============================================================
 -- feeds_posts / feeds_reports — optional community module. Schema and RLS
