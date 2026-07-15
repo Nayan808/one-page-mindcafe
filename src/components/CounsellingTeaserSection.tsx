@@ -64,7 +64,7 @@ export function CounsellingTeaserSection() {
                       className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex h-full w-full items-center justify-center bg-ink text-2xl font-bold text-cream">
+                    <div className="flex h-full w-full items-center justify-center bg-white text-2xl font-bold text-ink">
                       {initialsFor(expert.name)}
                     </div>
                   )}
