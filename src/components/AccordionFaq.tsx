@@ -33,9 +33,11 @@ export function AccordionFaq({ id, heading, items }: { id?: string; heading: str
                 type="button"
                 onClick={() => setOpenIndex(isOpen ? null : index)}
                 aria-expanded={isOpen}
-                className="flex w-full items-center justify-between gap-4 text-left"
+                className="flex w-full items-center gap-4"
               >
-                <span className="font-display text-base font-semibold text-ink sm:text-lg">{faq.question}</span>
+                <span className="font-display flex-1 text-center text-base font-semibold text-ink sm:text-lg">
+                  {faq.question}
+                </span>
                 <ChevronDown
                   className={`h-5 w-5 shrink-0 text-ink/50 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
                   aria-hidden
