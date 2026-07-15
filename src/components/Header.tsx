@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, ShoppingBag, X } from "lucide-react";
@@ -27,6 +27,53 @@ export function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Only the homepage opens with a transparent header (its hero is a
+  // full-bleed video/image) — every other page keeps the normal solid
+  // one. HomeHero's ScrollExpandMedia intercepts wheel/touch scroll
+  // itself and keeps window.scrollY pinned at 0 until the media finishes
+  // expanding, so this can't just watch scroll position; it mirrors the
+  // same wheel/touch-direction check ScrollExpandMedia uses internally to
+  // decide "collapse back to the top" (deltaY < 0 near scrollY 0), so the
+  // two stay in sync without the two components needing to share state.
+  const isHome = pathname === "/";
+  const [solid, setSolid] = useState(!isHome);
+
+  useEffect(() => {
+    if (!isHome) {
+      setSolid(true);
+      return;
+    }
+    setSolid(false);
+
+    let touchStartY = 0;
+    const handleWheel = (e: WheelEvent) => {
+      if (e.deltaY > 0) setSolid(true);
+      else if (e.deltaY < 0 && window.scrollY <= 5) setSolid(false);
+    };
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartY = e.touches[0].clientY;
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      const deltaY = touchStartY - e.touches[0].clientY;
+      if (deltaY > 0) setSolid(true);
+      else if (deltaY < 0 && window.scrollY <= 5) setSolid(false);
+    };
+    const handleScroll = () => {
+      if (window.scrollY > 0) setSolid(true);
+    };
+
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    window.addEventListener("touchstart", handleTouchStart, { passive: true });
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      window.removeEventListener("touchstart", handleTouchStart);
+      window.removeEventListener("touchmove", handleTouchMove);
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, [isHome]);
+
   const loginHref = `/login?returnTo=${encodeURIComponent(pathname || "/")}`;
   const dashboardLink = getDashboardLink(profile?.role);
 
@@ -36,7 +83,11 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-30 border-b border-ink/10 bg-cream/90 backdrop-blur">
+    <header
+      className={`sticky top-0 z-30 transition-colors duration-300 ${
+        solid ? "border-b border-ink/10 bg-cream/90 backdrop-blur" : "border-b border-transparent bg-transparent"
+      }`}
+    >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" onClick={scrollToTop} className="shrink-0 leading-none">
           <span className="font-display text-xl font-bold">Mindcafe</span>
