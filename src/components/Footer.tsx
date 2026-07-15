@@ -126,11 +126,6 @@ export function Footer() {
                 trust & safety
               </Link>
             </li>
-            <li>
-              <Link href="/reviews" className="hover:text-ink hover:underline">
-                reviews
-              </Link>
-            </li>
           </ul>
         </div>
 
