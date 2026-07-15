@@ -21,7 +21,7 @@ import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { VALID_CATEGORY_SLUGS } from "@/lib/therapyCategories";
 import type { Expert } from "@/types/domain";
 
-type EditForm = { name: string; photo_url: string; bio: string; specialties: string[]; certifications: string; is_active: boolean; rating: string };
+type EditForm = { name: string; photo_url: string; bio: string; specialties: string[]; certifications: string; is_active: boolean; rating: string; notification_email: string };
 type CreateForm = { email: string; password: string; name: string; photo_url: string; bio: string; certifications: string };
 const EMPTY_CREATE: CreateForm = { email: "", password: "", name: "", photo_url: "", bio: "", certifications: "" };
 
@@ -124,6 +124,7 @@ export default function AdminExpertsPage() {
         certifications: editForm.certifications.split(",").map((s) => s.trim()).filter(Boolean),
         is_active: editForm.is_active,
         rating: editForm.rating ? Number(editForm.rating) : null,
+        notification_email: editForm.notification_email.trim() || null,
       });
     },
     onSuccess: () => {
@@ -203,6 +204,7 @@ export default function AdminExpertsPage() {
       certifications: expert.certifications.join(", "),
       is_active: expert.is_active,
       rating: expert.rating ? String(expert.rating) : "",
+      notification_email: expert.notification_email ?? "",
     });
     setLinkUserId("");
     setLinkError(null);
@@ -275,6 +277,19 @@ export default function AdminExpertsPage() {
               </div>
             </div>
             <input value={editForm.rating} onChange={(e) => setEditForm({ ...editForm, rating: e.target.value })} placeholder="Rating (0-5, optional)" type="number" step="0.1" min="0" max="5" className="input" />
+            <div>
+              <input
+                value={editForm.notification_email}
+                onChange={(e) => setEditForm({ ...editForm, notification_email: e.target.value })}
+                placeholder="Booking notification email (optional)"
+                type="email"
+                className="input"
+              />
+              <p className="mt-1 text-xs text-ink/50">
+                Used to email this expert about new/changed bookings if they don&apos;t have login access (below). If
+                they do, bookings go to their account email instead.
+              </p>
+            </div>
             <label className="flex items-center gap-2 text-sm text-ink/70">
               <input type="checkbox" checked={editForm.is_active} onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })} />
               Active (shown in directory)

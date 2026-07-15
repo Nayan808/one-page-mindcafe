@@ -14,6 +14,7 @@
 // directly, which prevent_role_self_escalation() reserves for
 // super_admin only.
 import { serviceRoleClient, userScopedClient } from "../_shared/supabaseClients.ts";
+import { sendEmail } from "../_shared/email.ts";
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 
 type RequestBody = {
@@ -88,6 +89,17 @@ Deno.serve(async (req) => {
   if (expertError) {
     return jsonResponse({ error: `Account created but experts row failed: ${expertError.message}` }, 500);
   }
+
+  // Deliberately no password in this email — it's already displayed once
+  // in the admin UI for the admin to share through whatever channel they
+  // trust (in person, a call, a secure chat), the same way the account
+  // creation flow already works. Email is not a secure transport for a
+  // password sitting in an inbox indefinitely.
+  await sendEmail(
+    body.email,
+    "Your MindCafe expert account is ready",
+    `Hi ${body.name}, an account has been set up for you as a MindCafe counsellor. Sign in at /expert/login with ${body.email} and the password your admin shared with you separately.`,
+  );
 
   return jsonResponse({ expert, user_id: created.user.id });
 });

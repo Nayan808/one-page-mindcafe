@@ -389,6 +389,7 @@ export interface Database {
           certifications: string[];
           rating: number | null;
           is_active: boolean;
+          notification_email: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["experts"]["Row"]> & { name: string };

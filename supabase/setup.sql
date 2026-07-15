@@ -1693,6 +1693,113 @@ drop policy if exists expert_photos_admin_delete on storage.objects;
 create policy expert_photos_admin_delete on storage.objects
   for delete using (bucket_id = 'expert-photos' and public.is_admin());
 
+-- ---- from migrations/0035_email_notifications.sql ----
+-- Wires every "something happened" event that should email someone into
+-- real Database Webhooks — implemented via pg_net directly in SQL rather
+-- than the Supabase dashboard's Webhooks UI, so the whole notification
+-- pipeline stays reproducible from this file like everything else here.
+-- (Also worth knowing: neither of the two notifier functions this
+-- project already had — order-status-notifier, appointment-notifier —
+-- had ANY trigger wired to them before this migration, despite being
+-- fully implemented; they were entirely dormant.)
+create extension if not exists pg_net with schema extensions;
+
+-- A fallback contact for booking emails when an expert has no login
+-- account — experts.profile_id is null for a directory-only listing
+-- (true for most seeded experts today, see AUTH_AND_ROLES.md). Without
+-- this, a directory-only expert could never be emailed about a booking.
+alter table public.experts add column if not exists notification_email text;
+
+-- Dedup markers so the reminder crons (pickup-reminder, cart-reminder)
+-- never email the same person twice for the same stale order/cart.
+alter table public.orders add column if not exists pickup_reminder_sent_at timestamptz;
+alter table public.carts add column if not exists reminder_sent_at timestamptz;
+
+insert into public.site_settings (key, value)
+values ('admin_notification_email', '"team@mindcafe.app"'::jsonb)
+on conflict (key) do nothing;
+
+-- ============================================================
+-- notify_webhook — generic trigger function: POSTs the same
+-- {type, table, record, old_record} shape Supabase's own Database
+-- Webhooks send, to whichever Edge Function is named in TG_ARGV[0]. Runs
+-- via pg_net (async, fire-and-forget) and never lets a notification
+-- failure roll back the actual write — an order/booking/lead must still
+-- save even if pg_net or the function it's calling is having a bad day.
+--
+-- The anon key embedded below is safe to hardcode — it's already public
+-- (shipped in every browser bundle as NEXT_PUBLIC_SUPABASE_ANON_KEY).
+-- The functions it calls are deployed with --no-verify-jwt and do their
+-- own service-role work internally, so this key only has to get the
+-- request past the gateway, not authorize anything sensitive. (A real
+-- secret — e.g. the service_role key — must never be embedded in a
+-- function body like this: pg_proc source is readable by any role that
+-- can see the function exists, so this pattern only works because the
+-- anon key is meant to be public in the first place.)
+-- ============================================================
+create or replace function public.notify_webhook() returns trigger
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  v_function_name text := TG_ARGV[0];
+  v_url text := 'https://tqjpzqozysmdsuujzvmy.supabase.co/functions/v1/' || v_function_name;
+  v_payload jsonb;
+begin
+  v_payload := jsonb_build_object(
+    'type', TG_OP,
+    'table', TG_TABLE_NAME,
+    'record', to_jsonb(NEW),
+    'old_record', case when TG_OP = 'UPDATE' then to_jsonb(OLD) else null end
+  );
+
+  perform net.http_post(
+    url := v_url,
+    body := v_payload,
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRxanB6cW96eXNtZHN1dWp6dm15Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODM3ODIzOTgsImV4cCI6MjA5OTM1ODM5OH0.6YWG8kMwyv84LesjpihegRQoHwkTkLtHfAZyP2eM6oA'
+    )
+  );
+
+  return NEW;
+exception when others then
+  raise warning 'notify_webhook failed for %: %', v_function_name, SQLERRM;
+  return NEW;
+end;
+$$;
+
+drop trigger if exists trg_notify_order_status on public.orders;
+create trigger trg_notify_order_status
+  after insert or update on public.orders
+  for each row execute function public.notify_webhook('order-status-notifier');
+
+drop trigger if exists trg_notify_appointment on public.appointments;
+create trigger trg_notify_appointment
+  after insert or update on public.appointments
+  for each row execute function public.notify_webhook('appointment-notifier');
+
+drop trigger if exists trg_notify_business_lead on public.business_leads;
+create trigger trg_notify_business_lead
+  after insert on public.business_leads
+  for each row execute function public.notify_webhook('business-lead-notifier');
+
+drop trigger if exists trg_notify_newsletter on public.newsletter_subscribers;
+create trigger trg_notify_newsletter
+  after insert on public.newsletter_subscribers
+  for each row execute function public.notify_webhook('newsletter-welcome-notifier');
+
+-- Only the null -> not-null transition (an existing account getting
+-- linked to a directory listing) — not every unrelated edit to an
+-- expert's row (bio tweaks, rating changes, ...).
+drop trigger if exists trg_notify_expert_linked on public.experts;
+create trigger trg_notify_expert_linked
+  after update on public.experts
+  for each row
+  when (OLD.profile_id is null and NEW.profile_id is not null)
+  execute function public.notify_webhook('expert-linked-notifier');
+
 -- ---- realtime (every table, not just orders/inventory) ----
 -- Every table in this schema is added to the supabase_realtime publication,
 -- so any client subscribed via postgres_changes gets live INSERT/UPDATE/

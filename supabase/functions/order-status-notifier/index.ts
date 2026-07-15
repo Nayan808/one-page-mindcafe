@@ -1,15 +1,21 @@
-// Triggered by a Supabase Database Webhook on `orders` UPDATE (configure
-// in the dashboard: Database -> Webhooks -> orders -> UPDATE -> this
-// function's URL). Notifies the customer by email when status changes to
-// something worth notifying about. Only acts when `status` actually
-// changed, since the webhook fires on every column update.
+// Triggered by the trg_notify_order_status DB trigger (setup.sql,
+// pg_net-based — see notify_webhook()) on `orders` INSERT and UPDATE.
+// Two separate jobs depending on which:
+//   - INSERT: alert the admin/sales inbox that a new order came in.
+//   - UPDATE: notify the customer when status changes to something worth
+//     telling them about, and separately notify them if payment_status
+//     moves to a refund state (payment_status can change independently
+//     of status in the same UPDATE, so this is checked regardless of
+//     whether the status-message branch also fired).
 //
 // Works for both account and guest orders: account orders get the email
 // from auth.users, guest orders get it from orders.guest_email (set by
 // create-order at checkout). 'ready_for_pickup' additionally carries the
 // pickup_code, since that's the customer's only proof-of-purchase at the
-// pickup point if they've closed the confirmation tab.
+// pickup point if they've closed the confirmation tab. 'delivered' adds a
+// review-request line rather than firing a second email for it.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
+import { sendEmail } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 const STATUS_MESSAGES: Record<string, string> = {
@@ -23,66 +29,94 @@ const STATUS_MESSAGES: Record<string, string> = {
   cancelled: "Your order was cancelled.",
 };
 
-type DbWebhookPayload = {
-  type: "UPDATE";
-  table: string;
-  record: { id: string; status: string; fulfillment_type: string; pickup_code: string | null; order_number: string };
-  old_record: { status: string } | null;
+const REFUND_MESSAGES: Record<string, string> = {
+  refund_required: "We're processing a refund for this order — it'll reach you shortly.",
+  refunded: "Your refund has been issued.",
 };
 
-async function sendEmail(to: string, subject: string, text: string): Promise<void> {
-  const apiKey = Deno.env.get("EMAIL_PROVIDER_API_KEY");
-  if (!apiKey) {
-    console.warn("EMAIL_PROVIDER_API_KEY not set — skipping notification email");
-    return;
-  }
+type OrderRecord = {
+  id: string;
+  status: string;
+  payment_status: string;
+  fulfillment_type: string;
+  pickup_code: string | null;
+  order_number: string;
+  total: number;
+};
 
-  // Swap this block for whichever provider you pick (Resend shown here as
-  // an example — https://resend.com/docs/api-reference/emails/send-email).
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: "MindCafe <orders@mindcafe.app>", to, subject, text }),
-  });
+type DbWebhookPayload = {
+  type: "INSERT" | "UPDATE";
+  table: string;
+  record: OrderRecord;
+  old_record: OrderRecord | null;
+};
 
-  if (!res.ok) console.error("Email send failed", await res.text());
-}
-
-Deno.serve(async (req) => {
-  const payload = (await req.json()) as DbWebhookPayload;
-  const { record, old_record } = payload;
-
-  if (!record || record.status === old_record?.status) {
-    return jsonResponse({ skipped: true });
-  }
-
-  const message = STATUS_MESSAGES[record.status];
-  if (!message) return jsonResponse({ skipped: true });
-
-  const sb = serviceRoleClient();
-
+async function resolveCustomerEmail(
+  sb: ReturnType<typeof serviceRoleClient>,
+  orderId: string,
+): Promise<{ email: string | null; order_number: string }> {
   const { data: order } = await sb
     .from("orders")
     .select("user_id, order_number, guest_email")
-    .eq("id", record.id)
+    .eq("id", orderId)
     .single();
-  if (!order) return jsonResponse({ skipped: true, reason: "order not found" });
+  if (!order) return { email: null, order_number: "" };
 
   let email: string | null = order.guest_email;
-
   if (order.user_id) {
     const { data: authUser } = await sb.auth.admin.getUserById(order.user_id);
     email = authUser?.user?.email ?? null;
   }
+  return { email, order_number: order.order_number };
+}
 
-  if (!email) return jsonResponse({ skipped: true, reason: "no email on this order" });
+Deno.serve(async (req) => {
+  const payload = (await req.json()) as DbWebhookPayload;
+  const { type, record, old_record } = payload;
+  if (!record) return jsonResponse({ skipped: true });
 
-  const pickupNote =
-    record.status === "ready_for_pickup" && record.pickup_code
-      ? ` Show code ${record.pickup_code} at pickup (or the QR code on your confirmation page).`
-      : "";
-  const fullMessage = `Order ${order.order_number}: ${message}${pickupNote}`;
+  const sb = serviceRoleClient();
 
-  await sendEmail(email, `Order ${order.order_number}: ${message}`, fullMessage);
-  return jsonResponse({ sent: true });
+  if (type === "INSERT") {
+    const { data: setting } = await sb.from("site_settings").select("value").eq("key", "admin_notification_email").maybeSingle();
+    const adminEmail = (setting?.value as string) || "team@mindcafe.app";
+    await sendEmail(
+      adminEmail,
+      `New order: ${record.order_number}`,
+      `New ${record.fulfillment_type} order ${record.order_number} — total ${record.total}. Check /admin/orders.`,
+    );
+    return jsonResponse({ sent: true, kind: "admin_new_order" });
+  }
+
+  // UPDATE from here — status-change email and/or refund email, either
+  // or both may apply depending on what changed in this one write.
+  let sentAny = false;
+
+  const statusChanged = record.status !== old_record?.status;
+  const paymentChanged = record.payment_status !== old_record?.payment_status;
+
+  if (statusChanged && STATUS_MESSAGES[record.status]) {
+    const { email, order_number } = await resolveCustomerEmail(sb, record.id);
+    if (email) {
+      const pickupNote =
+        record.status === "ready_for_pickup" && record.pickup_code
+          ? ` Show code ${record.pickup_code} at pickup (or the QR code on your confirmation page).`
+          : "";
+      const reviewNote = record.status === "delivered" ? " We'd love to hear how it went — reply to this email or leave a review at /reviews." : "";
+      const message = STATUS_MESSAGES[record.status];
+      await sendEmail(email, `Order ${order_number}: ${message}`, `Order ${order_number}: ${message}${pickupNote}${reviewNote}`);
+      sentAny = true;
+    }
+  }
+
+  if (paymentChanged && REFUND_MESSAGES[record.payment_status]) {
+    const { email, order_number } = await resolveCustomerEmail(sb, record.id);
+    if (email) {
+      const message = REFUND_MESSAGES[record.payment_status];
+      await sendEmail(email, `Order ${order_number}: refund update`, `Order ${order_number}: ${message}`);
+      sentAny = true;
+    }
+  }
+
+  return jsonResponse(sentAny ? { sent: true } : { skipped: true });
 });
