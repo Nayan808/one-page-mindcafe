@@ -45,12 +45,12 @@ export function UseCasesSection() {
         <div className="mt-14 divide-y divide-ink/10 border-t border-ink/10">
           {USE_CASES.map((item, index) => (
             <Reveal key={item.title} delayMs={index * 70}>
-              <div className="group grid grid-cols-[3rem_1fr] items-baseline gap-x-6 py-7 transition-colors duration-300 hover:bg-ink/[0.02] sm:grid-cols-[4.5rem_16rem_1fr] sm:items-center sm:gap-x-10 sm:px-4">
+              <div className="group flex flex-col items-center gap-y-1.5 py-7 text-center transition-colors duration-300 hover:bg-ink/[0.02] sm:grid sm:grid-cols-[4.5rem_16rem_1fr] sm:flex-row sm:items-center sm:gap-x-10 sm:gap-y-0 sm:px-4 sm:text-left">
                 <span className="font-display text-3xl font-bold text-ink/15 transition-colors duration-300 group-hover:text-ink/30 sm:text-4xl">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <h3 className="font-display text-lg font-bold lowercase text-ink sm:text-xl">{item.title}</h3>
-                <p className="col-span-2 mt-2 text-sm leading-relaxed text-ink/60 sm:col-span-1 sm:mt-0">{item.body}</p>
+                <p className="max-w-xs text-sm leading-relaxed text-ink/60 sm:max-w-none">{item.body}</p>
               </div>
             </Reveal>
           ))}

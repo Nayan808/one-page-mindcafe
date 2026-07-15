@@ -10,20 +10,19 @@ import { PressMentionsSection } from "@/components/PressMentionsSection";
 // the cart drawer are global now (rendered once in layout.tsx), so every
 // route gets them without repeating the composition.
 //
-// Feelz and counselling get equal billing here (CounsellingTeaserSection
-// right after the Feelz teaser) since this is a two-vertical site, not a
-// Feelz storefront with counselling bolted on — StatsBar/Testimonials
-// after both stay shared trust-building content for the whole site.
-// PressMentionsSection is last and homepage-only, so it lands right
-// before the global <Footer> without needing any layout.tsx change.
+// StatsBar sits directly under the Feelz product grid (the stats are
+// about the Feelz strips themselves) before the rest of the page moves
+// on to counselling. PressMentionsSection is last and homepage-only, so
+// it lands right before the global <Footer> without needing any
+// layout.tsx change.
 export default function Home() {
   return (
     <>
       <HomeHero />
       <FeelzTeaserSection />
+      <StatsBar />
       <UseCasesSection />
       <CounsellingTeaserSection />
-      <StatsBar />
       <TestimonialsSection />
       <PressMentionsSection />
     </>
