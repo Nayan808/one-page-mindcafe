@@ -20,6 +20,7 @@ export function HomeHero() {
       <ScrollExpandMedia
         mediaType="video"
         mediaSrc="/homepage/herosectionvideo.mp4"
+        posterSrc="/homepage/herosectionimagebg.jpeg"
         bgImageSrc="/homepage/herosectionimagebg.jpeg"
         title="mindcafé that cares your brain"
         scrollToExpand="scroll to feel it"

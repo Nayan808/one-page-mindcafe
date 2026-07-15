@@ -142,8 +142,8 @@ const ScrollExpandMedia = ({
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  const mediaWidth = 300 + scrollProgress * (isMobileState ? 650 : 1250);
-  const mediaHeight = 400 + scrollProgress * (isMobileState ? 200 : 400);
+  const mediaWidth = (isMobileState ? 340 : 300) + scrollProgress * (isMobileState ? 650 : 1250);
+  const mediaHeight = (isMobileState ? 480 : 400) + scrollProgress * (isMobileState ? 220 : 400);
   const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
 
   const firstWord = title ? title.split(" ")[0] : "";
@@ -181,7 +181,7 @@ const ScrollExpandMedia = ({
                 style={{
                   width: `${mediaWidth}px`,
                   height: `${mediaHeight}px`,
-                  maxWidth: "95vw",
+                  maxWidth: isMobileState ? "97vw" : "95vw",
                   maxHeight: "85vh",
                   boxShadow: "0px 0px 50px rgba(0, 0, 0, 0.3)",
                 }}
