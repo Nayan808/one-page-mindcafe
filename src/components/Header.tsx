@@ -82,27 +82,34 @@ export function Header() {
     openDrawer();
   }
 
+  // The mobile menu panel is always solid bg-cream, so if the header
+  // itself is still in its transparent/white-text state (top of the
+  // homepage, not yet scrolled) when it opens, the logo and close button
+  // render white-on-cream — nearly invisible. Opening the menu always
+  // forces the solid/dark styling regardless of scroll position.
+  const headerSolid = solid || menuOpen;
+
   return (
     <header
       className={`sticky top-0 z-30 transition-colors duration-300 ${
-        solid ? "border-b border-ink/10 bg-cream/90 backdrop-blur" : "border-b border-transparent bg-transparent"
+        headerSolid ? "border-b border-ink/10 bg-cream/90 backdrop-blur" : "border-b border-transparent bg-transparent"
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" onClick={scrollToTop} className="shrink-0 leading-none">
-          <span className={`font-display text-xl font-bold ${solid ? "text-ink" : "text-white"}`}>Mindcafe</span>
+          <span className={`font-display text-xl font-bold ${headerSolid ? "text-ink" : "text-white"}`}>Mindcafe</span>
         </Link>
 
         <nav
           className={`hidden items-center gap-6 text-[11px] font-medium tracking-label sm:flex ${
-            solid ? "text-ink/60" : "text-white/80"
+            headerSolid ? "text-ink/60" : "text-white/80"
           }`}
         >
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`uppercase ${solid ? "hover:text-ink" : "hover:text-white"}`}
+              className={`uppercase ${headerSolid ? "hover:text-ink" : "hover:text-white"}`}
             >
               {link.label}
             </Link>
@@ -119,7 +126,7 @@ export function Header() {
           <Link
             href="/book-appointment"
             className={
-              solid
+              headerSolid
                 ? "pill-btn-outline !py-2 text-xs"
                 : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
             }
@@ -131,12 +138,12 @@ export function Header() {
             <button
               onClick={openDrawer}
               className={
-                solid
+                headerSolid
                   ? "pill-btn-outline !py-2 text-xs"
                   : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
               }
             >
-              <ShoppingBag className={`h-3.5 w-3.5 ${solid ? "text-ink" : "text-white"}`} aria-hidden />
+              <ShoppingBag className={`h-3.5 w-3.5 ${headerSolid ? "text-ink" : "text-white"}`} aria-hidden />
               cart{itemCount > 0 ? ` · ${itemCount}` : ""}
             </button>
           )}
@@ -156,7 +163,7 @@ export function Header() {
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border sm:hidden ${
-            solid ? "border-ink/15 text-ink" : "border-white/40 text-white"
+            headerSolid ? "border-ink/15 text-ink" : "border-white/40 text-white"
           }`}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
