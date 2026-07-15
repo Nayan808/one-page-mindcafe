@@ -21,7 +21,7 @@ export function HomeHero() {
         mediaType="video"
         mediaSrc="/homepage/herosectionvideo.mp4"
         bgImageSrc="/homepage/herosectionimagebg.jpeg"
-        title="mindcafé your brain health, in your pocket"
+        title="mindcafé care to your brain"
         scrollToExpand="scroll to feel it"
       >
         <div className="mx-auto max-w-xl text-center">
