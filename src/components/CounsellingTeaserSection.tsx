@@ -73,7 +73,7 @@ export function CounsellingTeaserSection() {
                       <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
                     </span>
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 text-center">
                     <h3 className="font-display text-sm font-bold text-ink">{expert.name}</h3>
                     {expert.certifications.length > 0 && (
                       <p className="mt-0.5 truncate text-xs text-ink/60">{expert.certifications[0]}</p>
