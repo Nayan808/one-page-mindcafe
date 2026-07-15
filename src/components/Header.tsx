@@ -90,12 +90,20 @@ export function Header() {
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" onClick={scrollToTop} className="shrink-0 leading-none">
-          <span className="font-display text-xl font-bold">Mindcafe</span>
+          <span className={`font-display text-xl font-bold ${solid ? "text-ink" : "text-white"}`}>Mindcafe</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-[11px] font-medium tracking-label text-ink/60 sm:flex">
+        <nav
+          className={`hidden items-center gap-6 text-[11px] font-medium tracking-label sm:flex ${
+            solid ? "text-ink/60" : "text-white/80"
+          }`}
+        >
           {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} className="uppercase hover:text-ink">
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`uppercase ${solid ? "hover:text-ink" : "hover:text-white"}`}
+            >
               {link.label}
             </Link>
           ))}
@@ -103,15 +111,32 @@ export function Header() {
 
         {/* Cart + account: visible inline on desktop, folded into the
             hamburger toggle on mobile so the header row stays to just the
-            logo and the toggle at narrow widths. */}
+            logo and the toggle at narrow widths. Outline buttons are
+            written out explicitly per state (not `pill-btn-outline` +
+            override classes) since layering a white-text utility on top
+            of that shared class isn't guaranteed to win the cascade. */}
         <div className="hidden items-center gap-3 sm:flex">
-          <Link href="/book-appointment" className="pill-btn-outline !py-2 text-xs">
+          <Link
+            href="/book-appointment"
+            className={
+              solid
+                ? "pill-btn-outline !py-2 text-xs"
+                : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
+            }
+          >
             book session
           </Link>
 
           {status === "authenticated" && (
-            <button onClick={openDrawer} className="pill-btn-outline !py-2 text-xs">
-              <ShoppingBag className="h-3.5 w-3.5 text-ink" aria-hidden />
+            <button
+              onClick={openDrawer}
+              className={
+                solid
+                  ? "pill-btn-outline !py-2 text-xs"
+                  : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
+              }
+            >
+              <ShoppingBag className={`h-3.5 w-3.5 ${solid ? "text-ink" : "text-white"}`} aria-hidden />
               cart{itemCount > 0 ? ` · ${itemCount}` : ""}
             </button>
           )}
@@ -130,7 +155,9 @@ export function Header() {
         <button
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink sm:hidden"
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border sm:hidden ${
+            solid ? "border-ink/15 text-ink" : "border-white/40 text-white"
+          }`}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}
         >
