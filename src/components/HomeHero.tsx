@@ -14,7 +14,7 @@ export function HomeHero() {
       mediaType="video"
       mediaSrc="/homepage/herosectionvideo.mp4"
       bgImageSrc="/homepage/herosectionimagebg.jpeg"
-      title="everyday tools for how you feel"
+      title="mindcafé your brain health, in your pocket"
       scrollToExpand="scroll to explore"
     >
       <div className="mx-auto max-w-xl text-center">
