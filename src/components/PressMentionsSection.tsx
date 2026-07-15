@@ -49,7 +49,7 @@ export function PressMentionsSection() {
                 mass: 1,
                 delay: index * 0.06,
               }}
-              className="flex h-20 items-center justify-center rounded-2xl border border-ink/25 bg-cream px-4 grayscale transition-all duration-300 hover:grayscale-0 hover:shadow-md"
+              className="flex h-20 items-center justify-center rounded-2xl border border-ink/25 px-4 grayscale transition-all duration-300 hover:grayscale-0 hover:shadow-md"
             >
               <div className="relative h-9 w-full">
                 <Image src={item.src} alt={item.name} fill sizes="180px" className="object-contain" />
