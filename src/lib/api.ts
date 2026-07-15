@@ -251,6 +251,18 @@ export async function getRecentReviews(sb: Sb, limit = 4): Promise<Review[]> {
   return data ?? [];
 }
 
+// Real average + count across every review, not just the handful shown in
+// the teaser — computed from actual rows, never a placeholder/fabricated
+// stat. Returns null when there are no reviews yet so the caller can hide
+// the summary line entirely instead of showing "0/5 from 0 reviews".
+export async function getReviewsSummary(sb: Sb): Promise<{ average: number; count: number } | null> {
+  const { data, error } = await sb.from("reviews").select("rating");
+  throwOnError("getReviewsSummary", error);
+  if (!data || data.length === 0) return null;
+  const average = data.reduce((sum, r) => sum + r.rating, 0) / data.length;
+  return { average, count: data.length };
+}
+
 // Full /reviews page — paginated, optionally filtered to a star rating.
 export async function getReviewsPage(
   sb: Sb,
