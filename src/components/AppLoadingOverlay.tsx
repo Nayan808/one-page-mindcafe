@@ -51,7 +51,7 @@ export function AppLoadingOverlay() {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-cream transition-opacity ${
+      className={`fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity ${
         fading ? "opacity-0" : "opacity-100"
       }`}
       style={{ transitionDuration: `${FADE_MS}ms` }}
