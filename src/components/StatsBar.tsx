@@ -19,7 +19,7 @@ export function StatsBar() {
   const chips = settingQuery.data?.chips?.length ? settingQuery.data.chips : DEFAULT_CHIPS;
 
   return (
-    <div className="border-y border-ink/10 px-4 py-10 text-center">
+    <div className="border-y border-ink/10 bg-white px-4 py-10 text-center">
       <Reveal className="flex flex-wrap items-center justify-center gap-3">
         {chips.map((chip) => (
           <span
