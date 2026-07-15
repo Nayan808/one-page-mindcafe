@@ -1,24 +1,37 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { BadgeCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { getTherapyCategories } from "@/lib/api";
+import { getActiveExperts } from "@/lib/api";
 import { Reveal } from "@/components/Reveal";
+
+function initialsFor(name: string): string {
+  return name
+    .split(" ")
+    .map((part) => part[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
+}
 
 // Homepage teaser for the counselling vertical — mirrors FeelzTeaserSection's
 // role (a taste, not the full page) so the homepage isn't Feelz-only. Full
-// detail (expert directory, emotional checklist, FAQs) stays on
-// /counselling. The intro copy and CTAs render regardless of whether the
-// therapy_categories query has resolved yet — unlike a pure product grid,
-// "counselling exists here" shouldn't disappear just because one table's
-// fetch is slow or briefly empty.
+// detail (full expert directory, emotional checklist, FAQs) stays on
+// /counselling and /experts. Shows real active experts (not therapy
+// categories) — a photo, name, and role reads as more "someone who gets
+// it" than a category label does. The intro copy and CTAs render
+// regardless of whether the experts query has resolved yet — "counselling
+// exists here" shouldn't disappear just because one table's fetch is slow
+// or briefly empty.
 export function CounsellingTeaserSection() {
-  const categoriesQuery = useQuery({
-    queryKey: ["therapy-categories"],
-    queryFn: () => getTherapyCategories(createClient()),
+  const expertsQuery = useQuery({
+    queryKey: ["experts", "counselling-teaser"],
+    queryFn: () => getActiveExperts(createClient()),
   });
-  const categories = categoriesQuery.data ?? [];
+  const experts = (expertsQuery.data ?? []).slice(0, 4);
 
   return (
     <section className="mx-auto max-w-6xl px-4 py-20 sm:px-6">
@@ -33,16 +46,38 @@ export function CounsellingTeaserSection() {
         </p>
       </Reveal>
 
-      {categories.length > 0 && (
+      {experts.length > 0 && (
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((category, index) => (
-            <Reveal key={category.slug} delayMs={index * 80}>
+          {experts.map((expert, index) => (
+            <Reveal key={expert.id} delayMs={index * 80}>
               <Link
-                href={`/therapy/${category.slug}`}
-                className="block rounded-3xl border border-ink/10 bg-white p-5 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                href={`/book-appointment?expert=${expert.id}`}
+                className="group block overflow-hidden rounded-3xl border border-ink/10 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
               >
-                <h3 className="font-display text-base font-bold text-ink">{category.title}</h3>
-                <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-ink/60">{category.body}</p>
+                <div className="relative aspect-square w-full overflow-hidden bg-ink/5">
+                  {expert.photo_url ? (
+                    <Image
+                      src={expert.photo_url}
+                      alt={expert.name}
+                      fill
+                      sizes="(min-width: 1024px) 22vw, 45vw"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-ink text-2xl font-bold text-cream">
+                      {initialsFor(expert.name)}
+                    </div>
+                  )}
+                  <span className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-cream">
+                    <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                  </span>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-display text-sm font-bold text-ink">{expert.name}</h3>
+                  {expert.certifications.length > 0 && (
+                    <p className="mt-0.5 truncate text-xs text-ink/60">{expert.certifications[0]}</p>
+                  )}
+                </div>
               </Link>
             </Reveal>
           ))}
