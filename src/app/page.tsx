@@ -1,5 +1,6 @@
 import { HomeHero } from "@/components/HomeHero";
 import { FeelzTeaserSection } from "@/components/FeelzTeaserSection";
+import { UseCasesSection } from "@/components/UseCasesSection";
 import { CounsellingTeaserSection } from "@/components/CounsellingTeaserSection";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
 import { StatsBar } from "@/components/StatsBar";
@@ -20,6 +21,7 @@ export default function Home() {
     <>
       <HomeHero />
       <FeelzTeaserSection />
+      <UseCasesSection />
       <CounsellingTeaserSection />
       <StatsBar />
       <TestimonialsSection />
