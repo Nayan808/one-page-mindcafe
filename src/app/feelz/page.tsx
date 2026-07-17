@@ -21,8 +21,10 @@ export default function FeelzPage() {
       <HowItWorksSection />
       <WhoItsForSection />
       <StatsBar />
-      <FaqSection />
-      <HeadsUpSection />
+      <div className="bg-white">
+        <FaqSection />
+        <HeadsUpSection />
+      </div>
     </>
   );
 }

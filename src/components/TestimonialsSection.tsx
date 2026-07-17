@@ -21,7 +21,7 @@ function ReviewCard({ review, featured }: { review: Review; featured?: boolean }
   return (
     <div
       className={`flex h-full flex-col justify-between rounded-3xl p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-        featured ? "bg-ink text-cream" : "border border-ink/10 bg-cream text-ink"
+        featured ? "bg-ink text-cream" : "border border-ink/10 bg-white text-ink"
       }`}
     >
       <div>

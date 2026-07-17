@@ -23,7 +23,8 @@ const STEPS = [
 // language (cream/ink, numbered "0X" labels) instead of a generic gallery.
 export function HowItWorksSection() {
   return (
-    <section id="how-it-works" className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <section id="how-it-works" className="bg-white">
+      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <div className="mx-auto flex w-fit items-center gap-3">
           <span className="h-px w-10 bg-ink/20" aria-hidden />
@@ -73,6 +74,7 @@ export function HowItWorksSection() {
             </div>
           ))}
         </div>
+      </div>
       </div>
     </section>
   );

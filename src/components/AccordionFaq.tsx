@@ -35,7 +35,7 @@ export function AccordionFaq({ id, heading, items }: { id?: string; heading: str
                 aria-expanded={isOpen}
                 className="flex w-full items-center gap-4"
               >
-                <span className="font-display flex-1 text-center text-base font-semibold text-ink sm:text-lg">
+                <span className="font-display flex-1 text-center text-base font-semibold text-ink sm:text-left sm:text-lg">
                   {faq.question}
                 </span>
                 <ChevronDown

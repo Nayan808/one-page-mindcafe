@@ -53,7 +53,7 @@ export function CounsellingTeaserSection() {
               <Reveal key={expert.id} delayMs={index * 80}>
                 <Link
                   href={`/book-appointment?expert=${expert.id}`}
-                  className="group block overflow-hidden rounded-3xl border border-ink/10 bg-cream text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+                  className="group block overflow-hidden rounded-3xl border border-ink/10 bg-white text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                 >
                   <div className="relative aspect-square w-full overflow-hidden bg-ink/5">
                     {expert.photo_url ? (
@@ -65,7 +65,7 @@ export function CounsellingTeaserSection() {
                         className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                       />
                     ) : (
-                      <div className="flex h-full w-full items-center justify-center bg-white text-2xl font-bold text-ink">
+                      <div className="flex h-full w-full items-center justify-center bg-cream text-2xl font-bold text-ink">
                         {initialsFor(expert.name)}
                       </div>
                     )}

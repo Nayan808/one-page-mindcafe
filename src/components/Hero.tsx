@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +18,38 @@ import type { ProductWithVariants } from "@/types/domain";
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
+
+// Types out each word, pauses, erases it, then moves to the next — loops
+// forever. "in sixty seconds" stays fixed outside this and isn't part of
+// the cycle, per the requested behavior.
+function useTypewriterCycle(words: string[], typeSpeed = 75, eraseSpeed = 40, pauseMs = 1100) {
+  const [index, setIndex] = useState(0);
+  const [subIndex, setSubIndex] = useState(0);
+  const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const current = words[index % words.length];
+
+    if (!deleting && subIndex === current.length) {
+      const pause = setTimeout(() => setDeleting(true), pauseMs);
+      return () => clearTimeout(pause);
+    }
+
+    if (deleting && subIndex === 0) {
+      setDeleting(false);
+      setIndex((i) => (i + 1) % words.length);
+      return;
+    }
+
+    const speed = deleting ? eraseSpeed : typeSpeed;
+    const timeout = setTimeout(() => setSubIndex((s) => s + (deleting ? -1 : 1)), speed);
+    return () => clearTimeout(timeout);
+  }, [subIndex, deleting, index, words, typeSpeed, eraseSpeed, pauseMs]);
+
+  return words[index % words.length].slice(0, subIndex);
+}
+
+const HERO_CYCLE_WORDS = ["tear it.", "place it.", "feel it."];
 
 const MOOD_GRID = [
   { key: "extrovert", label: "extrovert", src: "/products/extrovert.png" },
@@ -51,6 +83,7 @@ export function Hero() {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const typedCycle = useTypewriterCycle(HERO_CYCLE_WORDS);
 
   const catalogQuery = useQuery({
     queryKey: queryKeys.feelzCatalog(),
@@ -87,8 +120,25 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="bg-cream">
-      <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
+    <section ref={timelineRef} className="bg-white">
+      {/* Scoped to just this intro block (not the product grid below) —
+          its own positioning context so the image/scrim size to this
+          block's own height instead of the whole section's. */}
+      <div className="relative">
+        <Image
+          src="/feelz-hero-bg.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover"
+          aria-hidden
+        />
+        {/* Dark scrim, kept light — just enough for the text below to
+            stay readable without flattening the photo underneath. */}
+        <div className="absolute inset-0 bg-black/20" aria-hidden />
+
+        <div className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="button"
           animationNum={1}
@@ -113,13 +163,19 @@ export function Hero() {
           customVariants={revealVariants}
           className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold lowercase tracking-tight text-ink sm:text-6xl xl:text-7xl"
         >
-          tear it. place it.{" "}
-          <span className="bg-gradient-to-r from-[#f0405f] to-[#ff8a3d] bg-clip-text text-transparent">feel</span> it
-          in{" "}
-          <span className="bg-gradient-to-r from-[#2461e0] to-[#17b88b] bg-clip-text text-transparent">
-            sixty seconds
+          <span className="block text-center">
+            {typedCycle}
+            <span className="animate-pulse" aria-hidden>
+              |
+            </span>
           </span>
-          .
+          <span className="block text-center">
+            in{" "}
+            <span className="bg-gradient-to-r from-[#2461e0] to-[#17b88b] bg-clip-text text-transparent">
+              sixty seconds
+            </span>
+            .
+          </span>
         </TimelineContent>
 
         <TimelineContent
@@ -161,8 +217,10 @@ export function Hero() {
             </span>
           ))}
         </TimelineContent>
+        </div>
       </div>
 
+      <div className="bg-white">
       <div id="mood-picks" className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
         <div className="text-center">
           <div className="mx-auto flex w-fit items-center gap-3">
@@ -264,6 +322,7 @@ export function Hero() {
             );
           })}
         </div>
+      </div>
       </div>
     </section>
   );

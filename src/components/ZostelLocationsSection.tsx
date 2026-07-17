@@ -52,7 +52,8 @@ export function ZostelLocationsSection() {
   }, [locations, trimmedQuery]);
 
   return (
-    <section id="zostel-locations" className="mx-auto w-full min-w-0 max-w-6xl px-4 py-16 text-center sm:px-6">
+    <section id="zostel-locations" className="bg-white">
+      <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-16 text-center sm:px-6">
       <div className="mx-auto flex w-fit items-center gap-3">
         <span className="h-px w-10 bg-ink/20" aria-hidden />
         <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
@@ -133,7 +134,7 @@ export function ZostelLocationsSection() {
           {/* Desktop / tablet: normal manual horizontal scroll, width capped
               to ~3 cards so the rest are a deliberate scroll away rather
               than all laid out at once on wide screens. */}
-          <div className="scrollbar-hide mx-auto mt-10 hidden max-w-[52rem] justify-start gap-4 overflow-x-auto pb-2 sm:flex">
+          <div className="scrollbar-hide mx-auto mt-10 hidden max-w-[50rem] justify-start gap-4 overflow-x-auto pb-2 sm:flex">
             {locations.map((location) => (
               <LocationCard key={location.id} location={location} wide />
             ))}
@@ -147,6 +148,7 @@ export function ZostelLocationsSection() {
           Can&apos;t find it? Order online →
         </button>
       </p>
+      </div>
     </section>
   );
 }
