@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Check, Loader2, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
@@ -19,34 +20,17 @@ function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// Types out each word, pauses, erases it, then moves to the next — loops
-// forever. "in sixty seconds" stays fixed outside this and isn't part of
-// the cycle, per the requested behavior.
-function useTypewriterCycle(words: string[], typeSpeed = 75, eraseSpeed = 40, pauseMs = 1100) {
+// Cycles through each word on a timer — new word slides up from below as
+// the old one slides up and out, rather than a typewriter effect.
+function useSlideCycle(words: string[], intervalMs = 1800) {
   const [index, setIndex] = useState(0);
-  const [subIndex, setSubIndex] = useState(0);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    const current = words[index % words.length];
+    const timer = setInterval(() => setIndex((i) => (i + 1) % words.length), intervalMs);
+    return () => clearInterval(timer);
+  }, [words.length, intervalMs]);
 
-    if (!deleting && subIndex === current.length) {
-      const pause = setTimeout(() => setDeleting(true), pauseMs);
-      return () => clearTimeout(pause);
-    }
-
-    if (deleting && subIndex === 0) {
-      setDeleting(false);
-      setIndex((i) => (i + 1) % words.length);
-      return;
-    }
-
-    const speed = deleting ? eraseSpeed : typeSpeed;
-    const timeout = setTimeout(() => setSubIndex((s) => s + (deleting ? -1 : 1)), speed);
-    return () => clearTimeout(timeout);
-  }, [subIndex, deleting, index, words, typeSpeed, eraseSpeed, pauseMs]);
-
-  return words[index % words.length].slice(0, subIndex);
+  return words[index];
 }
 
 const HERO_CYCLE_WORDS = ["tear it.", "place it.", "feel it."];
@@ -83,7 +67,7 @@ export function Hero() {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const typedCycle = useTypewriterCycle(HERO_CYCLE_WORDS);
+  const cycleWord = useSlideCycle(HERO_CYCLE_WORDS);
 
   const catalogQuery = useQuery({
     queryKey: queryKeys.feelzCatalog(),
@@ -122,21 +106,23 @@ export function Hero() {
   return (
     <section ref={timelineRef} className="bg-white">
       {/* Scoped to just this intro block (not the product grid below) —
-          its own positioning context so the image/scrim size to this
-          block's own height instead of the whole section's. */}
-      <div className="relative">
+          its own positioning context so the image sizes to this block's
+          own height instead of the whole section's. object-contain shows
+          it undistorted, with the section's own white background showing
+          in whatever space the image doesn't reach. A low-opacity black
+          tint (brightness filter on the image itself, not an overlay div)
+          darkens just the photo's own pixels so the white space around it
+          stays untouched. */}
+      <div className="relative bg-white">
         <Image
           src="/feelz-hero-bg.png"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="object-cover"
+          className="object-contain brightness-90"
           aria-hidden
         />
-        {/* Dark scrim, kept light — just enough for the text below to
-            stay readable without flattening the photo underneath. */}
-        <div className="absolute inset-0 bg-black/20" aria-hidden />
 
         <div className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
@@ -163,11 +149,19 @@ export function Hero() {
           customVariants={revealVariants}
           className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold lowercase tracking-tight text-ink sm:text-6xl xl:text-7xl"
         >
-          <span className="block text-center">
-            {typedCycle}
-            <span className="animate-pulse" aria-hidden>
-              |
-            </span>
+          <span className="relative block h-[1.15em] overflow-hidden text-center">
+            <AnimatePresence mode="popLayout">
+              <motion.span
+                key={cycleWord}
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: "0%", opacity: 1 }}
+                exit={{ y: "-100%", opacity: 0 }}
+                transition={{ duration: 0.4, ease: "easeInOut" }}
+                className="block"
+              >
+                {cycleWord}
+              </motion.span>
+            </AnimatePresence>
           </span>
           <span className="block text-center">
             in{" "}
