@@ -1,4 +1,5 @@
 import { CalendarCheck, ListChecks, UserCheck } from "lucide-react";
+import { Reveal } from "@/components/Reveal";
 
 const STEPS = [
   { title: "Pick a category", description: "Individual, family, child & adolescent, or specialized support.", Icon: ListChecks },
@@ -12,7 +13,8 @@ const STEPS = [
 // misleading for a page about real mental-health support.
 export function CounsellingHowItWorks() {
   return (
-    <section className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+    <section className="bg-white">
+      <Reveal className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <div className="mx-auto flex w-fit items-center gap-3">
           <span className="h-px w-10 bg-ink/20" aria-hidden />
@@ -46,6 +48,7 @@ export function CounsellingHowItWorks() {
           ))}
         </div>
       </div>
+      </Reveal>
     </section>
   );
 }

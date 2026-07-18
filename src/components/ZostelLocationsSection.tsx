@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { MapPin, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -16,7 +17,10 @@ function LocationCard({ location, wide }: { location: PickupLocation; wide?: boo
     <div
       className={`shrink-0 rounded-2xl border border-ink bg-white p-4 text-left text-ink shadow-lg ${wide ? "w-64" : "w-56"}`}
     >
-      <p className="font-display text-base font-bold">{location.name}</p>
+      <div className="relative h-8 w-8 overflow-hidden rounded-full border border-ink/10">
+        <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+      </div>
+      <p className="font-display mt-2.5 text-base font-bold">{location.name}</p>
       <p className="mt-1.5 flex items-start gap-1.5 text-xs text-ink/70">
         <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/50" aria-hidden />
         {location.address}

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getTherapyCategories } from "@/lib/api";
+import { Reveal } from "@/components/Reveal";
 
 // Spec 3.4 "therapy type picker" — 4 category cards routing to
 // /therapy/:category, driven by the therapy_categories table so the copy
@@ -18,7 +19,8 @@ export function TherapyCategoryPicker() {
   if (!categoriesQuery.isLoading && categories.length === 0) return null;
 
   return (
-    <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+    <section className="bg-white">
+      <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">choose a category</p>
         <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">what brings you in?</h2>
@@ -39,6 +41,7 @@ export function TherapyCategoryPicker() {
           </Link>
         ))}
       </div>
+      </Reveal>
     </section>
   );
 }

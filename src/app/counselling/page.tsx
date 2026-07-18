@@ -1,6 +1,5 @@
 import { CounsellingHero } from "@/components/CounsellingHero";
 import { CounsellingHowItWorks } from "@/components/CounsellingHowItWorks";
-import { EmotionalChecklistSection } from "@/components/EmotionalChecklistSection";
 import { TherapyCategoryPicker } from "@/components/TherapyCategoryPicker";
 import { ExpertsTeaserSection } from "@/components/ExpertsTeaserSection";
 import { TestimonialsSection } from "@/components/TestimonialsSection";
@@ -11,11 +10,12 @@ export default function CounsellingPage() {
     <>
       <CounsellingHero />
       <CounsellingHowItWorks />
-      <EmotionalChecklistSection />
       <TherapyCategoryPicker />
       <ExpertsTeaserSection />
       <TestimonialsSection />
-      <CounsellingFaqSection />
+      <div className="bg-white">
+        <CounsellingFaqSection />
+      </div>
     </>
   );
 }
