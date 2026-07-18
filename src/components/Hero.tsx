@@ -104,42 +104,23 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="bg-white">
-      {/* Scoped to just this intro block (not the product grid below) —
-          its own positioning context so the image sizes to this block's
-          own height instead of the whole section's. object-contain shows
-          it undistorted, with the section's own white background showing
-          in whatever space the image doesn't reach. A low-opacity black
-          tint (brightness filter on the image itself, not an overlay div)
-          darkens just the photo's own pixels so the white space around it
-          stays untouched. */}
-      <div className="relative bg-white">
-        <Image
-          src="/feelz-hero-bg.png"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-contain brightness-90"
-          aria-hidden
-        />
-
-        <div className="relative mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
+    <section ref={timelineRef} className="bg-ink">
+      <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="button"
           animationNum={1}
           timelineRef={timelineRef}
           customVariants={revealVariants}
           onClick={() => scrollTo("products")}
-          className="mx-auto flex w-fit items-center gap-1 rounded-full border-4 border-ink/10 bg-ink py-0.5 pl-0.5 pr-3 text-xs"
+          className="mx-auto flex w-fit items-center gap-1 rounded-full border-4 border-cream/10 bg-cream py-0.5 pl-0.5 pr-3 text-xs"
         >
-          <span className="rounded-full bg-cream px-2 py-1 text-[11px] font-semibold uppercase tracking-label text-ink">
+          <span className="rounded-full bg-ink px-2 py-1 text-[11px] font-semibold uppercase tracking-label text-cream">
             new
           </span>
-          <span className="inline-block px-1 text-cream sm:text-sm">
+          <span className="inline-block px-1 text-ink sm:text-sm">
             incubated at zo world <span className="font-semibold">· distributed by zostel</span>
           </span>
-          <ArrowRight className="h-3 w-3 text-cream" aria-hidden />
+          <ArrowRight className="h-3 w-3 text-ink" aria-hidden />
         </TimelineContent>
 
         <TimelineContent
@@ -147,7 +128,7 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold lowercase tracking-tight text-ink sm:text-6xl xl:text-7xl"
+          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold lowercase tracking-tight text-cream sm:text-6xl xl:text-7xl"
         >
           <span className="relative block h-[1.15em] overflow-hidden text-center">
             <AnimatePresence mode="popLayout">
@@ -177,7 +158,7 @@ export function Hero() {
           animationNum={3}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-ink/70 sm:text-xl"
+          className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-cream/70 sm:text-xl"
         >
           fast-dissolving mood strips — focus, extrovert, joy &amp; rest, on demand. no water, no sugar, made in
           india.
@@ -190,10 +171,16 @@ export function Hero() {
           customVariants={revealVariants}
           className="mt-8 flex flex-wrap items-center justify-center gap-3"
         >
-          <button onClick={() => scrollTo("mood-picks")} className="pill-btn">
+          <button
+            onClick={() => scrollTo("mood-picks")}
+            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-cream px-5 py-2.5 text-sm font-medium text-ink transition hover:opacity-90"
+          >
             shop feelz ↓
           </button>
-          <button onClick={() => scrollTo("mood-picks")} className="pill-btn-outline">
+          <button
+            onClick={() => scrollTo("mood-picks")}
+            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-cream/40 bg-transparent px-5 py-2.5 text-sm font-medium text-cream transition hover:bg-cream/10"
+          >
             find at zostel
           </button>
         </TimelineContent>
@@ -211,7 +198,6 @@ export function Hero() {
             </span>
           ))}
         </TimelineContent>
-        </div>
       </div>
 
       <div className="bg-white">
