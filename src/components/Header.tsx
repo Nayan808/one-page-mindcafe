@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { Avatar } from "@/components/Avatar";
@@ -23,6 +24,7 @@ const NAV_LINKS = [
 
 export function Header() {
   const { status, profile, user, signOut } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const { itemCount, openDrawer } = useCartContext();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -74,7 +76,6 @@ export function Header() {
     };
   }, [isHome]);
 
-  const loginHref = `/login?returnTo=${encodeURIComponent(pathname || "/")}`;
   const dashboardLink = getDashboardLink(profile?.role);
 
   function handleMobileCart() {
@@ -152,9 +153,9 @@ export function Header() {
             <ProfileMenu />
           ) : (
             status !== "loading" && (
-              <Link href={loginHref} className="pill-btn !py-2 text-xs">
+              <button type="button" onClick={openAuthModal} className="pill-btn !py-2 text-xs">
                 log in
-              </Link>
+              </button>
             )
           )}
         </div>
@@ -239,13 +240,16 @@ export function Header() {
             </>
           ) : (
             status !== "loading" && (
-              <Link
-                href={loginHref}
-                onClick={() => setMenuOpen(false)}
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  openAuthModal();
+                }}
                 className="pill-btn mt-2 w-full normal-case tracking-normal"
               >
                 log in
-              </Link>
+              </button>
             )
           )}
         </nav>

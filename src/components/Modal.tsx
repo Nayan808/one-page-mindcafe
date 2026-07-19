@@ -11,11 +11,13 @@ export function Modal({
   onClose,
   title,
   children,
+  panelClassName = "",
 }: {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
+  panelClassName?: string;
 }) {
   useEffect(() => {
     if (!isOpen) return;
@@ -47,7 +49,7 @@ export function Modal({
       />
 
       <div
-        className={`relative flex max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-cream shadow-2xl transition-all duration-300 ${isOpen ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0"}`}
+        className={`relative flex max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-cream shadow-2xl transition-all duration-300 ${isOpen ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0"} ${panelClassName}`}
       >
         <div className="flex items-center justify-between border-b border-ink/10 px-5 py-4">
           <h2 className="font-display text-xl font-bold lowercase">{title}</h2>

@@ -14,8 +14,13 @@ type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   signInWithGoogle: (returnTo?: string) => Promise<{ error: string | null }>;
+  sendOtp: (email: string, fullName?: string) => Promise<{ error: string | null }>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
+  // Still used by role-based staff sign-in (expert/employer login,
+  // RoleLoginForm.tsx) and the admin re-auth check on pickup-locations —
+  // those accounts are provisioned by an admin, not self-serve, so they
+  // intentionally stay password-based rather than moving to email OTP.
   signInWithPassword: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUpWithPassword: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -87,17 +92,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [sb],
   );
 
-  const signInWithPassword = useCallback(
-    async (email: string, password: string) => {
-      const { error } = await sb.auth.signInWithPassword({ email, password });
+  // Email auth is OTP-only (no password) — sendOtp both creates a new user
+  // (if the email is unrecognized) and signs an existing one in; Supabase's
+  // handle_new_user() trigger picks fullName up from raw_user_meta_data the
+  // same way signUpWithPassword used to. Email delivery uses Supabase's
+  // built-in mailer out of the box (rate-limited); once a custom SMTP
+  // provider is wired up in the Supabase dashboard, these same calls start
+  // sending through that instead — no code change needed here.
+  const sendOtp = useCallback(
+    async (email: string, fullName?: string) => {
+      const { error } = await sb.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          data: fullName ? { full_name: fullName } : undefined,
+        },
+      });
       return { error: error?.message ?? null };
     },
     [sb],
   );
 
-  const signUpWithPassword = useCallback(
-    async (email: string, password: string, fullName: string) => {
-      const { error } = await sb.auth.signUp({ email, password, options: { data: { full_name: fullName } } });
+  const verifyOtp = useCallback(
+    async (email: string, token: string) => {
+      const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+      return { error: error?.message ?? null };
+    },
+    [sb],
+  );
+
+  const signInWithPassword = useCallback(
+    async (email: string, password: string) => {
+      const { error } = await sb.auth.signInWithPassword({ email, password });
       return { error: error?.message ?? null };
     },
     [sb],
@@ -116,8 +142,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     profile,
     signInWithGoogle,
+    sendOtp,
+    verifyOtp,
     signInWithPassword,
-    signUpWithPassword,
     signOut,
     refreshProfile,
   };

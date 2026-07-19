@@ -24,7 +24,8 @@ function CheckoutContent() {
   }, [orderId, isLoading, items.length, router]);
 
   return (
-    <div className="mx-auto max-w-lg px-4 py-12 sm:px-6">
+    <div className="bg-white">
+      <div className="mx-auto max-w-lg px-4 py-12 sm:px-6">
       {orderId ? (
         <OrderConfirmation orderId={orderId} onStartNewOrder={() => router.push("/feelz")} />
       ) : isLoading ? (
@@ -41,7 +42,7 @@ function CheckoutContent() {
               return (
                 <li
                   key={item.id}
-                  className="flex items-center justify-between rounded-xl border border-ink/15 bg-white p-3 text-sm"
+                  className="flex items-center justify-between rounded-xl border border-ink/15 bg-cream p-3 text-sm"
                 >
                   <span className="font-medium text-ink">
                     {item.product_variants.products.name} × {item.quantity}
@@ -60,13 +61,20 @@ function CheckoutContent() {
           <FulfillmentAndPayment onOrderPlaced={(id) => router.push(`/checkout?order=${id}`)} />
         </div>
       )}
+      </div>
     </div>
   );
 }
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-lg px-4 py-12 sm:px-6 text-sm text-ink/60">Loading…</div>}>
+    <Suspense
+      fallback={
+        <div className="bg-white">
+          <div className="mx-auto max-w-lg px-4 py-12 sm:px-6 text-sm text-ink/60">Loading…</div>
+        </div>
+      }
+    >
       <CheckoutContent />
     </Suspense>
   );

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AtSign, Globe, Mail, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { subscribeToNewsletter } from "@/lib/api";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 
 function NewsletterForm() {
   const [email, setEmail] = useState("");
@@ -45,6 +46,7 @@ function NewsletterForm() {
 }
 
 export function Footer() {
+  const { openAuthModal } = useAuthModal();
   return (
     <footer className="mx-3 mb-3 rounded-2xl border border-ink/10 px-6 py-8 text-center sm:mx-6 sm:mb-6 sm:px-10 sm:text-left">
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -117,11 +119,6 @@ export function Footer() {
               </a>
             </li>
             <li>
-              <Link href="/faq" className="hover:text-ink hover:underline">
-                faq
-              </Link>
-            </li>
-            <li>
               <Link href="/trust" className="hover:text-ink hover:underline">
                 trust & safety
               </Link>
@@ -133,9 +130,9 @@ export function Footer() {
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">accounts</p>
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
-              <Link href="/login" className="hover:text-ink hover:underline">
+              <button type="button" onClick={openAuthModal} className="hover:text-ink hover:underline">
                 login
-              </Link>
+              </button>
             </li>
             <li>
               <Link href="/expert/login" className="hover:text-ink hover:underline">

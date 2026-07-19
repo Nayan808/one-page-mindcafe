@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Check, Loader2, ShoppingBag } from "lucide-react";
@@ -11,6 +10,7 @@ import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { moodStyleFor } from "@/lib/moodStyles";
 import { formatInr } from "@/lib/utils";
@@ -63,7 +63,7 @@ export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
   const { user } = useAuth();
-  const router = useRouter();
+  const { openAuthModal } = useAuthModal();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -79,7 +79,7 @@ export function Hero() {
     if (!variant || !isReady || !cartId) return;
 
     if (!user) {
-      router.push("/login?returnTo=%2Ffeelz");
+      openAuthModal();
       return;
     }
 
