@@ -3,6 +3,16 @@
 import { useState, type FormEvent } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Supabase's built-in mailer (used until a custom SMTP/Send Email Hook is
+// wired up) caps out at a handful of emails/hour — swap that raw error for
+// an actionable nudge toward the one auth path that isn't rate-limited.
+function friendlyError(error: string): string {
+  if (error.toLowerCase().includes("rate limit")) {
+    return "too many email codes requested — try log in with google instead.";
+  }
+  return error;
+}
+
 // Shared by the login/signup popup and the standalone /login and /signup
 // pages (the latter still used for hard-gate redirects like /admin,
 // /account, /book-appointment) so the Google + email-OTP flow only lives
@@ -104,7 +114,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
             />
           </div>
 
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          {formError && <p className="text-sm text-red-600">{friendlyError(formError)}</p>}
 
           <button type="submit" disabled={isSending} className="pill-btn w-full">
             {isSending ? "sending code…" : "send code"}
@@ -131,7 +141,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
             />
           </div>
 
-          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          {formError && <p className="text-sm text-red-600">{friendlyError(formError)}</p>}
 
           <button type="submit" disabled={isVerifying} className="pill-btn w-full">
             {isVerifying ? "verifying…" : "verify & continue"}

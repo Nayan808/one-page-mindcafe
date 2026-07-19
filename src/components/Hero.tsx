@@ -104,7 +104,7 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="bg-ink">
+    <section ref={timelineRef} className="bg-cream">
       <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="button"
@@ -112,7 +112,7 @@ export function Hero() {
           timelineRef={timelineRef}
           customVariants={revealVariants}
           onClick={() => scrollTo("products")}
-          className="mx-auto flex w-fit items-center gap-1 rounded-full border-4 border-cream/10 bg-cream py-0.5 pl-0.5 pr-3 text-xs"
+          className="mx-auto flex w-fit items-center gap-1 rounded-full border-4 border-ink/5 bg-white py-0.5 pl-0.5 pr-3 text-xs"
         >
           <span className="rounded-full bg-ink px-2 py-1 text-[11px] font-semibold uppercase tracking-label text-cream">
             new
@@ -128,7 +128,7 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold lowercase tracking-tight text-cream sm:text-6xl xl:text-7xl"
+          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold lowercase tracking-tight text-ink sm:text-6xl xl:text-7xl"
         >
           <span className="relative block h-[1.15em] overflow-hidden text-center">
             <AnimatePresence mode="popLayout">
@@ -158,7 +158,7 @@ export function Hero() {
           animationNum={3}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-cream/70 sm:text-xl"
+          className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-ink/70 sm:text-xl"
         >
           fast-dissolving mood strips — focus, extrovert, joy &amp; rest, on demand. no water, no sugar, made in
           india.
@@ -173,13 +173,13 @@ export function Hero() {
         >
           <button
             onClick={() => scrollTo("mood-picks")}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-cream px-5 py-2.5 text-sm font-medium text-ink transition hover:opacity-90"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90"
           >
             shop feelz ↓
           </button>
           <button
             onClick={() => scrollTo("mood-picks")}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-cream/40 bg-transparent px-5 py-2.5 text-sm font-medium text-cream transition hover:bg-cream/10"
+            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/30 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5"
           >
             find at zostel
           </button>

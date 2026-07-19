@@ -2,10 +2,33 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AtSign, Globe, Mail, Phone } from "lucide-react";
+import { Globe, Mail, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { subscribeToNewsletter } from "@/lib/api";
 import { useAuthModal } from "@/contexts/AuthModalContext";
+
+// lucide-react has no brand icons in this version (see the comment below),
+// but this exact glyph — rounded square, lens circle, flash dot — is the
+// open-source Feather Icons "instagram" mark lucide itself was forked
+// from, so it matches the rest of this icon set stroke-for-stroke.
+function InstagramIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+    </svg>
+  );
+}
 
 function NewsletterForm() {
   const [email, setEmail] = useState("");
@@ -93,8 +116,8 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/assessment" className="hover:text-ink hover:underline">
-                take the assessment
+              <Link href="/self-assessment" className="hover:text-ink hover:underline">
+                self-assessment tests
               </Link>
             </li>
             <li>
@@ -121,6 +144,11 @@ export function Footer() {
             <li>
               <Link href="/trust" className="hover:text-ink hover:underline">
                 trust & safety
+              </Link>
+            </li>
+            <li>
+              <Link href="/awards" className="hover:text-ink hover:underline">
+                awards
               </Link>
             </li>
           </ul>
@@ -191,8 +219,8 @@ export function Footer() {
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">follow</p>
           {/* lucide-react has no brand icons in this version — generic
-              Globe stands in for LinkedIn/Facebook, matching how Instagram
-              already used a generic AtSign below. */}
+              Globe stands in for LinkedIn/Facebook; Instagram gets its own
+              real glyph via InstagramIcon above. */}
           <div className="mt-2 flex items-center justify-center gap-3 sm:justify-start">
             <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="text-ink/60 hover:text-ink">
               <Globe className="h-4 w-4" aria-hidden />
@@ -200,8 +228,14 @@ export function Footer() {
             <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className="text-ink/60 hover:text-ink">
               <Globe className="h-4 w-4" aria-hidden />
             </a>
-            <a href="https://instagram.com/mindcafeindia" target="_blank" rel="noreferrer" className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink">
-              <AtSign className="h-3.5 w-3.5" aria-hidden />
+            <a
+              href="https://www.instagram.com/mindcafeindia/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+              className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink"
+            >
+              <InstagramIcon className="h-4 w-4" />
               mindcafeindia
             </a>
           </div>
