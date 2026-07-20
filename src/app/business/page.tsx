@@ -156,17 +156,25 @@ export default function BusinessPage() {
   return (
     <div>
       <section className="bg-ink text-cream">
-        <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
+        <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
-            for business
+            build healthier teams
           </span>
           <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl font-bold lowercase leading-[1.05] sm:text-5xl">
-            build healthier teams.
+            improve <span className="font-tagline italic">team performance.</span>
           </h1>
-          <p className="font-tagline mx-auto mt-4 max-w-md text-lg italic text-cream/70">improve team performance.</p>
-          <a href="#get-in-touch" className="pill-btn-white mt-8 inline-flex">
-            talk to us
-          </a>
+          <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
+            For companies, universities, startups, and institutions seeking structured mental wellness solutions
+            through counselling, workshops, and performance tools.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <a href="#get-in-touch" className="pill-btn-white">
+              partner with us →
+            </a>
+            <a href="#whats-included" className="pill-btn-outline !border-cream/30 !text-cream hover:!bg-cream/10">
+              explore offerings
+            </a>
+          </div>
         </div>
       </section>
 
@@ -254,7 +262,7 @@ export default function BusinessPage() {
         </Reveal>
       </section>
 
-      <section className="bg-white">
+      <section id="whats-included" className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h2 className="font-display text-center text-2xl font-bold lowercase text-ink sm:text-3xl">what&apos;s included</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">

@@ -13,7 +13,7 @@ const STEPS = [
 // misleading for a page about real mental-health support.
 export function CounsellingHowItWorks() {
   return (
-    <section className="bg-white">
+    <section id="how-it-works" className="bg-white">
       <Reveal className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <div className="mx-auto flex w-fit items-center gap-3">
