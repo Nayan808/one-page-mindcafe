@@ -29,7 +29,7 @@ export default function EmployerDashboardPage() {
       <h1 className="font-display mt-4 text-2xl font-bold lowercase text-ink">usage analytics — coming soon</h1>
       <p className="mt-2 text-sm text-ink/60">
         Session counts, engagement, and program ROI for your team will show up here once your EAP program is fully set
-        up. Reach out to your mindcafé contact for a manual usage report in the meantime.
+        up. Reach out to your mindcafe contact for a manual usage report in the meantime.
       </p>
     </div>
   );

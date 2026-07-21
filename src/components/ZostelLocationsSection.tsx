@@ -147,7 +147,7 @@ export function ZostelLocationsSection() {
       )}
 
       <p className="mx-auto mt-6 max-w-md text-xs text-ink/50">
-        Available at hostel reception — ask for &ldquo;feelz by mindcafé&rdquo;.{" "}
+        Available at hostel reception — ask for &ldquo;feelz by mindcafe&rdquo;.{" "}
         <button type="button" onClick={scrollToProducts} className="font-semibold text-ink underline">
           Can&apos;t find it? Order online →
         </button>

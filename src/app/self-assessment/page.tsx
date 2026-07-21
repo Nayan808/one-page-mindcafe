@@ -123,7 +123,7 @@ export default function SelfAssessmentPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-2xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-center text-xs leading-relaxed text-amber-800">
-            These assessments are developed by Psychology Today. Mindcafé&apos;s mental health professionals have
+            These assessments are developed by Psychology Today. Mindcafe&apos;s mental health professionals have
             verified the accuracy levels, but do not hold responsibility for errors or glitches in results. These
             assessments are <strong>for reference purposes only — not for diagnostic purposes.</strong> Please
             consult a qualified mental health professional for a formal diagnosis.

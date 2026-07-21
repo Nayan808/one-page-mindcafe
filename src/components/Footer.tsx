@@ -76,7 +76,7 @@ export function Footer() {
         <div>
           <p className="font-display text-2xl font-bold lowercase">feelz</p>
           <p className="mx-auto mt-2 max-w-xs text-sm text-ink/60 sm:mx-0">
-            sublingual mood strips, made by mindcafé, incubated at zo world, distributed by zostel.
+            sublingual mood strips, made by mindcafe, incubated at zo world, distributed by zostel.
           </p>
           <ul className="mt-3 space-y-1 text-sm text-ink/70">
             <li>

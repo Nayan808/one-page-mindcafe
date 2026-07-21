@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-// Branded loading spinner — just the mindcafé mark (no wordmark), cropped
+// Branded loading spinner — just the mindcafe mark (no wordmark), cropped
 // from public/mindcafe-logo.png, spinning continuously. Reusable anywhere
 // a generic "Loading…" text currently stands in.
 export function BrandLoader({ size = 40 }: { size?: number }) {

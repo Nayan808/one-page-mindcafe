@@ -9,7 +9,7 @@ import { motion, useScroll, useTransform } from "motion/react";
 const JOURNEY = [
   {
     date: "Dec 2021",
-    title: "Official Launch of Mindcafé India",
+    title: "Official Launch of Mindcafe India",
     description: "Launched with a mission to provide accessible, affordable mental health services and build a compassionate community for everyone.",
     image: "/awards/journey/mindcafe-launch.webp",
   },
@@ -21,7 +21,7 @@ const JOURNEY = [
   },
   {
     date: "Feb 2022",
-    title: "First Mindcafé Meetup",
+    title: "First Mindcafe Meetup",
     description: "Our inaugural meetup brought advocates, professionals, and community members together, fostering open dialogue and meaningful connections.",
     image: "/awards/journey/mindcafe-meetup.webp",
   },

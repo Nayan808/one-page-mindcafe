@@ -15,7 +15,7 @@
 // never arrives.
 import { jsonResponse } from "../_shared/cors.ts";
 
-const FROM_ADDRESS = "Mindcafé <login@mindcafe.app>";
+const FROM_ADDRESS = "Mindcafe <login@mindcafe.app>";
 
 type SendEmailPayload = {
   user: { email: string };
@@ -27,17 +27,17 @@ type SendEmailPayload = {
 
 const COPY: Record<string, { subject: string; heading: string; body: string }> = {
   magiclink: {
-    subject: "your mindcafé sign-in code",
+    subject: "your mindcafe sign-in code",
     heading: "here&rsquo;s your one-time code",
-    body: "Enter this code on the sign-in screen to continue to Mindcafé. It expires shortly and can only be used once.",
+    body: "Enter this code on the sign-in screen to continue to Mindcafe. It expires shortly and can only be used once.",
   },
   signup: {
-    subject: "confirm your mindcafé account",
+    subject: "confirm your mindcafe account",
     heading: "confirm your account",
-    body: "Enter this code to finish creating your Mindcafé account.",
+    body: "Enter this code to finish creating your Mindcafe account.",
   },
   recovery: {
-    subject: "reset your mindcafé password",
+    subject: "reset your mindcafe password",
     heading: "reset your password",
     body: "Enter this code to continue resetting your password.",
   },
@@ -47,7 +47,7 @@ const COPY: Record<string, { subject: string; heading: string; body: string }> =
     body: "Enter this code to confirm this is your new email address.",
   },
   invite: {
-    subject: "you're invited to mindcafé",
+    subject: "you're invited to mindcafe",
     heading: "confirm your invite",
     body: "Enter this code to accept your invite.",
   },
@@ -58,7 +58,7 @@ function renderHtml(token: string, actionType: string): string {
   return `<div style="background-color:#f6f1e6; padding:40px 16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
   <div style="max-width:420px; margin:0 auto; background-color:#ffffff; border:1px solid rgba(17,17,16,0.1); border-radius:24px; overflow:hidden;">
     <div style="background-color:#111110; padding:28px 32px; text-align:center;">
-      <span style="font-size:20px; font-weight:700; color:#f6f1e6; letter-spacing:-0.02em;">Mindcafé</span>
+      <span style="font-size:20px; font-weight:700; color:#f6f1e6; letter-spacing:-0.02em;">Mindcafe</span>
     </div>
     <div style="padding:32px 32px 36px; text-align:center;">
       <p style="margin:0 0 4px; font-size:13px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(17,17,16,0.5);">
@@ -91,14 +91,18 @@ function base64Encode(bytes: Uint8Array): string {
 }
 
 // Standard Webhooks signature (standardwebhooks.com) — the scheme Supabase
-// Auth Hooks use. Secret comes from the dashboard as `whsec_...`.
+// Auth Hooks use. Secret comes from the dashboard as `v1,whsec_...` (not
+// just `whsec_...` — the leading `v1,` is part of the copied value and
+// has to be stripped too, or the leftover comma makes the rest invalid
+// base64 and atob() throws, which previously surfaced as an opaque
+// "Internal Server Error" instead of a clean 401).
 async function verifySignature(rawBody: string, headers: Headers, secret: string): Promise<boolean> {
   const id = headers.get("webhook-id");
   const timestamp = headers.get("webhook-timestamp");
   const signatureHeader = headers.get("webhook-signature");
   if (!id || !timestamp || !signatureHeader) return false;
 
-  const secretBytes = base64Decode(secret.replace(/^whsec_/, ""));
+  const secretBytes = base64Decode(secret.replace(/^v1,/, "").replace(/^whsec_/, ""));
   const signedContent = `${id}.${timestamp}.${rawBody}`;
 
   const key = await crypto.subtle.importKey("raw", secretBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
@@ -109,44 +113,49 @@ async function verifySignature(rawBody: string, headers: Headers, secret: string
 }
 
 Deno.serve(async (req) => {
-  const rawBody = await req.text();
-  const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
+  try {
+    const rawBody = await req.text();
+    const hookSecret = Deno.env.get("SEND_EMAIL_HOOK_SECRET");
 
-  if (!hookSecret) {
-    console.error("SEND_EMAIL_HOOK_SECRET not set");
-    return jsonResponse({ error: { http_code: 500, message: "Hook not configured" } }, 500);
+    if (!hookSecret) {
+      console.error("SEND_EMAIL_HOOK_SECRET not set");
+      return jsonResponse({ error: { http_code: 500, message: "Hook not configured" } }, 500);
+    }
+
+    const isValid = await verifySignature(rawBody, req.headers, hookSecret);
+    if (!isValid) return jsonResponse({ error: { http_code: 401, message: "Invalid signature" } }, 401);
+
+    const payload = JSON.parse(rawBody) as SendEmailPayload;
+    const { email } = payload.user;
+    const { token, email_action_type } = payload.email_data;
+
+    const apiKey = Deno.env.get("EMAIL_PROVIDER_API_KEY");
+    if (!apiKey) {
+      console.error("EMAIL_PROVIDER_API_KEY not set — cannot send auth email");
+      return jsonResponse({ error: { http_code: 500, message: "Email provider not configured" } }, 500);
+    }
+
+    const copy = COPY[email_action_type] ?? COPY.magiclink;
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: FROM_ADDRESS,
+        to: email,
+        subject: copy.subject,
+        text: `Your Mindcafe code is ${token}. It expires shortly and can only be used once.`,
+        html: renderHtml(token, email_action_type),
+      }),
+    });
+
+    if (!res.ok) {
+      console.error("Resend send failed", await res.text());
+      return jsonResponse({ error: { http_code: 500, message: "Failed to send email" } }, 500);
+    }
+
+    return jsonResponse({});
+  } catch (err) {
+    console.error("auth-send-email crashed", err);
+    return jsonResponse({ error: { http_code: 500, message: "Unexpected error" } }, 500);
   }
-
-  const isValid = await verifySignature(rawBody, req.headers, hookSecret);
-  if (!isValid) return jsonResponse({ error: { http_code: 401, message: "Invalid signature" } }, 401);
-
-  const payload = JSON.parse(rawBody) as SendEmailPayload;
-  const { email } = payload.user;
-  const { token, email_action_type } = payload.email_data;
-
-  const apiKey = Deno.env.get("EMAIL_PROVIDER_API_KEY");
-  if (!apiKey) {
-    console.error("EMAIL_PROVIDER_API_KEY not set — cannot send auth email");
-    return jsonResponse({ error: { http_code: 500, message: "Email provider not configured" } }, 500);
-  }
-
-  const copy = COPY[email_action_type] ?? COPY.magiclink;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: FROM_ADDRESS,
-      to: email,
-      subject: copy.subject,
-      text: `Your Mindcafé code is ${token}. It expires shortly and can only be used once.`,
-      html: renderHtml(token, email_action_type),
-    }),
-  });
-
-  if (!res.ok) {
-    console.error("Resend send failed", await res.text());
-    return jsonResponse({ error: { http_code: 500, message: "Failed to send email" } }, 500);
-  }
-
-  return jsonResponse({});
 });

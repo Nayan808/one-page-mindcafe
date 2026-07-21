@@ -126,7 +126,7 @@ function deployed in step 5.
 3. Supabase generates a signing secret (`whsec_...`) the moment you save
    — copy it into the `SEND_EMAIL_HOOK_SECRET` secret (step 6).
 4. Send yourself a test sign-in code from the site's "log in" popup and
-   confirm the email arrives from Mindcafé with a 6-digit code (not the
+   confirm the email arrives from Mindcafe with a 6-digit code (not the
    generic Supabase confirmation-link email) — that confirms the hook is
    live and Resend is delivering.
 

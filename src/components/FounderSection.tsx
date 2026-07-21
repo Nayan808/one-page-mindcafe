@@ -14,7 +14,7 @@ export function FounderSection() {
   return (
     <section className="bg-white">
       <Reveal className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">the person behind mindcafé</p>
+        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">the person behind mindcafe</p>
         <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
           meet our <span className="font-tagline italic">founder.</span>
         </h2>
@@ -26,15 +26,15 @@ export function FounderSection() {
 
           <div className="text-center sm:text-left">
             <p className="font-tagline text-lg italic leading-snug text-ink sm:text-xl">
-              &ldquo;I built Mindcafé because I believe the mind deserves the same care as the body — and that every
+              &ldquo;I built Mindcafe because I believe the mind deserves the same care as the body — and that every
               Indian should have access to that care, regardless of where they are or what they can afford.&rdquo;
             </p>
 
             <p className="font-display mt-4 text-base font-bold text-ink">Sneh Nigam</p>
-            <p className="text-sm text-ink/50">Founder, Mindcafé</p>
+            <p className="text-sm text-ink/50">Founder, Mindcafe</p>
 
             <p className="mt-4 text-sm leading-relaxed text-ink/60">
-              At Mindcafé, we provide a safe, anonymous platform to share your feelings and connect with expert
+              At Mindcafe, we provide a safe, anonymous platform to share your feelings and connect with expert
               advice. Alongside, our transformational programs — crafted by psychologists, neurologists, yoga
               practitioners, and more — are here to guide you toward healing and growth.
             </p>

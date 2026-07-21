@@ -62,7 +62,7 @@ function RoleLoginFormInner({ role, roleLabel, dashboardHref, loginHref }: RoleL
       router.replace(dashboardHref);
     } else {
       setFormError(
-        `This account isn't registered as a mindcafé ${roleLabel} — permissions haven't been assigned to it. Ask an admin to set your account up, or sign in with a different account.`,
+        `This account isn't registered as a mindcafe ${roleLabel} — permissions haven't been assigned to it. Ask an admin to set your account up, or sign in with a different account.`,
       );
       void signOut();
     }
@@ -94,7 +94,7 @@ function RoleLoginFormInner({ role, roleLabel, dashboardHref, loginHref }: RoleL
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4 py-16 sm:px-6">
       <h1 className="font-display text-3xl font-bold lowercase text-ink">{roleLabel} sign in</h1>
       <p className="mt-2 text-sm text-ink/60">
-        Accounts are set up by mindcafé — reach out if you don&apos;t have credentials yet.
+        Accounts are set up by mindcafe — reach out if you don&apos;t have credentials yet.
       </p>
 
       {oauthError && (

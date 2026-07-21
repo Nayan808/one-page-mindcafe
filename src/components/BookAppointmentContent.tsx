@@ -40,7 +40,7 @@ function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
         We&apos;ll confirm your session shortly — this updates automatically, no need to refresh.
       </p>
 
-      <div className="rounded-xl border border-ink/15 bg-white p-4 text-left text-sm">
+      <div className="rounded-xl border border-ink/15 bg-cream p-4 text-left text-sm">
         <div className="flex justify-between">
           <span className="text-ink/60">Category</span>
           <span className="font-medium text-ink capitalize">{appointment.therapy_category.replace("-", " & ")}</span>
@@ -185,7 +185,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
                 setCategory(c.slug);
                 setExpertId(null);
               }}
-              className={`rounded-xl border p-3 text-left text-sm font-medium ${category === c.slug ? "border-ink bg-ink text-cream" : "border-ink/15 bg-white text-ink hover:border-ink/40"}`}
+              className={`rounded-xl border p-3 text-left text-sm font-medium ${category === c.slug ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
             >
               {c.title}
             </button>
@@ -272,7 +272,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
             )}
           </div>
 
-          <div className="mt-4 rounded-xl border border-ink/15 bg-white p-4 text-sm">
+          <div className="mt-4 rounded-xl border border-ink/15 bg-cream p-4 text-sm">
             <div className="flex justify-between">
               <span>Session fee</span>
               <span>{formatInr(sessionPrice)}</span>
@@ -328,8 +328,10 @@ function BookAppointmentInner() {
 
 export function BookAppointmentContent() {
   return (
-    <Suspense fallback={<div className="px-4 py-16 text-center text-sm text-ink/60">Loading…</div>}>
-      <BookAppointmentInner />
-    </Suspense>
+    <div className="bg-white">
+      <Suspense fallback={<div className="px-4 py-16 text-center text-sm text-ink/60">Loading…</div>}>
+        <BookAppointmentInner />
+      </Suspense>
+    </div>
   );
 }

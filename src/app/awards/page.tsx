@@ -183,7 +183,7 @@ export default function AwardsPage() {
             be part of the <span className="font-tagline italic">next chapter.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm text-ink/60">
-            The best milestones are the ones we make together. Join Mindcafé in building a mentally healthier India.
+            The best milestones are the ones we make together. Join Mindcafe in building a mentally healthier India.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/counselling" className="pill-btn">
