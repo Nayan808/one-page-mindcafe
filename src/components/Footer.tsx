@@ -232,11 +232,21 @@ export function Footer() {
               href="https://www.instagram.com/mindcafeindia/"
               target="_blank"
               rel="noreferrer"
-              aria-label="Instagram"
+              aria-label="Instagram — mindcafeindia"
               className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink"
             >
               <InstagramIcon className="h-4 w-4" />
               mindcafeindia
+            </a>
+            <a
+              href="https://www.instagram.com/sportcafeindia/"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram — sportcafeindia"
+              className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink"
+            >
+              <InstagramIcon className="h-4 w-4" />
+              sportcafeindia
             </a>
           </div>
           <span className="badge-pill mt-4 inline-block">ISO/IEC 27001</span>

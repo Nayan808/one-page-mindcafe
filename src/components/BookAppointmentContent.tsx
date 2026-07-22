@@ -25,6 +25,33 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
 };
 
 const DEFAULT_SESSION_PRICE = 999;
+const SESSION_MINUTES = 45;
+const SLOT_START_HOUR = 9; // 9:00 AM
+const SLOT_END_HOUR = 19; // last slot starts by 6:45 PM, so sessions wrap up by 7:30 PM
+
+// 45-minute slots for the given yyyy-mm-dd date, within business hours.
+// Slots already in the past (for today) are excluded — there's no
+// real-time availability backend, so this is a starting point the copy
+// already frames as "we'll confirm what actually works," not a hard lock.
+function generateTimeSlots(dateStr: string): { value: string; label: string }[] {
+  if (!dateStr) return [];
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const now = new Date();
+  const isToday = now.getFullYear() === year && now.getMonth() + 1 === month && now.getDate() === day;
+
+  const slots: { value: string; label: string }[] = [];
+  for (let minutes = SLOT_START_HOUR * 60; minutes < SLOT_END_HOUR * 60; minutes += SESSION_MINUTES) {
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
+    const slotDate = new Date(year, month - 1, day, hour, minute);
+    if (isToday && slotDate.getTime() < now.getTime()) continue;
+
+    const label = slotDate.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+    const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+    slots.push({ value, label });
+  }
+  return slots;
+}
 
 function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
   const { data: appointment, isLoading } = useAppointmentTracking(appointmentId);
@@ -81,7 +108,8 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
   const [category, setCategory] = useState<string | null>(initialCategory);
   const [expertId, setExpertId] = useState<string | null>(initialExpertId);
-  const [scheduledAt, setScheduledAt] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedSlot, setSelectedSlot] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -132,10 +160,12 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     if (!user || !category) return;
     setError(null);
     try {
+      const scheduledAt =
+        selectedDate && selectedSlot ? new Date(`${selectedDate}T${selectedSlot}:00`).toISOString() : undefined;
       const result = await createAppointment.mutateAsync({
         therapyCategory: category,
         expertId: expertId ?? undefined,
-        scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+        scheduledAt,
         notes: notes.trim() || undefined,
         couponCode: couponCode.trim() || undefined,
       });
@@ -220,13 +250,49 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       {category && (
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">3. preferred time</h2>
+          <p className="mt-1 text-xs text-ink/50">Sessions run 45 minutes. Pick a date, then a slot.</p>
+
           <input
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(event) => setScheduledAt(event.target.value)}
+            type="date"
+            value={selectedDate}
+            min={new Date().toISOString().slice(0, 10)}
+            onChange={(event) => {
+              setSelectedDate(event.target.value);
+              setSelectedSlot("");
+            }}
             className="input mt-3"
           />
-          <p className="mt-1.5 text-xs text-ink/50">A starting point — we&apos;ll confirm what actually works.</p>
+
+          {selectedDate && (
+            <div className="mt-3">
+              {(() => {
+                const slots = generateTimeSlots(selectedDate);
+                if (slots.length === 0) {
+                  return <p className="text-xs text-ink/50">No slots left today — try picking another date.</p>;
+                }
+                return (
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                    {slots.map((slot) => (
+                      <button
+                        key={slot.value}
+                        type="button"
+                        onClick={() => setSelectedSlot(slot.value)}
+                        className={`rounded-lg border px-2 py-2 text-xs font-medium ${
+                          selectedSlot === slot.value
+                            ? "border-ink bg-ink text-cream"
+                            : "border-ink/15 bg-cream text-ink hover:border-ink/40"
+                        }`}
+                      >
+                        {slot.label}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          <p className="mt-2 text-xs text-ink/50">A starting point — we&apos;ll confirm what actually works.</p>
 
           <textarea
             value={notes}

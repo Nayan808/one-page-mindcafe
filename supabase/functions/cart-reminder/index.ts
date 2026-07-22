@@ -5,7 +5,7 @@
 // this to guests would need collecting an email earlier in the funnel,
 // which is a UX change, not a notifications one.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 const REMINDER_AFTER_HOURS = 24;
@@ -38,11 +38,12 @@ Deno.serve(async (req) => {
     const email = authUser?.user?.email;
     if (!email) continue;
 
-    await sendEmail(
-      email,
-      "You left something in your cart — MindCafe",
-      "Your feelz are still waiting in your cart. Head back to /feelz to pick up where you left off.",
-    );
+    const { text, html } = renderEmail({
+      heading: "You left something in your cart",
+      paragraphs: ["Your feelz are still waiting in your cart. Head back to pick up where you left off."],
+      cta: { label: "back to feelz", url: `${SITE_URL}/feelz` },
+    });
+    await sendEmail(email, "You left something in your cart — MindCafe", text, html);
     await sb.from("carts").update({ reminder_sent_at: new Date().toISOString() }).eq("id", cart.id);
     sent++;
   }

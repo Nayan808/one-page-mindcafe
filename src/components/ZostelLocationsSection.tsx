@@ -58,7 +58,10 @@ export function ZostelLocationsSection() {
   return (
     <section id="zostel-locations" className="bg-white">
       <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-16 text-center sm:px-6">
-      <div className="mx-auto flex w-fit items-center gap-3">
+      <div className="relative mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full shadow-lg">
+        <Image src="/press/zostel.png" alt="Zostel" fill className="object-cover" />
+      </div>
+      <div className="mx-auto mt-4 flex w-fit items-center gap-3">
         <span className="h-px w-10 bg-ink/20" aria-hidden />
         <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
         <span className="h-px w-10 bg-ink/20" aria-hidden />

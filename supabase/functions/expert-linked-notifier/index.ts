@@ -4,7 +4,7 @@
 // (the sibling path to admin-create-expert, see /admin/experts). Tells
 // that person their account just gained expert access.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 type ExpertRecord = { id: string; name: string; profile_id: string | null };
@@ -20,10 +20,11 @@ Deno.serve(async (req) => {
   const email = authUser?.user?.email;
   if (!email) return jsonResponse({ skipped: true, reason: "no email on this account" });
 
-  await sendEmail(
-    email,
-    "You're now listed as a MindCafe expert",
-    `Hi ${record.name}, your account now has expert access on MindCafe. Sign in at /expert/login with the same email and password you already use.`,
-  );
+  const { text, html } = renderEmail({
+    heading: "You're now listed as a MindCafe expert",
+    paragraphs: [`Hi ${record.name}, your account now has expert access on MindCafe.`, "Sign in with the same email and password you already use."],
+    cta: { label: "sign in", url: `${SITE_URL}/expert/login` },
+  });
+  await sendEmail(email, "You're now listed as a MindCafe expert", text, html);
   return jsonResponse({ sent: true });
 });

@@ -6,7 +6,7 @@
 // (pickup_reminder_sent_at is the dedup marker, set right after sending
 // so a re-run of this function never double-emails the same order).
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 const REMINDER_AFTER_HOURS = 24;
@@ -41,11 +41,15 @@ Deno.serve(async (req) => {
     const location = order.pickup_locations as unknown as { name: string; city: string } | null;
     const locationNote = location ? ` at ${location.name}, ${location.city}` : "";
 
-    await sendEmail(
-      email,
-      `Still waiting for you: order ${order.order_number}`,
-      `Your order ${order.order_number} has been ready for pickup${locationNote} for over ${REMINDER_AFTER_HOURS} hours. Show code ${order.pickup_code ?? "on your confirmation page"} whenever you're ready to collect it.`,
-    );
+    const { text, html } = renderEmail({
+      heading: "Still waiting for you",
+      paragraphs: [
+        `Your order ${order.order_number} has been ready for pickup${locationNote} for over ${REMINDER_AFTER_HOURS} hours.`,
+        `Show code ${order.pickup_code ?? "on your confirmation page"} whenever you're ready to collect it.`,
+      ],
+      cta: { label: "view your order", url: `${SITE_URL}/account` },
+    });
+    await sendEmail(email, `Still waiting for you: order ${order.order_number}`, text, html);
     await sb.from("orders").update({ pickup_reminder_sent_at: new Date().toISOString() }).eq("id", order.id);
     sent++;
   }

@@ -65,6 +65,24 @@ const ORG_TYPES = [
   },
 ];
 
+const COMPANY_LOGOS = [
+  "/business/companies/tata-steel.png",
+  "/business/companies/zostel.png",
+  "/business/companies/reliance-foundation.png",
+  "/business/companies/humans-of-bombay.png",
+  "/business/companies/path.png",
+  "/business/companies/galaxy-basmati-rice.png",
+];
+
+// translateX(-50%) only loops seamlessly if each half of the track is
+// already wider than the widest screen it renders on — 6 logos alone fall
+// way short of that on a desktop viewport, which is why the marquee used
+// to visibly run out and go blank before looping. Repeat the set several
+// times to build one comfortably-wide "half", then lay that whole half
+// down twice back to back for the actual loop.
+const MARQUEE_HALF = Array.from({ length: 8 }, () => COMPANY_LOGOS).flat();
+const MARQUEE_LOGOS = [...MARQUEE_HALF, ...MARQUEE_HALF];
+
 const AWARDS = [
   {
     image: "/business/women-faces-foxstory.webp",
@@ -206,6 +224,24 @@ export default function BusinessPage() {
               <p className="mt-2 text-sm leading-relaxed text-ink/60">{org.description}</p>
             </div>
           ))}
+        </div>
+        </Reveal>
+      </section>
+
+      <section className="bg-white">
+        <Reveal className="py-10">
+        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/40">trusted by teams at</p>
+        <div
+          className="relative mt-6 overflow-hidden"
+          style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}
+        >
+          <div className="marquee-track flex w-max items-center gap-16" style={{ animation: "marquee 208s linear infinite" }}>
+            {MARQUEE_LOGOS.map((logo, index) => (
+              <div key={`${logo}-${index}`} className="relative h-8 w-28 shrink-0">
+                <Image src={logo} alt="" fill className="object-contain" />
+              </div>
+            ))}
+          </div>
         </div>
         </Reveal>
       </section>

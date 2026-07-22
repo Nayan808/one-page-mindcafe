@@ -1,30 +1,79 @@
 // Triggered by the trg_notify_appointment DB trigger (setup.sql,
 // pg_net-based — see notify_webhook()) on `appointments` INSERT and
 // UPDATE. Sends up to two emails per event: one to the customer (as
-// before), and — new — one to the assigned expert, if there is one and
-// they have a reachable email.
+// before), and one to the assigned expert, if there is one and they have
+// a reachable email.
 //
 // An expert's email resolves two ways: via their linked login account
 // (experts.profile_id -> auth.users.email) if they have one, or via
 // experts.notification_email as a fallback for a directory-only listing
 // with no login access. If neither is set, the expert side is silently
 // skipped — the customer email still goes out either way.
+//
+// Payment gating: an appointment row is inserted as soon as the booking
+// form is submitted, `payment_status: 'pending'`, BEFORE the Razorpay
+// checkout modal even opens — so nobody gets emailed at insert time.
+// Nobody hears about a booking until it's actually paid for: the
+// "booking received, awaiting expert confirmation" email fires the
+// moment payment_status flips to 'paid' (via confirm_appointment_payment,
+// called from payment-webhook or the free-coupon path), not at insert.
+// Every other status transition (confirmed/completed/cancelled) is also
+// gated on payment_status === 'paid' — belt-and-braces alongside the
+// prevent_unpaid_appointment_confirm DB trigger, which is the actual
+// enforcement boundary stopping status from reaching 'confirmed' unpaid
+// in the first place.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
-const CUSTOMER_STATUS_MESSAGES: Record<string, string> = {
-  pending: "We've received your booking request and will confirm shortly.",
-  confirmed: "Your session is confirmed!",
-  completed: "Thanks for attending your session.",
-  cancelled: "Your session was cancelled.",
+// No review-request CTA on 'completed' — a finished counselling session
+// isn't a delivered product, and the customer already gets asked for
+// feedback through other channels; the email just points back to their
+// bookings instead.
+const CUSTOMER_MESSAGES: Record<string, { heading: string; body: string; cta: { label: string; url: string } }> = {
+  pending: {
+    heading: "We've received your payment",
+    body: "Your booking request has been sent to the expert for confirmation. We'll let you know as soon as they respond.",
+    cta: { label: "view your bookings", url: `${SITE_URL}/account` },
+  },
+  confirmed: {
+    heading: "Your session is confirmed!",
+    body: "Your counsellor has confirmed this session. We'll see you at the scheduled time.",
+    cta: { label: "view your bookings", url: `${SITE_URL}/account` },
+  },
+  completed: {
+    heading: "Thanks for attending your session",
+    body: "We hope it was helpful. You can book a follow-up session any time.",
+    cta: { label: "book another session", url: `${SITE_URL}/book-appointment` },
+  },
+  cancelled: {
+    heading: "Your session was cancelled",
+    body: "This session won't be going ahead. If this wasn't expected, you're welcome to book a new session.",
+    cta: { label: "book a new session", url: `${SITE_URL}/book-appointment` },
+  },
 };
 
-const EXPERT_STATUS_MESSAGES: Record<string, string> = {
-  pending: "A new session was booked with you — it's awaiting your confirmation.",
-  confirmed: "A session on your calendar was confirmed.",
-  completed: "A session was marked completed.",
-  cancelled: "A session on your calendar was cancelled.",
+const EXPERT_MESSAGES: Record<string, { heading: string; body: string; cta: { label: string; url: string } }> = {
+  pending: {
+    heading: "A new session is awaiting your confirmation",
+    body: "A client has booked and paid for a session with you. Confirm or decline it from your dashboard.",
+    cta: { label: "confirm or decline", url: `${SITE_URL}/expert/dashboard` },
+  },
+  confirmed: {
+    heading: "A session on your calendar was confirmed",
+    body: "This session is now confirmed and on your calendar.",
+    cta: { label: "view your dashboard", url: `${SITE_URL}/expert/dashboard` },
+  },
+  completed: {
+    heading: "A session was marked completed",
+    body: "This session has been marked as completed.",
+    cta: { label: "view your dashboard", url: `${SITE_URL}/expert/dashboard` },
+  },
+  cancelled: {
+    heading: "A session on your calendar was cancelled",
+    body: "This session won't be going ahead.",
+    cta: { label: "view your dashboard", url: `${SITE_URL}/expert/dashboard` },
+  },
 };
 
 type AppointmentRecord = {
@@ -32,6 +81,7 @@ type AppointmentRecord = {
   user_id: string;
   expert_id: string | null;
   status: string;
+  payment_status: string;
   therapy_category: string;
   scheduled_at: string | null;
 };
@@ -48,32 +98,50 @@ Deno.serve(async (req) => {
   const { type, record, old_record } = payload;
 
   if (!record) return jsonResponse({ skipped: true });
-  if (type === "UPDATE" && record.status === old_record?.status) {
-    return jsonResponse({ skipped: true, reason: "status unchanged" });
+
+  // Nothing to tell anyone about until the appointment is paid for.
+  if (record.payment_status !== "paid") {
+    return jsonResponse({ skipped: true, reason: "payment not confirmed" });
   }
+
+  const paymentJustConfirmed = old_record?.payment_status !== "paid";
+  const statusChanged = type === "UPDATE" && record.status !== old_record?.status;
+
+  // A plain re-save that neither just got paid nor changed status has
+  // nothing new to report (e.g. razorpay_order_id being backfilled).
+  if (!paymentJustConfirmed && !statusChanged) {
+    return jsonResponse({ skipped: true, reason: "nothing changed" });
+  }
+
+  // Payment confirming for the first time is what "pending, awaiting
+  // confirmation" actually means to a customer/expert — regardless of
+  // what the status column happened to already say.
+  const messageKey = paymentJustConfirmed ? "pending" : record.status;
 
   const sb = serviceRoleClient();
   const categoryLabel = record.therapy_category.replace("-", " & ");
-  const whenNote = record.scheduled_at ? ` Requested time: ${new Date(record.scheduled_at).toLocaleString("en-IN")}.` : "";
-  const reviewNote = record.status === "completed" ? " We'd love your feedback — reply to this email or leave a review at /reviews." : "";
+  const whenLine = record.scheduled_at
+    ? `Requested time: ${new Date(record.scheduled_at).toLocaleString("en-IN")}.`
+    : null;
 
   let sentAny = false;
 
-  const customerMessage = CUSTOMER_STATUS_MESSAGES[record.status];
+  const customerMessage = CUSTOMER_MESSAGES[messageKey];
   if (customerMessage) {
     const { data: authUser } = await sb.auth.admin.getUserById(record.user_id);
     const email = authUser?.user?.email;
     if (email) {
-      await sendEmail(
-        email,
-        `Your counselling booking: ${customerMessage}`,
-        `Counselling booking (${categoryLabel}): ${customerMessage}${whenNote}${reviewNote}`,
-      );
+      const { text, html } = renderEmail({
+        heading: customerMessage.heading,
+        paragraphs: [`Counselling session — ${categoryLabel}.`, customerMessage.body, ...(whenLine ? [whenLine] : [])],
+        cta: customerMessage.cta,
+      });
+      await sendEmail(email, `Your counselling booking: ${customerMessage.heading}`, text, html);
       sentAny = true;
     }
   }
 
-  const expertMessage = EXPERT_STATUS_MESSAGES[record.status];
+  const expertMessage = EXPERT_MESSAGES[messageKey];
   if (expertMessage && record.expert_id) {
     const { data: expert } = await sb
       .from("experts")
@@ -89,11 +157,12 @@ Deno.serve(async (req) => {
       }
 
       if (expertEmail) {
-        await sendEmail(
-          expertEmail,
-          `Booking update: ${expertMessage}`,
-          `${expertMessage} Category: ${categoryLabel}.${whenNote} Check /expert/dashboard for details.`,
-        );
+        const { text, html } = renderEmail({
+          heading: expertMessage.heading,
+          paragraphs: [`Category: ${categoryLabel}.`, expertMessage.body, ...(whenLine ? [whenLine] : [])],
+          cta: expertMessage.cta,
+        });
+        await sendEmail(expertEmail, `Booking update: ${expertMessage.heading}`, text, html);
         sentAny = true;
       }
     }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, ShoppingBag, X } from "lucide-react";
@@ -97,8 +98,13 @@ export function Header() {
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-        <Link href="/" onClick={scrollToTop} className="shrink-0 leading-none">
-          <span className={`font-display text-xl font-bold ${headerSolid ? "text-ink" : "text-white"}`}>Mindcafe</span>
+        <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center gap-2 leading-none">
+          <span
+            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${headerSolid ? "" : "bg-white/90 shadow-sm"}`}
+          >
+            <Image src="/mindcafe-icon.png" alt="" width={28} height={28} priority className="h-7 w-7" />
+          </span>
+          <span className={`font-display text-xl font-bold ${headerSolid ? "text-ink" : "text-white"}`}>mindcafe</span>
         </Link>
 
         <nav

@@ -23,7 +23,7 @@ export function HomeHero() {
         posterSrc="/homepage/herosectionimagebg.jpeg"
         bgImageSrc="/homepage/herosectionimagebg.jpeg"
         title="mindcafe that cares your brain"
-        scrollToExpand="scroll to feel it"
+        scrollToExpand="scroll to feelz it"
       >
         <div className="mx-auto max-w-xl text-center">
           <p className="font-tagline text-lg italic text-ink/70 sm:text-xl">

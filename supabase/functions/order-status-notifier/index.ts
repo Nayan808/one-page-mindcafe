@@ -12,10 +12,10 @@
 // from auth.users, guest orders get it from orders.guest_email (set by
 // create-order at checkout). 'ready_for_pickup' additionally carries the
 // pickup_code, since that's the customer's only proof-of-purchase at the
-// pickup point if they've closed the confirmation tab. 'delivered' adds a
-// review-request line rather than firing a second email for it.
+// pickup point if they've closed the confirmation tab. 'delivered' is the
+// only status with a review-request CTA — nothing else invites a review.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 const STATUS_MESSAGES: Record<string, string> = {
@@ -80,11 +80,12 @@ Deno.serve(async (req) => {
   if (type === "INSERT") {
     const { data: setting } = await sb.from("site_settings").select("value").eq("key", "admin_notification_email").maybeSingle();
     const adminEmail = (setting?.value as string) || "team@mindcafe.app";
-    await sendEmail(
-      adminEmail,
-      `New order: ${record.order_number}`,
-      `New ${record.fulfillment_type} order ${record.order_number} — total ${record.total}. Check /admin/orders.`,
-    );
+    const { text, html } = renderEmail({
+      heading: `New order: ${record.order_number}`,
+      paragraphs: [`A new ${record.fulfillment_type} order came in — total ₹${record.total}.`],
+      cta: { label: "view in admin", url: `${SITE_URL}/admin/orders` },
+    });
+    await sendEmail(adminEmail, `New order: ${record.order_number}`, text, html);
     return jsonResponse({ sent: true, kind: "admin_new_order" });
   }
 
@@ -98,13 +99,18 @@ Deno.serve(async (req) => {
   if (statusChanged && STATUS_MESSAGES[record.status]) {
     const { email, order_number } = await resolveCustomerEmail(sb, record.id);
     if (email) {
-      const pickupNote =
-        record.status === "ready_for_pickup" && record.pickup_code
-          ? ` Show code ${record.pickup_code} at pickup (or the QR code on your confirmation page).`
-          : "";
-      const reviewNote = record.status === "delivered" ? " We'd love to hear how it went — reply to this email or leave a review at /reviews." : "";
-      const message = STATUS_MESSAGES[record.status];
-      await sendEmail(email, `Order ${order_number}: ${message}`, `Order ${order_number}: ${message}${pickupNote}${reviewNote}`);
+      const paragraphs = [STATUS_MESSAGES[record.status]];
+      if (record.status === "ready_for_pickup" && record.pickup_code) {
+        paragraphs.push(`Show code ${record.pickup_code} at pickup (or the QR code on your confirmation page).`);
+      }
+
+      const cta =
+        record.status === "delivered"
+          ? { label: "leave a review", url: `${SITE_URL}/reviews` }
+          : { label: "view your order", url: `${SITE_URL}/account` };
+
+      const { text, html } = renderEmail({ heading: `Order ${order_number}`, paragraphs, cta });
+      await sendEmail(email, `Order ${order_number}: ${STATUS_MESSAGES[record.status]}`, text, html);
       sentAny = true;
     }
   }
@@ -112,8 +118,12 @@ Deno.serve(async (req) => {
   if (paymentChanged && REFUND_MESSAGES[record.payment_status]) {
     const { email, order_number } = await resolveCustomerEmail(sb, record.id);
     if (email) {
-      const message = REFUND_MESSAGES[record.payment_status];
-      await sendEmail(email, `Order ${order_number}: refund update`, `Order ${order_number}: ${message}`);
+      const { text, html } = renderEmail({
+        heading: `Order ${order_number}: refund update`,
+        paragraphs: [REFUND_MESSAGES[record.payment_status]],
+        cta: { label: "view your order", url: `${SITE_URL}/account` },
+      });
+      await sendEmail(email, `Order ${order_number}: refund update`, text, html);
       sentAny = true;
     }
   }

@@ -9,7 +9,7 @@ const MOOD_IMAGE: Record<MoodKey, string> = {
   rest: "/products/rest.png",
 };
 
-const PERSONAS: { title: string; tagline: string; description: string; moods: MoodKey[]; wide?: boolean; tilt: string }[] = [
+const PERSONAS: { title: string; tagline: string; description: string; moods: MoodKey[]; wide?: boolean; tilt: string; zostel?: boolean }[] = [
   {
     title: "the traveller",
     tagline: "pocket-sized, zostel-approved",
@@ -18,6 +18,7 @@ const PERSONAS: { title: string; tagline: string; description: string; moods: Mo
     moods: ["rest", "focus"],
     wide: true,
     tilt: "rotate-6",
+    zostel: true,
   },
   {
     title: "the student",
@@ -117,6 +118,14 @@ export function WhoItsForSection() {
                       {mood}
                     </span>
                   ))}
+                  {persona.zostel && (
+                    <span className="flex items-center gap-1.5 rounded-full border border-ink px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label">
+                      <span className="relative h-4 w-4 overflow-hidden rounded-full">
+                        <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+                      </span>
+                      zostel
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

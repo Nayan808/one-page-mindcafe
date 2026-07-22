@@ -107,6 +107,16 @@ export function Hero() {
     <section ref={timelineRef} className="bg-cream">
       <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
+          as="div"
+          animationNum={0}
+          timelineRef={timelineRef}
+          customVariants={revealVariants}
+          className="relative mb-4 h-12 w-12 overflow-hidden rounded-full shadow-lg"
+        >
+          <Image src="/press/zostel.png" alt="Zostel" fill className="object-cover" />
+        </TimelineContent>
+
+        <TimelineContent
           as="button"
           animationNum={1}
           timelineRef={timelineRef}
@@ -117,8 +127,15 @@ export function Hero() {
           <span className="rounded-full bg-ink px-2 py-1 text-[11px] font-semibold uppercase tracking-label text-cream">
             new
           </span>
-          <span className="inline-block px-1 text-ink sm:text-sm">
-            incubated at zo world <span className="font-semibold">· distributed by zostel</span>
+          <span className="inline-flex items-center px-1 text-ink sm:text-sm">
+            incubated at zo world
+            <span className="ml-1 inline-flex items-center gap-1 font-semibold">
+              · distributed by
+              <span className="relative h-4 w-4 overflow-hidden rounded-full">
+                <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+              </span>
+              zostel
+            </span>
           </span>
           <ArrowRight className="h-3 w-3 text-ink" aria-hidden />
         </TimelineContent>
@@ -178,9 +195,12 @@ export function Hero() {
             shop feelz ↓
           </button>
           <button
-            onClick={() => scrollTo("mood-picks")}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/30 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5"
+            onClick={() => scrollTo("zostel-locations")}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-ink/30 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5"
           >
+            <span className="relative h-4 w-4 overflow-hidden rounded-full">
+              <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+            </span>
             find at zostel
           </button>
         </TimelineContent>

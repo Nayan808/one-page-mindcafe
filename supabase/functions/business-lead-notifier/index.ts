@@ -3,7 +3,7 @@
 // /business contact form, since these currently just sit in
 // /admin/business-leads until someone happens to check.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 type BusinessLeadRecord = {
@@ -30,13 +30,16 @@ Deno.serve(async (req) => {
   const { data: setting } = await sb.from("site_settings").select("value").eq("key", "admin_notification_email").maybeSingle();
   const adminEmail = (setting?.value as string) || "team@mindcafe.app";
 
-  const lines = [
-    `New business lead: ${record.company_name}`,
+  const paragraphs = [
     `Contact: ${record.contact_name} <${record.email}>${record.phone ? ` · ${record.phone}` : ""}`,
-    record.message ? `Message: ${record.message}` : null,
-    "Check /admin/business-leads.",
-  ].filter(Boolean);
+    ...(record.message ? [`Message: ${record.message}`] : []),
+  ];
 
-  await sendEmail(adminEmail, `New business lead: ${record.company_name}`, lines.join("\n"));
+  const { text, html } = renderEmail({
+    heading: `New business lead: ${record.company_name}`,
+    paragraphs,
+    cta: { label: "view in admin", url: `${SITE_URL}/admin/business-leads` },
+  });
+  await sendEmail(adminEmail, `New business lead: ${record.company_name}`, text, html);
   return jsonResponse({ sent: true });
 });
