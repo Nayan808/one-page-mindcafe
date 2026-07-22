@@ -129,7 +129,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
             Enter the code we sent to <span className="font-medium text-ink">{email}</span>.
           </p>
           <div>
-            <label className="mb-1 block text-sm text-ink/70">6-digit code</label>
+            <label className="mb-1 block text-sm text-ink/70">verification code</label>
             <input
               inputMode="numeric"
               autoComplete="one-time-code"
@@ -137,7 +137,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
               value={code}
               onChange={(event) => setCode(event.target.value)}
               className="input text-center text-lg tracking-[0.4em]"
-              maxLength={6}
+              maxLength={10}
             />
           </div>
 

@@ -1540,6 +1540,15 @@ alter table public.appointments add column if not exists payment_ref text;
 
 create index if not exists appointments_razorpay_order_id_idx on public.appointments (razorpay_order_id) where razorpay_order_id is not null;
 
+-- ---- from migrations/20260722010000_appointment_reminders.sql ----
+-- Dedup markers for the appointment-reminder Edge Function (24h-before and
+-- 1h-before session reminders), same pattern as orders.
+-- pickup_reminder_sent_at / carts.reminder_sent_at — set right after
+-- sending so a re-run of the scheduled function never double-emails the
+-- same appointment for the same reminder.
+alter table public.appointments add column if not exists reminder_24h_sent_at timestamptz;
+alter table public.appointments add column if not exists reminder_1h_sent_at timestamptz;
+
 -- ============================================================
 -- confirm_appointment_payment — the counselling-booking equivalent of
 -- confirm_order_and_decrement_stock: called ONLY by the payment-webhook

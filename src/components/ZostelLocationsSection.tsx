@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { MapPin, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getActivePickupLocations } from "@/lib/api";
 import type { PickupLocation } from "@/types/domain";
@@ -45,6 +45,11 @@ export function ZostelLocationsSection() {
   });
   const locations = locationsQuery.data ?? [];
   const [query, setQuery] = useState("");
+  const desktopScrollRef = useRef<HTMLDivElement | null>(null);
+
+  function scrollDesktopList(direction: "left" | "right") {
+    desktopScrollRef.current?.scrollBy({ left: direction === "left" ? -300 : 300, behavior: "smooth" });
+  }
 
   const trimmedQuery = query.trim().toLowerCase();
   const results = useMemo(() => {
@@ -138,13 +143,39 @@ export function ZostelLocationsSection() {
             </div>
           </div>
 
-          {/* Desktop / tablet: normal manual horizontal scroll, width capped
-              to ~3 cards so the rest are a deliberate scroll away rather
-              than all laid out at once on wide screens. */}
-          <div className="scrollbar-hide mx-auto mt-10 hidden max-w-[50rem] justify-start gap-4 overflow-x-auto pb-2 sm:flex">
-            {locations.map((location) => (
-              <LocationCard key={location.id} location={location} wide />
-            ))}
+          {/* Desktop / tablet: horizontal scroll, width capped to ~3 cards
+              so the rest are a deliberate scroll away rather than all laid
+              out at once on wide screens. The scrollbar itself is hidden
+              (scrollbar-hide), so without the two arrow buttons here
+              there's no visible sign there's anything past the first 3
+              cards — arrows call scrollBy on the tracked ref, same
+              destination the trackpad/scrollbar already reaches. */}
+          <div className="relative mx-auto mt-10 hidden max-w-[50rem] items-center gap-2 sm:flex">
+            {locations.length > 3 && (
+              <button
+                type="button"
+                onClick={() => scrollDesktopList("left")}
+                aria-label="Scroll locations left"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white text-ink shadow-sm hover:bg-ink/5"
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden />
+              </button>
+            )}
+            <div ref={desktopScrollRef} className="scrollbar-hide flex min-w-0 justify-start gap-4 overflow-x-auto pb-2">
+              {locations.map((location) => (
+                <LocationCard key={location.id} location={location} wide />
+              ))}
+            </div>
+            {locations.length > 3 && (
+              <button
+                type="button"
+                onClick={() => scrollDesktopList("right")}
+                aria-label="Scroll locations right"
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white text-ink shadow-sm hover:bg-ink/5"
+              >
+                <ChevronRight className="h-4 w-4" aria-hidden />
+              </button>
+            )}
           </div>
         </>
       )}

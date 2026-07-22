@@ -76,6 +76,7 @@ supabase functions deploy cleanup-reservations --no-verify-jwt
 supabase functions deploy staff-pickup --no-verify-jwt
 supabase functions deploy admin-create-expert --no-verify-jwt
 supabase functions deploy auth-send-email --no-verify-jwt
+supabase functions deploy appointment-reminder --no-verify-jwt
 ```
 
 `--no-verify-jwt` matters — `create-order` and `merge-guest-cart` accept
@@ -177,11 +178,19 @@ All three no-op harmlessly on events they don't care about, so it's safe
 to point the `orders` ones at every UPDATE and the `appointments` one at
 every Insert + Update.
 
-## 11. Schedule `cleanup-reservations`
+## 11. Schedule `cleanup-reservations` and `appointment-reminder`
 
-Releases expired stock holds every 5 minutes. Dashboard → Edge Functions
-→ `cleanup-reservations` → Cron, schedule `*/5 * * * *`. (Or `pg_cron`
-calling it via `pg_net` if you'd rather do it from SQL.)
+- `cleanup-reservations` releases expired stock holds. Dashboard → Edge
+  Functions → `cleanup-reservations` → Cron, schedule `*/5 * * * *`.
+- `appointment-reminder` emails the customer + expert 24 hours and again 1
+  hour before a confirmed session (`reminder_24h_sent_at`/
+  `reminder_1h_sent_at` dedupe so it never double-sends on re-runs).
+  Dashboard → Edge Functions → `appointment-reminder` → Cron, schedule
+  `*/15 * * * *` — needs to run far more often than the daily
+  `/api/cron-reminders` Vercel cron (capped at once/day on Vercel's Hobby
+  plan), or the 1-hour-before reminder would never land inside its window.
+
+(Or `pg_cron` calling either via `pg_net` if you'd rather do it from SQL.)
 
 ## 12. Staff dashboard
 

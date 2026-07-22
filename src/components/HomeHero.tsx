@@ -22,7 +22,7 @@ export function HomeHero() {
         mediaSrc="/homepage/herosectionvideo.mp4"
         posterSrc="/homepage/herosectionimagebg.jpeg"
         bgImageSrc="/homepage/herosectionimagebg.jpeg"
-        title="mindcafe that cares your brain"
+        title="mindcafe that cares for your brain"
         scrollToExpand="scroll to feelz it"
       >
         <div className="mx-auto max-w-xl text-center">
