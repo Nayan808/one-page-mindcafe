@@ -11,7 +11,8 @@ export function ExpertCard({
   expert,
   bookHref,
 }: {
-  expert: Pick<Expert, "name" | "photo_url" | "bio" | "specialties" | "rating" | "certifications">;
+  expert: Pick<Expert, "name" | "photo_url" | "bio" | "specialties" | "rating" | "certifications"> &
+    Partial<Pick<Expert, "is_bookable">>;
   /** When set, renders a "book with {name}" link — omit when the card is
    * itself a selection control (e.g. inside the booking form). */
   bookHref?: string;
@@ -69,7 +70,7 @@ export function ExpertCard({
         </div>
       )}
 
-      {bookHref && (
+      {bookHref && expert.is_bookable !== false && (
         <Link href={bookHref} className="pill-btn-outline mt-4 !py-2 text-xs">
           book with {expert.name.split(" ")[0]}
         </Link>

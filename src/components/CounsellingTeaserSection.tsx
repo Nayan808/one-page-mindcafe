@@ -42,7 +42,7 @@ export function CounsellingTeaserSection() {
             talk to someone who gets it
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm text-ink/60">
-            1:1 sessions with certified counsellors — individual, family, child &amp; adolescent, and specialized
+            1:1 sessions with certified counsellors: individual, family, child &amp; adolescent, and specialized
             care. Book online, meet from anywhere.
           </p>
         </Reveal>

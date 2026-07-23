@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { getActiveExperts, getSiteSetting, getTherapyCategories, validateAppointmentCoupon, type CouponPreview } from "@/lib/api";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useCreateAppointment, useAppointmentTracking } from "@/lib/query/hooks";
@@ -129,10 +130,14 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     queryFn: () => getTherapyCategories(createClient()),
   });
 
+  // Every active expert, always — not filtered by category. Expert choice
+  // now comes before category in the flow below, so there's no category
+  // yet to filter by at that point; showing the full roster up front (and
+  // never narrowing it later) is simpler than reconciling "which expert
+  // fits this category" once one gets picked afterward.
   const expertsQuery = useQuery({
-    queryKey: ["experts", category ?? "all"],
-    queryFn: () => getActiveExperts(createClient(), category ?? undefined),
-    enabled: Boolean(category),
+    queryKey: ["experts", "all"],
+    queryFn: () => getActiveExperts(createClient()),
   });
 
   // Only trust the applied preview while the input still matches what was
@@ -157,7 +162,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
   }
 
   async function handleSubmit() {
-    if (!user || !category) return;
+    if (!user || !category || !expertId) return;
     setError(null);
     try {
       const scheduledAt =
@@ -205,16 +210,35 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. category</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. expert</h2>
+        {expertsQuery.isLoading ? (
+          <p className="mt-3 text-sm text-ink/60">Loading experts…</p>
+        ) : (expertsQuery.data ?? []).length === 0 ? (
+          <p className="mt-3 text-sm text-ink/60">No experts listed yet — check back soon.</p>
+        ) : (
+          <div className="mt-3 grid gap-4 sm:grid-cols-3">
+            {(expertsQuery.data ?? []).map((expert) => (
+              <button
+                key={expert.id}
+                type="button"
+                onClick={() => setExpertId(expertId === expert.id ? null : expert.id)}
+                className={`rounded-2xl text-left transition ${expertId === expert.id ? "ring-2 ring-ink" : ""}`}
+              >
+                <ExpertCard expert={expert} />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. category</h2>
         <div className="mt-3 grid gap-2 sm:grid-cols-2">
           {(categoriesQuery.data ?? []).map((c) => (
             <button
               key={c.slug}
               type="button"
-              onClick={() => {
-                setCategory(c.slug);
-                setExpertId(null);
-              }}
+              onClick={() => setCategory(c.slug)}
               className={`rounded-xl border p-3 text-left text-sm font-medium ${category === c.slug ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
             >
               {c.title}
@@ -222,30 +246,6 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
           ))}
         </div>
       </div>
-
-      {category && (
-        <div>
-          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. expert (optional)</h2>
-          {expertsQuery.isLoading ? (
-            <p className="mt-3 text-sm text-ink/60">Loading experts…</p>
-          ) : (expertsQuery.data ?? []).length === 0 ? (
-            <p className="mt-3 text-sm text-ink/60">No experts tagged for this category yet — we&apos;ll match you with one.</p>
-          ) : (
-            <div className="mt-3 grid gap-4 sm:grid-cols-3">
-              {(expertsQuery.data ?? []).map((expert) => (
-                <button
-                  key={expert.id}
-                  type="button"
-                  onClick={() => setExpertId(expertId === expert.id ? null : expert.id)}
-                  className={`rounded-2xl text-left transition ${expertId === expert.id ? "ring-2 ring-ink" : ""}`}
-                >
-                  <ExpertCard expert={expert} />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {category && (
         <div>
@@ -362,7 +362,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={!category || createAppointment.isPending}
+        disabled={!category || !expertId || createAppointment.isPending}
         className="pill-btn w-full"
       >
         {createAppointment.isPending ? "processing…" : total === 0 ? "confirm free session" : "pay & request this session"}
@@ -373,15 +373,30 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
 function BookAppointmentInner() {
   const { status } = useAuth();
-  const router = useRouter();
+  const { openAuthModal } = useAuthModal();
   const searchParams = useSearchParams();
   const confirmedId = searchParams.get("confirmed");
   const initialCategory = searchParams.get("category");
   const initialExpertId = searchParams.get("expert");
 
+  // Same sign-in popup used everywhere else on the site (Header's "log
+  // in"), not a dedicated /login page redirect — booking a session
+  // shouldn't feel like it's bouncing you off to a different flow.
   useEffect(() => {
-    if (status === "unauthenticated") router.replace("/login?returnTo=%2Fbook-appointment");
-  }, [status, router]);
+    if (status === "unauthenticated") openAuthModal();
+  }, [status, openAuthModal]);
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="mx-auto max-w-sm px-4 py-16 text-center sm:px-6">
+        <h1 className="font-display text-2xl font-bold lowercase text-ink">sign in to book a session</h1>
+        <p className="mt-2 text-sm text-ink/60">Sign in to book counselling with one of our experts.</p>
+        <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
+          sign in
+        </button>
+      </div>
+    );
+  }
 
   if (status !== "authenticated") {
     return <div className="px-4 py-16 text-center text-sm text-ink/60">Loading…</div>;

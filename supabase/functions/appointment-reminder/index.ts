@@ -34,6 +34,7 @@ type AppointmentRow = {
   expert_id: string | null;
   therapy_category: string;
   scheduled_at: string;
+  meet_link: string | null;
 };
 
 async function remindOne(
@@ -44,6 +45,8 @@ async function remindOne(
   const categoryLabel = appointment.therapy_category.replace("-", " & ");
   const whenLine = `Scheduled for ${new Date(appointment.scheduled_at).toLocaleString("en-IN")}.`;
   const timeframe = window === "24h" ? "in about 24 hours" : "in about an hour";
+  const meetLink = appointment.meet_link;
+  const meetLinkLine = meetLink ? `Meeting link: ${meetLink}` : null;
 
   let sentAny = false;
 
@@ -52,8 +55,8 @@ async function remindOne(
   if (customerEmail) {
     const { text, html } = renderEmail({
       heading: `Your session is coming up ${timeframe}`,
-      paragraphs: [`Counselling session — ${categoryLabel}.`, whenLine],
-      cta: { label: "view your bookings", url: `${SITE_URL}/account` },
+      paragraphs: [`Counselling session — ${categoryLabel}.`, whenLine, ...(meetLinkLine ? [meetLinkLine] : [])],
+      cta: meetLink ? { label: "join the meeting", url: meetLink } : { label: "view your bookings", url: `${SITE_URL}/account` },
     });
     await sendEmail(customerEmail, `Reminder: your counselling session is ${timeframe}`, text, html);
     sentAny = true;
@@ -76,8 +79,8 @@ async function remindOne(
       if (expertEmail) {
         const { text, html } = renderEmail({
           heading: `Session coming up ${timeframe}`,
-          paragraphs: [`Category: ${categoryLabel}.`, whenLine],
-          cta: { label: "view your dashboard", url: `${SITE_URL}/expert/dashboard` },
+          paragraphs: [`Category: ${categoryLabel}.`, whenLine, ...(meetLinkLine ? [meetLinkLine] : [])],
+          cta: meetLink ? { label: "join the meeting", url: meetLink } : { label: "view your dashboard", url: `${SITE_URL}/expert/dashboard` },
         });
         await sendEmail(expertEmail, `Reminder: session ${timeframe}`, text, html);
         sentAny = true;
@@ -101,7 +104,7 @@ Deno.serve(async (req) => {
 
     const { data: appointments, error } = await sb
       .from("appointments")
-      .select("id, user_id, expert_id, therapy_category, scheduled_at")
+      .select("id, user_id, expert_id, therapy_category, scheduled_at, meet_link")
       .eq("status", "confirmed")
       .is(window.column, null)
       .not("scheduled_at", "is", null)

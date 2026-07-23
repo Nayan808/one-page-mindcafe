@@ -173,8 +173,10 @@ function CorporateTestimonials() {
 export default function BusinessPage() {
   return (
     <div>
-      <section className="bg-ink text-cream">
-        <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
+      <section className="relative overflow-hidden bg-ink text-cream">
+        <Image src="/business/hero-bg.png" alt="" fill priority className="object-cover opacity-20" />
+        <div className="absolute inset-0 bg-black/80" />
+        <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
             build healthier teams
           </span>

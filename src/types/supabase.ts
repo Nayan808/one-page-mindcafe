@@ -389,6 +389,7 @@ export interface Database {
           certifications: string[];
           rating: number | null;
           is_active: boolean;
+          is_bookable: boolean;
           notification_email: string | null;
           created_at: string;
         };
@@ -427,6 +428,7 @@ export interface Database {
           payment_status: "pending" | "paid" | "failed";
           razorpay_order_id: string | null;
           payment_ref: string | null;
+          meet_link: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["appointments"]["Row"]> & {

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Pencil, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useAddresses, useUserAppointments, useUserOrders } from "@/lib/query/hooks";
 import { createClient } from "@/lib/supabase/client";
 import { updateProfile } from "@/lib/api";
@@ -287,11 +287,22 @@ function AppointmentsSection() {
 
 export default function AccountPage() {
   const { status } = useAuth();
-  const router = useRouter();
+  const { openAuthModal } = useAuthModal();
 
   useEffect(() => {
-    if (status === "unauthenticated") router.replace("/login?returnTo=%2Faccount");
-  }, [status, router]);
+    if (status === "unauthenticated") openAuthModal();
+  }, [status, openAuthModal]);
+
+  if (status === "unauthenticated") {
+    return (
+      <div className="mx-auto max-w-sm px-4 py-16 text-center sm:px-6">
+        <h1 className="font-display text-2xl font-bold lowercase text-ink">sign in to view your account</h1>
+        <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
+          sign in
+        </button>
+      </div>
+    );
+  }
 
   if (status !== "authenticated") {
     return <div className="px-4 py-16 text-center text-sm text-ink/60">Loading…</div>;

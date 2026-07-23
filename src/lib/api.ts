@@ -442,13 +442,20 @@ export async function getExpertAppointments(sb: Sb, expertId: string): Promise<A
 
 // RLS (appointments_update) only lets the assigned expert or an admin do
 // this — the same guard that stops a customer from marking their own
-// booking "completed".
+// booking "completed". meetLink is required by the DB trigger
+// (prevent_confirm_without_meet_link) whenever status is 'confirmed' —
+// pass it in the same call so both land in one UPDATE the trigger can see
+// together, rather than a separate follow-up write.
 export async function updateAppointmentStatus(
   sb: Sb,
   appointmentId: string,
   status: Appointment["status"],
+  meetLink?: string,
 ): Promise<void> {
-  const { error } = await sb.from("appointments").update({ status }).eq("id", appointmentId);
+  const { error } = await sb
+    .from("appointments")
+    .update({ status, ...(meetLink ? { meet_link: meetLink } : {}) })
+    .eq("id", appointmentId);
   throwOnError("updateAppointmentStatus", error);
 }
 

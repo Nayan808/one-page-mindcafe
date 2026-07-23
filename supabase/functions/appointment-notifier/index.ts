@@ -84,6 +84,7 @@ type AppointmentRecord = {
   payment_status: string;
   therapy_category: string;
   scheduled_at: string | null;
+  meet_link: string | null;
 };
 
 type DbWebhookPayload = {
@@ -123,6 +124,13 @@ Deno.serve(async (req) => {
   const whenLine = record.scheduled_at
     ? `Requested time: ${new Date(record.scheduled_at).toLocaleString("en-IN")}.`
     : null;
+  // Once an expert confirms with a meet link attached, that link IS the
+  // actionable next step for both sides — the CTA becomes "join the
+  // meeting" pointing straight at it instead of the usual dashboard/
+  // bookings link, so it's a real clickable button in the email, not just
+  // plain-text the recipient has to copy.
+  const hasMeetLink = messageKey === "confirmed" && Boolean(record.meet_link);
+  const meetLinkLine = hasMeetLink ? `Meeting link: ${record.meet_link}` : null;
 
   let sentAny = false;
 
@@ -133,8 +141,13 @@ Deno.serve(async (req) => {
     if (email) {
       const { text, html } = renderEmail({
         heading: customerMessage.heading,
-        paragraphs: [`Counselling session — ${categoryLabel}.`, customerMessage.body, ...(whenLine ? [whenLine] : [])],
-        cta: customerMessage.cta,
+        paragraphs: [
+          `Counselling session — ${categoryLabel}.`,
+          customerMessage.body,
+          ...(whenLine ? [whenLine] : []),
+          ...(meetLinkLine ? [meetLinkLine] : []),
+        ],
+        cta: hasMeetLink ? { label: "join the meeting", url: record.meet_link! } : customerMessage.cta,
       });
       await sendEmail(email, `Your counselling booking: ${customerMessage.heading}`, text, html);
       sentAny = true;
@@ -159,8 +172,13 @@ Deno.serve(async (req) => {
       if (expertEmail) {
         const { text, html } = renderEmail({
           heading: expertMessage.heading,
-          paragraphs: [`Category: ${categoryLabel}.`, expertMessage.body, ...(whenLine ? [whenLine] : [])],
-          cta: expertMessage.cta,
+          paragraphs: [
+            `Category: ${categoryLabel}.`,
+            expertMessage.body,
+            ...(whenLine ? [whenLine] : []),
+            ...(meetLinkLine ? [meetLinkLine] : []),
+          ],
+          cta: hasMeetLink ? { label: "join the meeting", url: record.meet_link! } : expertMessage.cta,
         });
         await sendEmail(expertEmail, `Booking update: ${expertMessage.heading}`, text, html);
         sentAny = true;

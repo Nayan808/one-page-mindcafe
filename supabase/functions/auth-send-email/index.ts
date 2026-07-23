@@ -55,6 +55,14 @@ const COPY: Record<string, { subject: string; heading: string; body: string }> =
 
 function renderHtml(token: string, actionType: string): string {
   const copy = COPY[actionType] ?? COPY.magiclink;
+  // Supabase OTPs aren't zero-padded to a fixed width — this project has
+  // seen 6, 7, and 8-digit codes. A fixed 32px/0.35em letter-spacing sized
+  // for 6 digits runs the code box (and the digits themselves) past the
+  // edge of the card on narrow mobile screens once a code hits 7-8
+  // digits. Scale both down by length instead of assuming 6.
+  const codeFontSize = token.length > 6 ? 24 : 32;
+  const codeLetterSpacing = token.length > 6 ? 0.16 : 0.35;
+  const codePadding = token.length > 6 ? "16px 12px" : "18px 28px";
   return `<div style="background-color:#f6f1e6; padding:40px 16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
   <div style="max-width:420px; margin:0 auto; background-color:#ffffff; border:1px solid rgba(17,17,16,0.1); border-radius:24px; overflow:hidden;">
     <div style="background-color:#111110; padding:28px 32px; text-align:center;">
@@ -66,8 +74,8 @@ function renderHtml(token: string, actionType: string): string {
       </p>
       <h1 style="margin:8px 0 20px; font-size:22px; font-weight:700; color:#111110;">${copy.heading}</h1>
       <p style="margin:0 0 24px; font-size:14px; line-height:1.6; color:rgba(17,17,16,0.65);">${copy.body}</p>
-      <div style="margin:0 auto 24px; display:inline-block; background-color:#f6f1e6; border:1px solid rgba(17,17,16,0.15); border-radius:14px; padding:18px 28px;">
-        <span style="font-size:32px; font-weight:700; letter-spacing:0.35em; color:#111110;">${token}</span>
+      <div style="margin:0 auto 24px; max-width:100%; display:inline-block; box-sizing:border-box; background-color:#f6f1e6; border:1px solid rgba(17,17,16,0.15); border-radius:14px; padding:${codePadding};">
+        <span style="font-size:${codeFontSize}px; font-weight:700; letter-spacing:${codeLetterSpacing}em; color:#111110; white-space:nowrap;">${token}</span>
       </div>
       <p style="margin:0; font-size:12px; line-height:1.6; color:rgba(17,17,16,0.45);">
         Didn&rsquo;t request this? You can safely ignore this email — no one can sign in without this code.

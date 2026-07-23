@@ -20,6 +20,10 @@ interface ScrollExpandMediaProps {
   date?: string;
   scrollToExpand?: string;
   textBlend?: boolean;
+  // Rendered directly under the title, always visible (unlike `children`,
+  // which only fades in once the media finishes expanding) — for CTAs
+  // that should be reachable immediately, before the user scrolls at all.
+  belowTitle?: ReactNode;
   children?: ReactNode;
 }
 
@@ -32,6 +36,7 @@ const ScrollExpandMedia = ({
   date,
   scrollToExpand,
   textBlend,
+  belowTitle,
   children,
 }: ScrollExpandMediaProps) => {
   const [scrollProgress, setScrollProgress] = useState<number>(0);
@@ -175,9 +180,40 @@ const ScrollExpandMedia = ({
           </motion.div>
 
           <div className="container mx-auto flex flex-col items-center justify-start relative z-10">
+            {/* Desktop: the video becomes a normal-flow block (lg:static)
+                sitting right after the title/CTAs instead of an
+                independently-absolute-positioned element — that's what
+                keeps the gap between them a single direct value (lg:mt-6
+                below) instead of two separately-tuned offsets fighting to
+                land next to each other. The whole column is then
+                naturally centered as one group by this wrapper's own
+                justify-center, no manual translate math needed. Mobile
+                keeps the original overlapping/centered "scroll expand"
+                look untouched (no lg: classes below affect it). */}
             <div className="flex flex-col items-center justify-center w-full h-[100dvh] relative">
               <div
-                className="absolute z-0 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-none rounded-2xl"
+                className={`flex items-center justify-center text-center gap-4 w-full relative z-10 transition-none flex-col ${
+                  textBlend ? "mix-blend-difference" : "mix-blend-normal"
+                }`}
+              >
+                <motion.h2
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-cream transition-none"
+                  style={{ transform: `translateX(-${textTranslateX}vw)` }}
+                >
+                  {firstWord}
+                </motion.h2>
+                <motion.h2
+                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-blue-200 transition-none"
+                  style={{ transform: `translateX(${textTranslateX}vw)` }}
+                >
+                  {restOfTitle}
+                </motion.h2>
+              </div>
+
+              {belowTitle && <div className="relative z-10 mt-6">{belowTitle}</div>}
+
+              <div
+                className="absolute z-0 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-none rounded-2xl lg:static lg:mt-6 lg:translate-x-0 lg:translate-y-0"
                 style={{
                   width: `${mediaWidth}px`,
                   height: `${mediaHeight}px`,
@@ -261,38 +297,19 @@ const ScrollExpandMedia = ({
 
                 <div className="flex flex-col items-center text-center relative z-10 mt-4 transition-none">
                   {date && (
-                    <p className="text-2xl text-blue-200" style={{ transform: `translateX(-${textTranslateX}vw)` }}>
+                    <p className="text-2xl text-cream" style={{ transform: `translateX(-${textTranslateX}vw)` }}>
                       {date}
                     </p>
                   )}
                   {scrollToExpand && (
                     <p
-                      className="text-blue-200 font-medium text-center"
+                      className="text-cream font-medium text-center"
                       style={{ transform: `translateX(${textTranslateX}vw)` }}
                     >
                       {scrollToExpand}
                     </p>
                   )}
                 </div>
-              </div>
-
-              <div
-                className={`flex items-center justify-center text-center gap-4 w-full relative z-10 transition-none flex-col ${
-                  textBlend ? "mix-blend-difference" : "mix-blend-normal"
-                }`}
-              >
-                <motion.h2
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-blue-200 transition-none"
-                  style={{ transform: `translateX(-${textTranslateX}vw)` }}
-                >
-                  {firstWord}
-                </motion.h2>
-                <motion.h2
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-blue-200 transition-none"
-                  style={{ transform: `translateX(${textTranslateX}vw)` }}
-                >
-                  {restOfTitle}
-                </motion.h2>
               </div>
             </div>
 

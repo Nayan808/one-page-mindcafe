@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -30,6 +30,11 @@ export default function ExpertDashboardPage() {
   const { status, user, profile } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
+  // Confirming needs a meet link entered first (the DB rejects 'confirmed'
+  // without one) — this tracks which appointment's card currently has that
+  // inline entry form open, and the draft link being typed for it.
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
+  const [meetLinkDraft, setMeetLinkDraft] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/expert/login");
@@ -49,9 +54,13 @@ export default function ExpertDashboardPage() {
   });
 
   const updateStatus = useMutation({
-    mutationFn: (args: { appointmentId: string; status: Appointment["status"] }) =>
-      updateAppointmentStatus(createClient(), args.appointmentId, args.status),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["expert-appointments", expertQuery.data?.id] }),
+    mutationFn: (args: { appointmentId: string; status: Appointment["status"]; meetLink?: string }) =>
+      updateAppointmentStatus(createClient(), args.appointmentId, args.status, args.meetLink),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["expert-appointments", expertQuery.data?.id] });
+      setConfirmingId(null);
+      setMeetLinkDraft("");
+    },
   });
 
   if (status !== "authenticated" || profile?.role !== "expert") {
@@ -89,6 +98,17 @@ export default function ExpertDashboardPage() {
 
   function renderAppointment(appointment: Appointment) {
     const actions = appointment.payment_status === "paid" ? NEXT_ACTIONS[appointment.status] ?? [] : [];
+    const isConfirming = confirmingId === appointment.id;
+
+    function handleAction(action: { label: string; nextStatus: Appointment["status"] }) {
+      if (action.nextStatus === "confirmed") {
+        setConfirmingId(appointment.id);
+        setMeetLinkDraft("");
+        return;
+      }
+      updateStatus.mutate({ appointmentId: appointment.id, status: action.nextStatus });
+    }
+
     return (
       <li key={appointment.id} className="rounded-xl border border-ink/15 bg-white p-4 text-sm">
         <div className="flex items-center justify-between gap-2">
@@ -101,20 +121,64 @@ export default function ExpertDashboardPage() {
           {appointment.scheduled_at ? new Date(appointment.scheduled_at).toLocaleString() : "Time to be confirmed"}
         </p>
         {appointment.notes && <p className="mt-1 text-ink/50">&ldquo;{appointment.notes}&rdquo;</p>}
-        {actions.length > 0 && (
-          <div className="mt-3 flex gap-2">
-            {actions.map((action) => (
+        {appointment.status === "confirmed" && appointment.meet_link && (
+          <a
+            href={appointment.meet_link}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 block truncate text-ink underline"
+          >
+            {appointment.meet_link}
+          </a>
+        )}
+
+        {isConfirming ? (
+          <form
+            className="mt-3 flex flex-col gap-2 sm:flex-row"
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (!meetLinkDraft.trim()) return;
+              updateStatus.mutate({ appointmentId: appointment.id, status: "confirmed", meetLink: meetLinkDraft.trim() });
+            }}
+          >
+            <input
+              type="url"
+              required
+              autoFocus
+              placeholder="paste the meeting link (Zoom, Meet, ...)"
+              value={meetLinkDraft}
+              onChange={(event) => setMeetLinkDraft(event.target.value)}
+              className="input !py-1.5 text-xs"
+            />
+            <div className="flex gap-2">
+              <button type="submit" disabled={updateStatus.isPending} className="pill-btn !py-1.5 text-xs">
+                confirm booking
+              </button>
               <button
-                key={action.label}
                 type="button"
-                onClick={() => updateStatus.mutate({ appointmentId: appointment.id, status: action.nextStatus })}
-                disabled={updateStatus.isPending}
+                onClick={() => setConfirmingId(null)}
                 className="pill-btn-outline !py-1.5 text-xs"
               >
-                {action.label}
+                back
               </button>
-            ))}
-          </div>
+            </div>
+          </form>
+        ) : (
+          actions.length > 0 && (
+            <div className="mt-3 flex gap-2">
+              {actions.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={() => handleAction(action)}
+                  disabled={updateStatus.isPending}
+                  className="pill-btn-outline !py-1.5 text-xs"
+                >
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          )
         )}
       </li>
     );
