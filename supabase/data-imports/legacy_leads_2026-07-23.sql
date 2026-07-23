@@ -1,0 +1,18 @@
+insert into public.expert_applications (name, email, phone, city, social_link, qualification, skills, message, status) values
+  ('Bhanu', 'bhanu.pr17@gmail.com', '7631008098', 'Indore', 'bhanuprakash07', 'BE', 'Developer', 'testing', 'new'),
+  ('Kanchan Gaur', 'Echoesbykanchan@gmail.com', '9711001334', 'Gurgaon', NULL, 'A.B psychology, Diploma in Relationships counselling and family therapy', 'Counsellor and therapist', 'Hi, I want to join your platform to connect people who actually need help. Since mental wellness is still not a priority for most of the people in our society & they keep struggling their whole life. I want to support these people by sharing some tips and techniques to resolve their problems.', 'new'),
+  ('Anupama Vishwakarma', 'anupamakvishwakarma@gmail.com', '7049517806', 'Bhopal', NULL, 'MA applied psychology', 'CBT, psychotherapy and counseling', 'I''m interested to practice with your team. Looking forward to connect soon.', 'new'),
+  ('Puja Roy', 'roypuja0015@gmail.com', '9804466746', 'Bangalore', 'https://www.linkedin.com/in/puja-roy-893baa160', 'MSC Health Psychologist (gold medalist), Diploma on Expressive Art Therapy', 'Empathy, Problem solving, Active listening, Unconditional positive regard, ethics, patience, curiosity, flexibility, insight, boundary setting, person-centred therapy, cultural competence', 'I am interested in pursuing the role of an online psychologist within your company. I have been working over 6 years.', 'new'),
+  ('Trishala Gupta', 'trishgupt2013@gmail.com', '9818765714', 'New Delhi', 'https://www.linkedin.com/in/trishala-gupta-096015120/', 'M.Ed, M.A Clinical Psychology, PGDRP (RCI)', 'Individual and couple counselling', 'I am writing to express my interest in the position of Psychologist. I would be having my RCI License this year to practise as a Rehabilitation Psychologist.', 'new'),
+  ('Pankhuri Agrawal', 'pankhuri.agrawal01@gmail.com', '6260772815', 'Bhopal', 'https://www.linkedin.com/in/pankhuri-a-755109142', 'MA Psychology (Clinical Psychology)', 'Good listening and observations with detailed analysis', 'As growing in my life, I am able to understand more and more about how important it is not only to take care of our physical and mental health, but in fact maintaining balance between the both is equally important.', 'new'),
+  ('Ridhi Chadha', 'ridhichadhard@gmail.com', '8800805628', 'New Delhi', 'http://linkedin.com/in/ridhi-chadha-62771a12b', 'M.A. Counselling Psychology', 'Counselling Psychologist', 'I have completed my post-graduation in Counselling Psychology from Amity University, Noida & have two years & 2 months of experience in the field of counselling — individual & group sessions, working with clients who are suicidal, and workshops for various firms.', 'new');
+
+insert into public.feelz_preorders (product, full_name, mobile, email, city) values
+  ('REST', 'Ajay Singroli', '6267552920', 'singroli.aj@gmail.com', 'Bhopal'),
+  ('FOCUS', 'Romit', '7772881548', 'romitpandey@gmail.com', 'Bhopal');
+
+insert into public.business_leads (company_name, contact_name, email, phone, message, status) values
+  ('Wehandler', 'Singh', 'singh@gmail.com', '1234567890', 'Corporate wellness enquiry — program: EEP, session limit 100.', 'contacted'),
+  ('Simpl', 'Simpl HR team', 'Hrcomms@getsimpl.com', '9657785291', 'Corporate wellness enquiry — program: Sports.', 'contacted'),
+  ('THDC-IKCA', 'Dr. Sumanth', 'thack.ikca@gmail.com', '9893490143', 'Corporate wellness enquiry — program: Sports, session limit 100.', 'contacted'),
+  ('Robro Systems Private Limited', 'Harshit Sureka (Founder & CEO)', 'harshit.sureka@robrosystems.com', '9893452000', 'Corporate wellness enquiry — program: EEP, session limit 10.', 'contacted');
