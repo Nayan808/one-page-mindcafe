@@ -4,18 +4,24 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
-import { CATEGORY_LABELS } from "@/lib/therapyCategories";
 import type { Expert } from "@/types/domain";
 
 export function ExpertCard({
   expert,
   bookHref,
+  showViewDetails = true,
 }: {
-  expert: Pick<Expert, "name" | "photo_url" | "bio" | "specialties" | "rating" | "certifications"> &
+  expert: Pick<Expert, "id" | "name" | "photo_url" | "bio" | "specialties" | "rating" | "certifications"> &
     Partial<Pick<Expert, "is_bookable">>;
-  /** When set, renders a "book with {name}" link — omit when the card is
-   * itself a selection control (e.g. inside the booking form). */
+  /** When set, also renders a "book with {name}" link (subject to
+   * is_bookable) — omit on pages where selecting the card itself already
+   * is the booking action, like the booking form's own expert-picker step. */
   bookHref?: string;
+  /** "view details" links to /experts/[id] — on by default so every card
+   * gets it, independent of bookHref. The card may sit inside its own
+   * click handler (a selection toggle) elsewhere, so this link stops
+   * propagation to avoid also toggling selection underneath the navigation. */
+  showViewDetails?: boolean;
 }) {
   // A dead/unreachable photo_url (typo'd in the admin form, or hosted
   // somewhere that later 404s) used to render as a broken-image icon with
@@ -58,22 +64,28 @@ export function ExpertCard({
         </div>
       )}
 
-      {expert.bio && <p className="mt-3 text-sm leading-relaxed text-ink/60">{expert.bio}</p>}
+      {/* Bio and category tags deliberately left off the card — full bio,
+          specialties, and everything else live on the /experts/[id]
+          detail page ("view details" below), so the card itself stays
+          just a quick photo/name/role glance, not a mini profile. */}
 
-      {expert.specialties.length > 0 && (
-        <div className="mt-4 flex flex-wrap justify-center gap-1.5">
-          {expert.specialties.map((specialty) => (
-            <span key={specialty} className="rounded-full border border-ink px-2.5 py-1 text-[10px] font-medium uppercase tracking-label">
-              {CATEGORY_LABELS[specialty] ?? specialty}
-            </span>
-          ))}
+      {(showViewDetails || bookHref) && (
+        <div className="mt-4 flex flex-wrap justify-center gap-2">
+          {showViewDetails && (
+            <Link
+              href={`/experts/${expert.id}`}
+              onClick={(event) => event.stopPropagation()}
+              className="pill-btn-outline !py-2 text-xs"
+            >
+              view details
+            </Link>
+          )}
+          {bookHref && expert.is_bookable !== false && (
+            <Link href={bookHref} onClick={(event) => event.stopPropagation()} className="pill-btn !py-2 text-xs">
+              book with {expert.name.split(" ")[0]}
+            </Link>
+          )}
         </div>
-      )}
-
-      {bookHref && expert.is_bookable !== false && (
-        <Link href={bookHref} className="pill-btn-outline mt-4 !py-2 text-xs">
-          book with {expert.name.split(" ")[0]}
-        </Link>
       )}
     </div>
   );

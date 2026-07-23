@@ -23,3 +23,6 @@ info_md/zostel-*.md
 next-env.d.ts
 *.tsbuildinfo
 .vercel
+
+# Legacy DB export — contains plaintext admin passwords + real customer PII, never commit
+u741728225_mindcafe*.sql

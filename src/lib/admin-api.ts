@@ -13,7 +13,9 @@ import type {
   BusinessLead,
   Coupon,
   Expert,
+  ExpertApplication,
   Faq,
+  FeelzPreorder,
   InventoryWithVariant,
   Milestone,
   NewsletterSubscriber,
@@ -46,15 +48,29 @@ export type DashboardRange = "1d" | "7d" | "30d" | "all";
 export type SalesSummary = {
   pendingAppointments: number;
   newBusinessLeadsQueue: number;
+  feelzPreordersTotal: number;
   range: {
     option: DashboardRange;
+    // Combined across both revenue streams — Feelz product orders AND
+    // paid counselling sessions. Kept split out below too
+    // (productRevenue/appointmentRevenue) since they're different
+    // businesses under one roof and collapsing them into one number
+    // alone would hide which one is actually driving growth.
     totalRevenue: number;
+    productRevenue: number;
+    appointmentRevenue: number;
     paidOrderCount: number;
-    ordersByStatus: Record<string, number>;
+    paidAppointmentCount: number;
     newAppointments: number;
     newBusinessLeads: number;
     newNewsletterSubscribers: number;
-    dailyRevenue: { date: string; revenue: number }[];
+    newFeelzPreorders: number;
+    // Split per-day so a segment toggle (feelz-only / counselling-only) can
+    // chart just its own stream instead of only ever showing the combined
+    // total.
+    dailyRevenue: { date: string; revenue: number; productRevenue: number; appointmentRevenue: number }[];
+    ordersByStatus: Record<string, number>;
+    appointmentsByStatus: Record<string, number>;
     orders: { order_number: string; created_at: string; status: string; payment_status: string; fulfillment_type: string; total: number }[];
   };
 };
@@ -74,8 +90,15 @@ export async function getSalesSummary(sb: Sb, range: DashboardRange = "30d"): Pr
   let ordersQuery = sb.from("orders").select("order_number, total, status, payment_status, fulfillment_type, created_at");
   if (rangeStartIso) ordersQuery = ordersQuery.gte("created_at", rangeStartIso);
 
-  let appointmentsRangeQuery = sb.from("appointments").select("id", { count: "exact", head: true });
+  let appointmentsRangeQuery = sb.from("appointments").select("status", { count: "exact" });
   if (rangeStartIso) appointmentsRangeQuery = appointmentsRangeQuery.gte("created_at", rangeStartIso);
+
+  // Paid appointments in-range — the counselling side of revenue, folded
+  // into totalRevenue/dailyRevenue below alongside paid orders. Previously
+  // this dashboard only ever counted product sales, silently excluding an
+  // entire revenue stream.
+  let paidAppointmentsQuery = sb.from("appointments").select("total, created_at").eq("payment_status", "paid");
+  if (rangeStartIso) paidAppointmentsQuery = paidAppointmentsQuery.gte("created_at", rangeStartIso);
 
   let leadsRangeQuery = sb.from("business_leads").select("id", { count: "exact", head: true });
   if (rangeStartIso) leadsRangeQuery = leadsRangeQuery.gte("created_at", rangeStartIso);
@@ -83,48 +106,96 @@ export async function getSalesSummary(sb: Sb, range: DashboardRange = "30d"): Pr
   let subscribersRangeQuery = sb.from("newsletter_subscribers").select("id", { count: "exact", head: true });
   if (rangeStartIso) subscribersRangeQuery = subscribersRangeQuery.gte("subscribed_at", rangeStartIso);
 
-  const [ordersRes, pendingAppointmentsRes, newLeadsQueueRes, appointmentsRangeRes, leadsRangeRes, subscribersRangeRes] = await Promise.all([
+  let preordersRangeQuery = sb.from("feelz_preorders").select("id", { count: "exact", head: true });
+  if (rangeStartIso) preordersRangeQuery = preordersRangeQuery.gte("created_at", rangeStartIso);
+
+  const [
+    ordersRes,
+    pendingAppointmentsRes,
+    newLeadsQueueRes,
+    appointmentsRangeRes,
+    paidAppointmentsRes,
+    leadsRangeRes,
+    subscribersRangeRes,
+    preordersTotalRes,
+    preordersRangeRes,
+  ] = await Promise.all([
     ordersQuery,
     sb.from("appointments").select("id", { count: "exact", head: true }).eq("status", "pending"),
     sb.from("business_leads").select("id", { count: "exact", head: true }).eq("status", "new"),
     appointmentsRangeQuery,
+    paidAppointmentsQuery,
     leadsRangeQuery,
     subscribersRangeQuery,
+    sb.from("feelz_preorders").select("id", { count: "exact", head: true }),
+    preordersRangeQuery,
   ]);
   throwOnError("getSalesSummary.orders", ordersRes.error);
   throwOnError("getSalesSummary.pendingAppointments", pendingAppointmentsRes.error);
   throwOnError("getSalesSummary.newLeadsQueue", newLeadsQueueRes.error);
   throwOnError("getSalesSummary.appointmentsRange", appointmentsRangeRes.error);
+  throwOnError("getSalesSummary.paidAppointments", paidAppointmentsRes.error);
   throwOnError("getSalesSummary.leadsRange", leadsRangeRes.error);
   throwOnError("getSalesSummary.subscribersRange", subscribersRangeRes.error);
+  throwOnError("getSalesSummary.preordersTotal", preordersTotalRes.error);
+  throwOnError("getSalesSummary.preordersRange", preordersRangeRes.error);
 
   const orders = ordersRes.data ?? [];
-  const paid = orders.filter((o) => o.payment_status === "paid");
-  const totalRevenue = paid.reduce((sum, o) => sum + Number(o.total), 0);
+  const paidOrders = orders.filter((o) => o.payment_status === "paid");
+  const productRevenue = paidOrders.reduce((sum, o) => sum + Number(o.total), 0);
+
+  const paidAppointments = (paidAppointmentsRes.data ?? []).filter((a) => a.total !== null);
+  const appointmentRevenue = paidAppointments.reduce((sum, a) => sum + Number(a.total), 0);
+
+  const totalRevenue = productRevenue + appointmentRevenue;
 
   const ordersByStatus: Record<string, number> = {};
   for (const o of orders) ordersByStatus[o.status] = (ordersByStatus[o.status] ?? 0) + 1;
 
-  const byDay = new Map<string, number>();
-  for (const o of paid) {
+  const appointmentsByStatus: Record<string, number> = {};
+  for (const a of appointmentsRangeRes.data ?? []) {
+    appointmentsByStatus[a.status] = (appointmentsByStatus[a.status] ?? 0) + 1;
+  }
+
+  const byDay = new Map<string, { productRevenue: number; appointmentRevenue: number }>();
+  for (const o of paidOrders) {
     const day = new Date(o.created_at).toISOString().slice(0, 10);
-    byDay.set(day, (byDay.get(day) ?? 0) + Number(o.total));
+    const entry = byDay.get(day) ?? { productRevenue: 0, appointmentRevenue: 0 };
+    entry.productRevenue += Number(o.total);
+    byDay.set(day, entry);
+  }
+  for (const a of paidAppointments) {
+    const day = new Date(a.created_at).toISOString().slice(0, 10);
+    const entry = byDay.get(day) ?? { productRevenue: 0, appointmentRevenue: 0 };
+    entry.appointmentRevenue += Number(a.total);
+    byDay.set(day, entry);
   }
   const dailyRevenue = Array.from(byDay.entries())
-    .map(([date, revenue]) => ({ date, revenue }))
+    .map(([date, { productRevenue, appointmentRevenue }]) => ({
+      date,
+      revenue: productRevenue + appointmentRevenue,
+      productRevenue,
+      appointmentRevenue,
+    }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   return {
     pendingAppointments: pendingAppointmentsRes.count ?? 0,
     newBusinessLeadsQueue: newLeadsQueueRes.count ?? 0,
+    feelzPreordersTotal: preordersTotalRes.count ?? 0,
     range: {
       option: range,
       totalRevenue,
-      paidOrderCount: paid.length,
+      productRevenue,
+      appointmentRevenue,
+      paidOrderCount: paidOrders.length,
+      paidAppointmentCount: paidAppointments.length,
       ordersByStatus,
+      appointmentsByStatus,
       newAppointments: appointmentsRangeRes.count ?? 0,
       newBusinessLeads: leadsRangeRes.count ?? 0,
       newNewsletterSubscribers: subscribersRangeRes.count ?? 0,
+      newFeelzPreorders: preordersRangeRes.count ?? 0,
       dailyRevenue,
       orders: orders
         .map((o) => ({ ...o, total: Number(o.total) }))
@@ -464,6 +535,31 @@ export async function updateBusinessLeadAdmin(
 ): Promise<void> {
   const { error } = await sb.from("business_leads").update({ status }).eq("id", id);
   throwOnError("updateBusinessLeadAdmin", error);
+}
+
+// --- Expert applications ("become an expert" submissions) -----------------
+
+export async function getExpertApplicationsAdmin(sb: Sb): Promise<ExpertApplication[]> {
+  const { data, error } = await sb.from("expert_applications").select("*").order("created_at", { ascending: false });
+  throwOnError("getExpertApplicationsAdmin", error);
+  return data ?? [];
+}
+
+export async function updateExpertApplicationAdmin(
+  sb: Sb,
+  id: string,
+  status: ExpertApplication["status"],
+): Promise<void> {
+  const { error } = await sb.from("expert_applications").update({ status }).eq("id", id);
+  throwOnError("updateExpertApplicationAdmin", error);
+}
+
+// --- Feelz preorders --------------------------------------------------------
+
+export async function getFeelzPreordersAdmin(sb: Sb): Promise<FeelzPreorder[]> {
+  const { data, error } = await sb.from("feelz_preorders").select("*").order("created_at", { ascending: false });
+  throwOnError("getFeelzPreordersAdmin", error);
+  return data ?? [];
 }
 
 // --- FAQs -----------------------------------------------------------------

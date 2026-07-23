@@ -22,11 +22,21 @@ Deno.serve(async (req) => {
 
   const sb = serviceRoleClient();
 
-  const { data: profiles, error: profilesError } = await sb
-    .from("profiles")
-    .select("id, full_name, role, created_at")
-    .order("created_at", { ascending: false });
-  if (profilesError) return jsonResponse({ error: profilesError.message }, 500);
+  // PostgREST caps a single response at 1000 rows by default — a plain
+  // .select() with no .range() silently drops everything past the first
+  // 1000 (in created_at desc order) instead of erroring, so this has to
+  // page through explicitly once the account count crosses that line.
+  const profiles: { id: string; full_name: string | null; role: string; created_at: string }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await sb
+      .from("profiles")
+      .select("id, full_name, role, created_at")
+      .order("created_at", { ascending: false })
+      .range(from, from + 999);
+    if (error) return jsonResponse({ error: error.message }, 500);
+    profiles.push(...(data ?? []));
+    if (!data || data.length < 1000) break;
+  }
 
   // auth.admin.listUsers is paginated (default 50/page) — walk pages until
   // exhausted. Fine at this project's scale; revisit with a bigger user

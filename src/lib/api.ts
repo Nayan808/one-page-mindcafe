@@ -3,6 +3,7 @@ import type { Database } from "@/types/supabase";
 import type {
   Address,
   Appointment,
+  AppointmentWithCustomer,
   AppointmentWithExpert,
   Cart,
   CartItemWithVariant,
@@ -285,9 +286,17 @@ export async function getReviewsPage(
 export async function getActiveExperts(sb: Sb, specialty?: string): Promise<Expert[]> {
   let query = sb.from("experts").select("*").eq("is_active", true);
   if (specialty) query = query.contains("specialties", [specialty]);
-  const { data, error } = await query.order("rating", { ascending: false, nullsFirst: false });
+  const { data, error } = await query
+    .order("rating", { ascending: false, nullsFirst: false })
+    .order("sort_order", { ascending: true });
   throwOnError("getActiveExperts", error);
   return data ?? [];
+}
+
+export async function getExpertById(sb: Sb, id: string): Promise<Expert | null> {
+  const { data, error } = await sb.from("experts").select("*").eq("id", id).eq("is_active", true).maybeSingle();
+  throwOnError("getExpertById", error);
+  return data;
 }
 
 export async function getTherapyCategories(sb: Sb): Promise<TherapyCategory[]> {
@@ -430,14 +439,33 @@ export async function getExpertByProfileId(sb: Sb, profileId: string): Promise<E
   return data;
 }
 
-export async function getExpertAppointments(sb: Sb, expertId: string): Promise<Appointment[]> {
-  const { data, error } = await sb
+// appointments.user_id references auth.users, not public.profiles, so
+// PostgREST has no foreign key to auto-embed profiles the way
+// getAppointment/getUserAppointments embed experts — two queries, merged
+// client-side, instead of one that would 400 on a relationship that
+// doesn't exist in the schema.
+export async function getExpertAppointments(sb: Sb, expertId: string): Promise<AppointmentWithCustomer[]> {
+  const { data: appointments, error } = await sb
     .from("appointments")
     .select("*")
     .eq("expert_id", expertId)
     .order("created_at", { ascending: false });
   throwOnError("getExpertAppointments", error);
-  return data ?? [];
+
+  const userIds = [...new Set((appointments ?? []).map((a) => a.user_id))];
+  if (userIds.length === 0) return [];
+
+  const { data: profiles, error: profilesError } = await sb
+    .from("profiles")
+    .select("id, full_name, phone")
+    .in("id", userIds);
+  throwOnError("getExpertAppointments (profiles)", profilesError);
+
+  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  return (appointments ?? []).map((a) => ({
+    ...a,
+    profiles: profileById.get(a.user_id) ? { full_name: profileById.get(a.user_id)!.full_name, phone: profileById.get(a.user_id)!.phone } : null,
+  })) as unknown as AppointmentWithCustomer[];
 }
 
 // RLS (appointments_update) only lets the assigned expert or an admin do
@@ -457,6 +485,39 @@ export async function updateAppointmentStatus(
     .update({ status, ...(meetLink ? { meet_link: meetLink } : {}) })
     .eq("id", appointmentId);
   throwOnError("updateAppointmentStatus", error);
+}
+
+export type IntakeFormInput = {
+  age: string;
+  pronouns: string;
+  occupation: string;
+  description: string;
+  energyLevel: string;
+  comfortLevel: string;
+  selfPerception: string;
+};
+
+// Customer-only write path — RLS (appointments_customer_intake_update)
+// only lets someone touch their own appointment, and the
+// prevent_customer_appointment_tampering trigger rejects the update
+// outright if anything besides these intake_* columns changes in the
+// same call, so there's no way this accidentally also moves status/
+// payment/meet_link fields even if a caller tried to pass more.
+export async function submitAppointmentIntake(sb: Sb, appointmentId: string, input: IntakeFormInput): Promise<void> {
+  const { error } = await sb
+    .from("appointments")
+    .update({
+      intake_age: input.age,
+      intake_pronouns: input.pronouns,
+      intake_occupation: input.occupation,
+      intake_description: input.description,
+      intake_energy_level: input.energyLevel,
+      intake_comfort_level: input.comfortLevel,
+      intake_self_perception: input.selfPerception,
+      intake_completed_at: new Date().toISOString(),
+    })
+    .eq("id", appointmentId);
+  throwOnError("submitAppointmentIntake", error);
 }
 
 // --- Self-assessment ---------------------------------------------------------

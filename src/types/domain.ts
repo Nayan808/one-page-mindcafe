@@ -21,10 +21,13 @@ export type TherapyCategory = Tables["therapy_categories"]["Row"];
 export type Appointment = Tables["appointments"]["Row"];
 export type Assessment = Tables["assessments"]["Row"];
 export type BusinessLead = Tables["business_leads"]["Row"];
+export type ExpertApplication = Tables["expert_applications"]["Row"];
+export type FeelzPreorder = Tables["feelz_preorders"]["Row"];
 export type Faq = Tables["faqs"]["Row"];
 export type Milestone = Tables["milestones"]["Row"];
 
 export type AppointmentWithExpert = Appointment & { experts: Pick<Expert, "name" | "photo_url"> | null };
+export type AppointmentWithCustomer = Appointment & { profiles: Pick<Profile, "full_name" | "phone"> | null };
 
 export type ProductWithVariants = Product & { product_variants: ProductVariant[] };
 export type InventoryWithVariant = Inventory & {

@@ -378,6 +378,39 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["reviews"]["Row"]>;
         Relationships: [];
       };
+      expert_applications: {
+        Row: {
+          id: string;
+          name: string;
+          email: string | null;
+          phone: string | null;
+          city: string | null;
+          social_link: string | null;
+          qualification: string | null;
+          skills: string | null;
+          message: string | null;
+          status: "new" | "contacted" | "closed";
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["expert_applications"]["Row"]> & { name: string };
+        Update: Partial<Database["public"]["Tables"]["expert_applications"]["Row"]>;
+        Relationships: [];
+      };
+      feelz_preorders: {
+        Row: {
+          id: string;
+          product: string;
+          full_name: string;
+          mobile: string | null;
+          email: string | null;
+          city: string | null;
+          message: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["feelz_preorders"]["Row"]> & { product: string; full_name: string };
+        Update: Partial<Database["public"]["Tables"]["feelz_preorders"]["Row"]>;
+        Relationships: [];
+      };
       experts: {
         Row: {
           id: string;
@@ -391,6 +424,13 @@ export interface Database {
           is_active: boolean;
           is_bookable: boolean;
           notification_email: string | null;
+          years_experience: string | null;
+          long_bio: string | null;
+          modalities: string[];
+          client_concerns: string[];
+          languages: string[];
+          therapist_note: string | null;
+          sort_order: number;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["experts"]["Row"]> & { name: string };
@@ -429,6 +469,14 @@ export interface Database {
           razorpay_order_id: string | null;
           payment_ref: string | null;
           meet_link: string | null;
+          intake_age: string | null;
+          intake_pronouns: string | null;
+          intake_occupation: string | null;
+          intake_description: string | null;
+          intake_energy_level: string | null;
+          intake_comfort_level: string | null;
+          intake_self_perception: string | null;
+          intake_completed_at: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["appointments"]["Row"]> & {

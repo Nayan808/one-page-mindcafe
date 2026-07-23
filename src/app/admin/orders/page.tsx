@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getOrdersAdmin, updateOrderStatusAdmin } from "@/lib/admin-api";
@@ -44,6 +44,22 @@ export default function AdminOrdersPage() {
     queryKey: ordersQueryKey,
     queryFn: () => getOrdersAdmin(createClient(), { page, pageSize: PAGE_SIZE, status: status || undefined, search: debouncedSearch || undefined }),
   });
+
+  // Live: new orders / status changes show up without a manual refresh —
+  // broad invalidate, same rationale as the admin appointments page.
+  useEffect(() => {
+    const sb = createClient();
+    const channel = sb
+      .channel("admin-orders")
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, () =>
+        queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }),
+      )
+      .subscribe();
+
+    return () => {
+      sb.removeChannel(channel);
+    };
+  }, [queryClient]);
 
   // Optimistic: the status select flips instantly instead of waiting on a
   // full 20-row page refetch to come back before the UI shows the change.

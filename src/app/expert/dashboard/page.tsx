@@ -6,13 +6,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 import { getExpertAppointments, getExpertByProfileId, updateAppointmentStatus } from "@/lib/api";
-import type { Appointment } from "@/types/domain";
+import type { Appointment, AppointmentWithCustomer } from "@/types/domain";
+import { formatInr } from "@/lib/utils";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
   confirmed: "Confirmed",
   completed: "Completed",
   cancelled: "Cancelled",
+};
+
+const PAYMENT_STATUS_LABELS: Record<string, string> = {
+  pending: "payment pending",
+  paid: "paid",
+  failed: "payment failed",
 };
 
 const NEXT_ACTIONS: Record<string, { label: string; nextStatus: Appointment["status"] }[]> = {
@@ -52,6 +59,28 @@ export default function ExpertDashboardPage() {
     queryFn: () => getExpertAppointments(createClient(), expertQuery.data!.id),
     enabled: Boolean(expertQuery.data),
   });
+
+  // Live: a new booking, a payment landing, or the customer submitting
+  // their intake form all show up here without a manual refresh — same
+  // Realtime pattern already used for order/appointment tracking on the
+  // customer side (see useOrderTracking/useAppointmentTracking).
+  const expertId = expertQuery.data?.id;
+  useEffect(() => {
+    if (!expertId) return;
+    const sb = createClient();
+    const channel = sb
+      .channel(`expert-appointments-${expertId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "appointments", filter: `expert_id=eq.${expertId}` },
+        () => queryClient.invalidateQueries({ queryKey: ["expert-appointments", expertId] }),
+      )
+      .subscribe();
+
+    return () => {
+      sb.removeChannel(channel);
+    };
+  }, [expertId, queryClient]);
 
   const updateStatus = useMutation({
     mutationFn: (args: { appointmentId: string; status: Appointment["status"]; meetLink?: string }) =>
@@ -94,9 +123,14 @@ export default function ExpertDashboardPage() {
   const awaitingPayment = appointments.filter((a) => a.status === "pending" && a.payment_status !== "paid");
   const pending = appointments.filter((a) => a.status === "pending" && a.payment_status === "paid");
   const upcoming = appointments.filter((a) => a.status === "confirmed");
+  const completed = appointments.filter((a) => a.status === "completed");
   const past = appointments.filter((a) => a.status === "completed" || a.status === "cancelled");
+  // "Bookings" = ones a client actually followed through on paying for —
+  // an abandoned/never-paid checkout was never really a booking from the
+  // expert's side, so it's excluded from this count on purpose.
+  const totalBookings = appointments.filter((a) => a.payment_status === "paid").length;
 
-  function renderAppointment(appointment: Appointment) {
+  function renderAppointment(appointment: AppointmentWithCustomer) {
     const actions = appointment.payment_status === "paid" ? NEXT_ACTIONS[appointment.status] ?? [] : [];
     const isConfirming = confirmingId === appointment.id;
 
@@ -117,10 +151,28 @@ export default function ExpertDashboardPage() {
             {appointment.payment_status === "paid" ? STATUS_LABELS[appointment.status] : "Awaiting payment"}
           </span>
         </div>
-        <p className="mt-1 text-ink/60">
+
+        <div className="mt-2 rounded-lg bg-cream/60 p-2.5">
+          <p className="font-medium text-ink">{appointment.profiles?.full_name ?? "Client"}</p>
+          {appointment.profiles?.phone && (
+            <a href={`tel:${appointment.profiles.phone}`} className="text-xs text-ink/60 hover:text-ink hover:underline">
+              {appointment.profiles.phone}
+            </a>
+          )}
+        </div>
+
+        <p className="mt-2 text-ink/60">
           {appointment.scheduled_at ? new Date(appointment.scheduled_at).toLocaleString() : "Time to be confirmed"}
         </p>
         {appointment.notes && <p className="mt-1 text-ink/50">&ldquo;{appointment.notes}&rdquo;</p>}
+        {appointment.total !== null && (
+          <p className="mt-1 text-xs text-ink/50">
+            {formatInr(appointment.total)}
+            {appointment.coupon_code ? ` · coupon ${appointment.coupon_code}` : ""}
+            {" · "}
+            {PAYMENT_STATUS_LABELS[appointment.payment_status] ?? appointment.payment_status}
+          </p>
+        )}
         {appointment.status === "confirmed" && appointment.meet_link && (
           <a
             href={appointment.meet_link}
@@ -130,6 +182,56 @@ export default function ExpertDashboardPage() {
           >
             {appointment.meet_link}
           </a>
+        )}
+
+        {appointment.intake_completed_at && (
+          <div className="mt-2 rounded-lg border border-ink/10 bg-cream/40 p-2.5 text-xs">
+            <p className="font-semibold uppercase tracking-label text-ink/50">client intake</p>
+            <dl className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 text-ink/70">
+              {appointment.intake_age && (
+                <>
+                  <dt className="text-ink/40">age</dt>
+                  <dd>{appointment.intake_age}</dd>
+                </>
+              )}
+              {appointment.intake_pronouns && (
+                <>
+                  <dt className="text-ink/40">pronouns</dt>
+                  <dd>{appointment.intake_pronouns}</dd>
+                </>
+              )}
+              {appointment.intake_occupation && (
+                <>
+                  <dt className="text-ink/40">occupation</dt>
+                  <dd>{appointment.intake_occupation}</dd>
+                </>
+              )}
+              {appointment.intake_energy_level && (
+                <>
+                  <dt className="text-ink/40">energy</dt>
+                  <dd className="capitalize">{appointment.intake_energy_level}</dd>
+                </>
+              )}
+              {appointment.intake_comfort_level && (
+                <>
+                  <dt className="text-ink/40">comfort</dt>
+                  <dd className="capitalize">{appointment.intake_comfort_level}</dd>
+                </>
+              )}
+              {appointment.intake_self_perception && (
+                <>
+                  <dt className="text-ink/40">self-perception</dt>
+                  <dd className="capitalize">{appointment.intake_self_perception}</dd>
+                </>
+              )}
+            </dl>
+            {appointment.intake_description && (
+              <p className="mt-1.5 text-ink/70">
+                <span className="text-ink/40">what brought them here: </span>
+                {appointment.intake_description}
+              </p>
+            )}
+          </div>
         )}
 
         {isConfirming ? (
@@ -190,6 +292,25 @@ export default function ExpertDashboardPage() {
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">expert dashboard</p>
           <h1 className="font-display mt-2 text-3xl font-bold lowercase text-ink">hi, {expertQuery.data.name.split(" ")[0]}</h1>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-xl border border-ink/15 bg-cream p-4 text-center">
+            <p className="font-display text-2xl font-bold text-ink">{totalBookings}</p>
+            <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">total bookings</p>
+          </div>
+          <div className="rounded-xl border border-ink/15 bg-cream p-4 text-center">
+            <p className="font-display text-2xl font-bold text-ink">{completed.length}</p>
+            <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">completed</p>
+          </div>
+          <div className="rounded-xl border border-ink/15 bg-cream p-4 text-center">
+            <p className="font-display text-2xl font-bold text-ink">{upcoming.length}</p>
+            <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">upcoming</p>
+          </div>
+          <div className="rounded-xl border border-ink/15 bg-cream p-4 text-center">
+            <p className="font-display text-2xl font-bold text-ink">{pending.length}</p>
+            <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">needs response</p>
+          </div>
         </div>
 
         <section>

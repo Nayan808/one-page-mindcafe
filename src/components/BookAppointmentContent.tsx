@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { Search } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
@@ -10,6 +11,7 @@ import { getActiveExperts, getSiteSetting, getTherapyCategories, validateAppoint
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useCreateAppointment, useAppointmentTracking } from "@/lib/query/hooks";
 import { ExpertCard } from "@/components/ExpertCard";
+import { AppointmentIntakeForm } from "@/components/AppointmentIntakeForm";
 import { formatInr } from "@/lib/utils";
 
 const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
@@ -98,6 +100,15 @@ function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
           </div>
         )}
       </div>
+
+      {appointment.payment_status === "paid" &&
+        (appointment.intake_completed_at ? (
+          <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+            Thanks — we&apos;ve shared your answers with your counsellor ahead of the session.
+          </p>
+        ) : (
+          <AppointmentIntakeForm appointmentId={appointment.id} />
+        ))}
     </div>
   );
 }
@@ -109,6 +120,12 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
   const [category, setCategory] = useState<string | null>(initialCategory);
   const [expertId, setExpertId] = useState<string | null>(initialExpertId);
+  // Arriving with an expert already picked (e.g. from that expert's own
+  // "book with {name}" link elsewhere on the site) should feel like that
+  // choice is already made, not like a fresh pick from the full roster —
+  // starts locked to just that one card, with an explicit way out.
+  const [showAllExperts, setShowAllExperts] = useState(!initialExpertId);
+  const [expertSearch, setExpertSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
   const [notes, setNotes] = useState("");
@@ -139,6 +156,17 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     queryKey: ["experts", "all"],
     queryFn: () => getActiveExperts(createClient()),
   });
+
+  const selectedExpert = (expertsQuery.data ?? []).find((expert) => expert.id === expertId);
+  const expertSearchTerm = expertSearch.trim().toLowerCase();
+  const filteredExperts = expertSearchTerm
+    ? (expertsQuery.data ?? []).filter(
+        (expert) =>
+          expert.name.toLowerCase().includes(expertSearchTerm) ||
+          expert.certifications.some((c) => c.toLowerCase().includes(expertSearchTerm)) ||
+          expert.specialties.some((s) => s.toLowerCase().includes(expertSearchTerm)),
+      )
+    : (expertsQuery.data ?? []);
 
   // Only trust the applied preview while the input still matches what was
   // checked — editing the code after applying shouldn't silently keep
@@ -215,19 +243,57 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
           <p className="mt-3 text-sm text-ink/60">Loading experts…</p>
         ) : (expertsQuery.data ?? []).length === 0 ? (
           <p className="mt-3 text-sm text-ink/60">No experts listed yet — check back soon.</p>
-        ) : (
-          <div className="mt-3 grid gap-4 sm:grid-cols-3">
-            {(expertsQuery.data ?? []).map((expert) => (
-              <button
-                key={expert.id}
-                type="button"
-                onClick={() => setExpertId(expertId === expert.id ? null : expert.id)}
-                className={`rounded-2xl text-left transition ${expertId === expert.id ? "ring-2 ring-ink" : ""}`}
-              >
-                <ExpertCard expert={expert} />
+        ) : !showAllExperts && selectedExpert ? (
+          <div className="mt-3">
+            <div className="mx-auto max-w-xs">
+              <ExpertCard expert={selectedExpert} />
+            </div>
+            <div className="mt-3 text-center">
+              <button type="button" onClick={() => setShowAllExperts(true)} className="text-xs font-medium text-ink/60 underline">
+                choose a different expert
               </button>
-            ))}
+            </div>
           </div>
+        ) : (
+          <>
+            <div className="relative mt-3 max-w-sm">
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
+              <input
+                type="text"
+                value={expertSearch}
+                onChange={(event) => setExpertSearch(event.target.value)}
+                placeholder="search by name or specialty"
+                className="input w-full pl-10"
+              />
+            </div>
+            {filteredExperts.length === 0 ? (
+              <p className="mt-3 text-sm text-ink/60">No experts match &ldquo;{expertSearch}&rdquo;.</p>
+            ) : (
+              <div className="mt-4 grid gap-4 sm:grid-cols-3">
+                {filteredExperts.map((expert) => (
+                  <div
+                    key={expert.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      setExpertId(expertId === expert.id ? null : expert.id);
+                      setShowAllExperts(false);
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setExpertId(expertId === expert.id ? null : expert.id);
+                        setShowAllExperts(false);
+                      }
+                    }}
+                    className={`cursor-pointer rounded-2xl text-left transition ${expertId === expert.id ? "ring-2 ring-ink" : ""}`}
+                  >
+                    <ExpertCard expert={expert} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
         )}
       </div>
 
