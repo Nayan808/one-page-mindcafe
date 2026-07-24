@@ -476,6 +476,8 @@ export interface Database {
           intake_energy_level: string | null;
           intake_comfort_level: string | null;
           intake_self_perception: string | null;
+          intake_concern: string | null;
+          intake_answers: Json | null;
           intake_completed_at: string | null;
           created_at: string;
         };

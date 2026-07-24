@@ -206,22 +206,10 @@ export default function ExpertDashboardPage() {
                   <dd>{appointment.intake_occupation}</dd>
                 </>
               )}
-              {appointment.intake_energy_level && (
+              {appointment.intake_concern && (
                 <>
-                  <dt className="text-ink/40">energy</dt>
-                  <dd className="capitalize">{appointment.intake_energy_level}</dd>
-                </>
-              )}
-              {appointment.intake_comfort_level && (
-                <>
-                  <dt className="text-ink/40">comfort</dt>
-                  <dd className="capitalize">{appointment.intake_comfort_level}</dd>
-                </>
-              )}
-              {appointment.intake_self_perception && (
-                <>
-                  <dt className="text-ink/40">self-perception</dt>
-                  <dd className="capitalize">{appointment.intake_self_perception}</dd>
+                  <dt className="text-ink/40">concern</dt>
+                  <dd>{appointment.intake_concern}</dd>
                 </>
               )}
             </dl>
@@ -230,6 +218,41 @@ export default function ExpertDashboardPage() {
                 <span className="text-ink/40">what brought them here: </span>
                 {appointment.intake_description}
               </p>
+            )}
+            {Array.isArray(appointment.intake_answers) && appointment.intake_answers.length > 0 && (
+              <div className="mt-2 space-y-1 border-t border-ink/10 pt-2">
+                {(appointment.intake_answers as unknown as { question: string; answer: string }[]).map((qa, i) => (
+                  <p key={i} className="text-ink/70">
+                    <span className="text-ink/40">{qa.question} </span>
+                    <span className="font-medium">{qa.answer}</span>
+                  </p>
+                ))}
+              </div>
+            )}
+            {/* Legacy submissions before this rebuild only ever wrote these
+                3 fixed scale fields — no intake_answers, so they still show
+                here rather than looking blank. */}
+            {!appointment.intake_concern && (appointment.intake_energy_level || appointment.intake_comfort_level || appointment.intake_self_perception) && (
+              <dl className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 text-ink/70">
+                {appointment.intake_energy_level && (
+                  <>
+                    <dt className="text-ink/40">energy</dt>
+                    <dd className="capitalize">{appointment.intake_energy_level}</dd>
+                  </>
+                )}
+                {appointment.intake_comfort_level && (
+                  <>
+                    <dt className="text-ink/40">comfort</dt>
+                    <dd className="capitalize">{appointment.intake_comfort_level}</dd>
+                  </>
+                )}
+                {appointment.intake_self_perception && (
+                  <>
+                    <dt className="text-ink/40">self-perception</dt>
+                    <dd className="capitalize">{appointment.intake_self_perception}</dd>
+                  </>
+                )}
+              </dl>
             )}
           </div>
         )}

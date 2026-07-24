@@ -492,9 +492,8 @@ export type IntakeFormInput = {
   pronouns: string;
   occupation: string;
   description: string;
-  energyLevel: string;
-  comfortLevel: string;
-  selfPerception: string;
+  concern: string;
+  answers: { question: string; answer: string }[];
 };
 
 // Customer-only write path — RLS (appointments_customer_intake_update)
@@ -511,9 +510,8 @@ export async function submitAppointmentIntake(sb: Sb, appointmentId: string, inp
       intake_pronouns: input.pronouns,
       intake_occupation: input.occupation,
       intake_description: input.description,
-      intake_energy_level: input.energyLevel,
-      intake_comfort_level: input.comfortLevel,
-      intake_self_perception: input.selfPerception,
+      intake_concern: input.concern,
+      intake_answers: input.answers,
       intake_completed_at: new Date().toISOString(),
     })
     .eq("id", appointmentId);

@@ -221,8 +221,10 @@ export default function AdminExpertsPage() {
 
   const columns: AdminColumn<Expert>[] = [
     { key: "name", label: "name", render: (e) => <span className="font-medium text-ink">{e.name}</span> },
+    { key: "certifications", label: "certifications", render: (e) => <span className="text-ink/60">{e.certifications.join(", ") || "—"}</span> },
     { key: "login", label: "login access", render: (e) => <span>{e.profile_id ? "yes" : "no"}</span> },
     { key: "specialties", label: "specialties", render: (e) => <span className="text-ink/60">{e.specialties.join(", ") || "—"}</span> },
+    { key: "bookable", label: "bookable", render: (e) => <span>{e.is_bookable ? "yes" : "no"}</span> },
     { key: "active", label: "active", render: (e) => <span>{e.is_active ? "yes" : "no"}</span> },
   ];
 
