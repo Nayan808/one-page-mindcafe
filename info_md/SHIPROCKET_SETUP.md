@@ -8,7 +8,7 @@ happen in your own Shiprocket account and the Supabase dashboard.
 ## What already exists in code
 
 - `supabase/functions/create-shiprocket-shipment/index.ts` — fires when a
-  delivery order transitions to `confirmed` (via a Database Webhook, see
+  delivery order transitions to `confirmed` (via a database trigger, see
   step 5 below). Logs into Shiprocket, creates the shipment, writes
   `shiprocket_order_id`/`shiprocket_shipment_id` back onto the order.
 - `supabase/functions/shiprocket-tracking-webhook/index.ts` — public
@@ -68,12 +68,14 @@ supabase functions deploy create-shiprocket-shipment --no-verify-jwt
 supabase functions deploy shiprocket-tracking-webhook --no-verify-jwt
 ```
 
-## 5. Confirm the Database Webhook exists
+## 5. Trigger wiring (done — nothing for you to do here)
 
-Supabase Dashboard → Database → Webhooks — there should be one on the
-`orders` table, `UPDATE` event, pointing at
-`https://<project-ref>.supabase.co/functions/v1/create-shiprocket-shipment`.
-If it's not there, create it (Database → Webhooks → Create a new hook).
+`create-shiprocket-shipment` fires via a plain database trigger
+(`trg_notify_shiprocket_shipment`, migration `20260724030000`), the same
+`notify_webhook()` pattern every other notifier in this codebase uses — not
+a dashboard-configured Database Webhook. This was actually missing for a
+while (the function existed and was deployed, but nothing ever called it)
+until that migration landed. Nothing to configure manually.
 
 ## 6. Test end-to-end
 

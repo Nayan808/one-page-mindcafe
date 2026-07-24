@@ -110,6 +110,27 @@ export default function AdminOrdersPage() {
         </select>
       ),
     },
+    {
+      key: "tracking",
+      label: "tracking",
+      render: (o) =>
+        o.fulfillment_type !== "delivery" ? (
+          <span className="text-ink/30">—</span>
+        ) : o.awb_code ? (
+          <div>
+            <p className="text-ink">{o.awb_code}</p>
+            {o.tracking_url && (
+              <a href={o.tracking_url} target="_blank" rel="noreferrer" className="text-ink/60 underline">
+                track
+              </a>
+            )}
+          </div>
+        ) : o.shiprocket_order_id ? (
+          <span className="text-amber-600">shipment created, no AWB yet</span>
+        ) : (
+          <span className="text-ink/40">not shipped</span>
+        ),
+    },
     { key: "date", label: "placed", render: (o) => <span className="text-ink/60">{new Date(o.created_at).toLocaleDateString()}</span> },
   ];
 

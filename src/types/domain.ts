@@ -29,6 +29,10 @@ export type Milestone = Tables["milestones"]["Row"];
 
 export type AppointmentWithExpert = Appointment & { experts: Pick<Expert, "name" | "photo_url"> | null };
 export type AppointmentWithCustomer = Appointment & { profiles: Pick<Profile, "full_name" | "phone"> | null };
+export type AppointmentWithDetails = Appointment & {
+  experts: Pick<Expert, "name" | "photo_url"> | null;
+  profiles: Pick<Profile, "full_name" | "phone"> | null;
+};
 
 export type ProductWithVariants = Product & { product_variants: ProductVariant[] };
 export type InventoryWithVariant = Inventory & {

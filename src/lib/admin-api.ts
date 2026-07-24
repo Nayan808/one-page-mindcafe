@@ -9,6 +9,7 @@ import type { Database, Json } from "@/types/supabase";
 import { ApiError } from "@/lib/api";
 import type {
   Appointment,
+  AppointmentWithDetails,
   AppointmentWithExpert,
   BusinessLead,
   ContactMessage,
@@ -248,7 +249,7 @@ export async function updateOrderStatusAdmin(
 export async function getAppointmentsAdmin(
   sb: Sb,
   options: { page: number; pageSize: number; status?: string; search?: string },
-): Promise<{ appointments: AppointmentWithExpert[]; total: number }> {
+): Promise<{ appointments: AppointmentWithDetails[]; total: number }> {
   const from = options.page * options.pageSize;
   const to = from + options.pageSize - 1;
   let query = sb.from("appointments").select("*, experts(name, photo_url)", { count: "exact" });
@@ -264,7 +265,24 @@ export async function getAppointmentsAdmin(
   }
   const { data, error, count } = await query.order("created_at", { ascending: false }).range(from, to);
   throwOnError("getAppointmentsAdmin", error);
-  return { appointments: (data as unknown as AppointmentWithExpert[]) ?? [], total: count ?? 0 };
+
+  // appointments.user_id has no FK to public.profiles (only to
+  // auth.users), so the customer name/phone can't come along in the same
+  // nested select above — same two-query merge pattern as
+  // getExpertAppointments in lib/api.ts.
+  const appointments = (data as unknown as AppointmentWithExpert[]) ?? [];
+  const userIds = [...new Set(appointments.map((a) => a.user_id))];
+  const profileById = new Map<string, { full_name: string | null; phone: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await sb.from("profiles").select("id, full_name, phone").in("id", userIds);
+    throwOnError("getAppointmentsAdmin (profiles)", profilesError);
+    for (const p of profiles ?? []) profileById.set(p.id, { full_name: p.full_name, phone: p.phone });
+  }
+
+  return {
+    appointments: appointments.map((a) => ({ ...a, profiles: profileById.get(a.user_id) ?? null })) as AppointmentWithDetails[],
+    total: count ?? 0,
+  };
 }
 
 export async function updateAppointmentAdmin(

@@ -8,8 +8,10 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
+import { Modal } from "@/components/Modal";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
-import type { AppointmentWithExpert } from "@/types/domain";
+import { formatInr } from "@/lib/utils";
+import type { AppointmentWithDetails } from "@/types/domain";
 
 const STATUSES = ["pending", "confirmed", "completed", "cancelled"];
 const PAGE_SIZE = 20;
@@ -23,6 +25,7 @@ export default function AdminAppointmentsPage() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
+  const [detailsAppointment, setDetailsAppointment] = useState<AppointmentWithDetails | null>(null);
   const debouncedSearch = useDebouncedValue(search);
   const queryClient = useQueryClient();
 
@@ -64,8 +67,8 @@ export default function AdminAppointmentsPage() {
       updateAppointmentAdmin(createClient(), args.id, args.input),
     onMutate: async (args) => {
       await queryClient.cancelQueries({ queryKey: appointmentsQueryKey });
-      const previous = queryClient.getQueryData<{ appointments: AppointmentWithExpert[]; total: number }>(appointmentsQueryKey);
-      queryClient.setQueryData<{ appointments: AppointmentWithExpert[]; total: number }>(appointmentsQueryKey, (old) =>
+      const previous = queryClient.getQueryData<{ appointments: AppointmentWithDetails[]; total: number }>(appointmentsQueryKey);
+      queryClient.setQueryData<{ appointments: AppointmentWithDetails[]; total: number }>(appointmentsQueryKey, (old) =>
         old && {
           ...old,
           appointments: old.appointments.map((a) => (a.id === args.id ? { ...a, ...args.input } : a)),
@@ -84,7 +87,17 @@ export default function AdminAppointmentsPage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const experts = expertsQuery.data ?? [];
 
-  const columns: AdminColumn<AppointmentWithExpert>[] = [
+  const columns: AdminColumn<AppointmentWithDetails>[] = [
+    {
+      key: "customer",
+      label: "customer",
+      render: (a) => (
+        <div>
+          <p className="font-medium text-ink">{a.profiles?.full_name ?? "—"}</p>
+          <p className="text-ink/50">{a.profiles?.phone ?? "—"}</p>
+        </div>
+      ),
+    },
     { key: "category", label: "category", render: (a) => <span className="capitalize">{a.therapy_category.replace(/-/g, " ")}</span> },
     {
       key: "expert",
@@ -105,14 +118,23 @@ export default function AdminAppointmentsPage() {
       ),
     },
     { key: "when", label: "requested time", render: (a) => <span className="text-ink/60">{a.scheduled_at ? new Date(a.scheduled_at).toLocaleString() : "—"}</span> },
-    { key: "notes", label: "notes", render: (a) => <span className="text-ink/60">{a.notes ?? "—"}</span> },
+    {
+      key: "payment",
+      label: "payment",
+      render: (a) => (
+        <div>
+          <p className="font-medium text-ink">{formatInr(a.total ?? 0)}</p>
+          <p className="capitalize text-ink/50">{a.payment_status}</p>
+        </div>
+      ),
+    },
     {
       key: "status",
       label: "status",
       render: (a) => (
         <select
           value={a.status}
-          onChange={(e) => update.mutate({ id: a.id, input: { status: e.target.value as AppointmentWithExpert["status"] } })}
+          onChange={(e) => update.mutate({ id: a.id, input: { status: e.target.value as AppointmentWithDetails["status"] } })}
           className="input !w-auto !py-1.5 text-xs"
         >
           {STATUSES.map((s) => (
@@ -121,6 +143,15 @@ export default function AdminAppointmentsPage() {
             </option>
           ))}
         </select>
+      ),
+    },
+    {
+      key: "details",
+      label: "",
+      render: (a) => (
+        <button type="button" onClick={() => setDetailsAppointment(a)} className="text-xs font-medium text-ink underline">
+          details
+        </button>
       ),
     },
   ];
@@ -165,6 +196,120 @@ export default function AdminAppointmentsPage() {
           </button>
         </div>
       )}
+
+      <Modal isOpen={!!detailsAppointment} onClose={() => setDetailsAppointment(null)} title="appointment details">
+        {detailsAppointment && (
+          <div className="space-y-4 text-sm">
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">customer</p>
+              <p className="mt-1 text-ink">{detailsAppointment.profiles?.full_name ?? "—"}</p>
+              <p className="text-ink/60">{detailsAppointment.profiles?.phone ?? "—"}</p>
+            </div>
+
+            <div>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">payment</p>
+              <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-ink/70">
+                <dt className="text-ink/40">price</dt>
+                <dd>{formatInr(detailsAppointment.price ?? 0)}</dd>
+                <dt className="text-ink/40">discount</dt>
+                <dd>{formatInr(detailsAppointment.discount_amount ?? 0)}</dd>
+                <dt className="text-ink/40">coupon</dt>
+                <dd>{detailsAppointment.coupon_code ?? "—"}</dd>
+                <dt className="text-ink/40">total</dt>
+                <dd className="font-medium text-ink">{formatInr(detailsAppointment.total ?? 0)}</dd>
+                <dt className="text-ink/40">payment status</dt>
+                <dd className="capitalize">{detailsAppointment.payment_status}</dd>
+              </dl>
+            </div>
+
+            {detailsAppointment.meet_link && (
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">meet link</p>
+                <a href={detailsAppointment.meet_link} target="_blank" rel="noreferrer" className="mt-1 block truncate text-ink underline">
+                  {detailsAppointment.meet_link}
+                </a>
+              </div>
+            )}
+
+            {detailsAppointment.intake_completed_at ? (
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">client intake</p>
+                <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-ink/70">
+                  {detailsAppointment.intake_age && (
+                    <>
+                      <dt className="text-ink/40">age</dt>
+                      <dd>{detailsAppointment.intake_age}</dd>
+                    </>
+                  )}
+                  {detailsAppointment.intake_pronouns && (
+                    <>
+                      <dt className="text-ink/40">pronouns</dt>
+                      <dd>{detailsAppointment.intake_pronouns}</dd>
+                    </>
+                  )}
+                  {detailsAppointment.intake_occupation && (
+                    <>
+                      <dt className="text-ink/40">occupation</dt>
+                      <dd>{detailsAppointment.intake_occupation}</dd>
+                    </>
+                  )}
+                  {detailsAppointment.intake_concern && (
+                    <>
+                      <dt className="text-ink/40">concern</dt>
+                      <dd>{detailsAppointment.intake_concern}</dd>
+                    </>
+                  )}
+                </dl>
+                {detailsAppointment.intake_description && (
+                  <p className="mt-2 text-ink/70">
+                    <span className="text-ink/40">what brought them here: </span>
+                    {detailsAppointment.intake_description}
+                  </p>
+                )}
+                {Array.isArray(detailsAppointment.intake_answers) && detailsAppointment.intake_answers.length > 0 && (
+                  <div className="mt-2 space-y-1.5 border-t border-ink/10 pt-2">
+                    {(detailsAppointment.intake_answers as unknown as { question: string; answer: string }[]).map((qa, i) => (
+                      <p key={i} className="text-ink/70">
+                        <span className="text-ink/40">{qa.question} </span>
+                        <span className="font-medium text-ink">{qa.answer}</span>
+                      </p>
+                    ))}
+                  </div>
+                )}
+                {!detailsAppointment.intake_concern &&
+                  (detailsAppointment.intake_energy_level || detailsAppointment.intake_comfort_level || detailsAppointment.intake_self_perception) && (
+                    <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-ink/10 pt-2 text-ink/70">
+                      {detailsAppointment.intake_energy_level && (
+                        <>
+                          <dt className="text-ink/40">energy</dt>
+                          <dd className="capitalize">{detailsAppointment.intake_energy_level}</dd>
+                        </>
+                      )}
+                      {detailsAppointment.intake_comfort_level && (
+                        <>
+                          <dt className="text-ink/40">comfort</dt>
+                          <dd className="capitalize">{detailsAppointment.intake_comfort_level}</dd>
+                        </>
+                      )}
+                      {detailsAppointment.intake_self_perception && (
+                        <>
+                          <dt className="text-ink/40">self-perception</dt>
+                          <dd className="capitalize">{detailsAppointment.intake_self_perception}</dd>
+                        </>
+                      )}
+                    </dl>
+                  )}
+              </div>
+            ) : (
+              <p className="text-xs text-ink/50">Client hasn&apos;t completed the intake form yet.</p>
+            )}
+
+            <div className="border-t border-ink/10 pt-3 text-xs text-ink/50">
+              <p>booked {new Date(detailsAppointment.created_at).toLocaleString()}</p>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

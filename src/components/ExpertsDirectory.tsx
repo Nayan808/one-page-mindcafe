@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -10,6 +10,7 @@ import { CATEGORY_LABELS, VALID_CATEGORY_SLUGS } from "@/lib/therapyCategories";
 import { ExpertCard } from "@/components/ExpertCard";
 
 function ExpertsContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const category = searchParams.get("category");
 
@@ -29,22 +30,22 @@ function ExpertsContent() {
         </p>
       </div>
 
-      <div className="mt-8 flex flex-wrap justify-center gap-2">
-        <a
-          href="/experts"
-          className={`rounded-full border px-3.5 py-1.5 text-xs font-medium uppercase tracking-label ${!category ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/60 hover:border-ink/40"}`}
+      <div className="mx-auto mt-8 max-w-xs">
+        <select
+          value={category ?? ""}
+          onChange={(event) => {
+            const value = event.target.value;
+            router.push(value ? `/experts?category=${value}` : "/experts");
+          }}
+          className="input text-center text-sm font-medium uppercase tracking-label"
         >
-          all
-        </a>
-        {VALID_CATEGORY_SLUGS.map((slug) => (
-          <a
-            key={slug}
-            href={`/experts?category=${slug}`}
-            className={`rounded-full border px-3.5 py-1.5 text-xs font-medium uppercase tracking-label ${category === slug ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/60 hover:border-ink/40"}`}
-          >
-            {CATEGORY_LABELS[slug]}
-          </a>
-        ))}
+          <option value="">all</option>
+          {VALID_CATEGORY_SLUGS.map((slug) => (
+            <option key={slug} value={slug}>
+              {CATEGORY_LABELS[slug]}
+            </option>
+          ))}
+        </select>
       </div>
 
       {expertsQuery.isLoading ? (

@@ -262,12 +262,18 @@ export default function ExpertDashboardPage() {
             className="mt-3 flex flex-col gap-2 sm:flex-row"
             onSubmit={(event) => {
               event.preventDefault();
-              if (!meetLinkDraft.trim()) return;
-              updateStatus.mutate({ appointmentId: appointment.id, status: "confirmed", meetLink: meetLinkDraft.trim() });
+              const trimmed = meetLinkDraft.trim();
+              if (!trimmed) return;
+              // Experts often paste just the bare link (e.g.
+              // "meet.google.com/abc-defg-hij") without the scheme — add
+              // https:// if it's missing rather than rejecting it, since
+              // there's no reason to make them type that part.
+              const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+              updateStatus.mutate({ appointmentId: appointment.id, status: "confirmed", meetLink: normalized });
             }}
           >
             <input
-              type="url"
+              type="text"
               required
               autoFocus
               placeholder="paste the meeting link (Zoom, Meet, ...)"
