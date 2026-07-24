@@ -36,6 +36,7 @@ const NAV = [
   { href: "/admin/pincodes", label: "pincodes", Icon: MapIcon },
   { href: "/admin/experts", label: "experts", Icon: UserSquare2 },
   { href: "/admin/business-leads", label: "business leads", Icon: Briefcase },
+  { href: "/admin/contact-messages", label: "contact messages", Icon: Mail },
   { href: "/admin/expert-applications", label: "expert applications", Icon: UserSquare2 },
   { href: "/admin/feelz-preorders", label: "feelz preorders", Icon: Package },
   { href: "/admin/reviews", label: "reviews", Icon: Star },

@@ -16,6 +16,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { FilterDropdown } from "@/components/admin/FilterDropdown";
 import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { VALID_CATEGORY_SLUGS } from "@/lib/therapyCategories";
@@ -318,18 +319,16 @@ export default function AdminExpertsPage() {
                     Not linked — if this person already signed up (e.g. via Google), link their existing account
                     here instead of creating a new one with &quot;create expert account&quot;.
                   </p>
-                  <select value={linkUserId} onChange={(e) => setLinkUserId(e.target.value)} className="input">
-                    <option value="">
-                      {usersQuery.isLoading ? "Loading accounts…" : "Select an account"}
-                    </option>
-                    {(usersQuery.data ?? [])
+                  <FilterDropdown
+                    options={(usersQuery.data ?? [])
                       .filter((u) => u.role === "customer")
-                      .map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.email} {u.full_name ? `(${u.full_name})` : ""}
-                        </option>
-                      ))}
-                  </select>
+                      .map((u) => ({ value: u.id, label: `${u.email ?? "—"} ${u.full_name ? `(${u.full_name})` : ""}`.trim() }))}
+                    value={linkUserId}
+                    onChange={setLinkUserId}
+                    placeholder={usersQuery.isLoading ? "Loading accounts…" : "Select an account"}
+                    searchPlaceholder="Search by email or name…"
+                    triggerClassName="input flex w-full items-center justify-between text-left"
+                  />
                   {linkError && <p className="text-xs text-red-600">{linkError}</p>}
                   <button type="button" onClick={() => linkUser.mutate()} disabled={!linkUserId || linkUser.isPending} className="pill-btn-outline w-full !py-2 text-xs">
                     {linkUser.isPending ? "linking…" : "link this account"}

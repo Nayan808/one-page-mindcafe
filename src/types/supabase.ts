@@ -526,6 +526,23 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["business_leads"]["Row"]>;
         Relationships: [];
       };
+      contact_messages: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          phone: string | null;
+          message: string | null;
+          status: "new" | "contacted" | "closed";
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["contact_messages"]["Row"]> & {
+          name: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["contact_messages"]["Row"]>;
+        Relationships: [];
+      };
       faqs: {
         Row: {
           id: string;

@@ -16,11 +16,21 @@ export function FilterDropdown({
   value,
   onChange,
   searchPlaceholder = "Search…",
+  placeholder,
+  triggerClassName,
 }: {
   options: FilterOption[];
   value: string;
   onChange: (value: string) => void;
   searchPlaceholder?: string;
+  /** Shown when `value` doesn't match any option (e.g. nothing picked yet).
+   * Without this, an unmatched value falls back to the first option's
+   * label, which reads as "already selected" — wrong for an empty state. */
+  placeholder?: string;
+  /** Overrides the default dark filter-pill look, for reuse as a plain
+   * form field (e.g. a searchable account picker inside a modal) instead
+   * of a standalone filter control. */
+  triggerClassName?: string;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -54,7 +64,7 @@ export function FilterDropdown({
 
   const term = search.trim().toLowerCase();
   const filtered = term ? options.filter((o) => o.label.toLowerCase().includes(term)) : options;
-  const selectedLabel = options.find((o) => o.value === value)?.label ?? options[0]?.label ?? "";
+  const selectedLabel = options.find((o) => o.value === value)?.label ?? placeholder ?? options[0]?.label ?? "";
 
   return (
     <div ref={containerRef} className="relative inline-block">
@@ -62,14 +72,18 @@ export function FilterDropdown({
         type="button"
         onClick={() => setIsOpen((open) => !open)}
         aria-expanded={isOpen}
-        className="flex items-center gap-1.5 rounded-full border border-ink bg-ink px-3.5 py-1.5 text-xs font-medium text-cream"
+        className={
+          triggerClassName ?? "flex items-center gap-1.5 rounded-full border border-ink bg-ink px-3.5 py-1.5 text-xs font-medium text-cream"
+        }
       >
-        {selectedLabel}
-        <ChevronDown className={`h-3.5 w-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden />
+        <span className={triggerClassName ? "truncate" : ""}>{selectedLabel}</span>
+        <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden />
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-full z-20 mt-2 flex max-h-72 w-60 flex-col overflow-hidden rounded-2xl border border-ink/15 bg-cream shadow-xl">
+        <div
+          className={`absolute left-0 top-full z-20 mt-2 flex max-h-72 ${triggerClassName ? "w-full" : "w-60"} flex-col overflow-hidden rounded-2xl border border-ink/15 bg-cream shadow-xl`}
+        >
           <div className="sticky top-0 shrink-0 border-b border-ink/10 bg-cream p-2">
             <div className="relative">
               <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink/40" aria-hidden />

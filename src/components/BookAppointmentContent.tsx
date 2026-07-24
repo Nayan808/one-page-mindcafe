@@ -118,7 +118,11 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
   const router = useRouter();
   const createAppointment = useCreateAppointment();
 
-  const [category, setCategory] = useState<string | null>(initialCategory);
+  // Defaults to "all" (no specific preference) rather than nothing, so
+  // this step never actually blocks booking — picking a category is a
+  // refinement, not a requirement, and "all" is a real, storable value
+  // (see the appointments_therapy_category_check migration).
+  const [category, setCategory] = useState<string | null>(initialCategory ?? "all");
   const [expertId, setExpertId] = useState<string | null>(initialExpertId);
   // Arriving with an expert already picked (e.g. from that expert's own
   // "book with {name}" link elsewhere on the site) should feel like that
@@ -238,7 +242,31 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. expert</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. category</h2>
+        <p className="mt-1 text-xs text-ink/50">Optional — leave it on &ldquo;all&rdquo; if you're not sure.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setCategory("all")}
+            className={`rounded-xl border p-3 text-left text-sm font-medium ${category === "all" ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
+          >
+            all
+          </button>
+          {(categoriesQuery.data ?? []).map((c) => (
+            <button
+              key={c.slug}
+              type="button"
+              onClick={() => setCategory(c.slug)}
+              className={`rounded-xl border p-3 text-left text-sm font-medium ${category === c.slug ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
+            >
+              {c.title}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. expert</h2>
         {expertsQuery.isLoading ? (
           <p className="mt-3 text-sm text-ink/60">Loading experts…</p>
         ) : (expertsQuery.data ?? []).length === 0 ? (
@@ -295,22 +323,6 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
             )}
           </>
         )}
-      </div>
-
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. category</h2>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          {(categoriesQuery.data ?? []).map((c) => (
-            <button
-              key={c.slug}
-              type="button"
-              onClick={() => setCategory(c.slug)}
-              className={`rounded-xl border p-3 text-left text-sm font-medium ${category === c.slug ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
-            >
-              {c.title}
-            </button>
-          ))}
-        </div>
       </div>
 
       {category && (

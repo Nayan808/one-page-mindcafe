@@ -11,6 +11,7 @@ import type {
   Appointment,
   AppointmentWithExpert,
   BusinessLead,
+  ContactMessage,
   Coupon,
   Expert,
   ExpertApplication,
@@ -535,6 +536,23 @@ export async function updateBusinessLeadAdmin(
 ): Promise<void> {
   const { error } = await sb.from("business_leads").update({ status }).eq("id", id);
   throwOnError("updateBusinessLeadAdmin", error);
+}
+
+// --- Contact messages -----------------------------------------------------
+
+export async function getContactMessagesAdmin(sb: Sb): Promise<ContactMessage[]> {
+  const { data, error } = await sb.from("contact_messages").select("*").order("created_at", { ascending: false });
+  throwOnError("getContactMessagesAdmin", error);
+  return data ?? [];
+}
+
+export async function updateContactMessageAdmin(
+  sb: Sb,
+  id: string,
+  status: ContactMessage["status"],
+): Promise<void> {
+  const { error } = await sb.from("contact_messages").update({ status }).eq("id", id);
+  throwOnError("updateContactMessageAdmin", error);
 }
 
 // --- Expert applications ("become an expert" submissions) -----------------

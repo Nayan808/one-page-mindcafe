@@ -80,6 +80,14 @@ Deno.serve(async (req) => {
 
   const token = await getShiprocketToken();
 
+  // Shiprocket's create-order payload wants first/last name as separate
+  // fields, not one combined name — split on the first space; a
+  // single-word name (no space) just leaves billing_last_name empty
+  // rather than duplicating the name into both fields.
+  const spaceIndex = address.full_name.indexOf(" ");
+  const billingFirstName = spaceIndex === -1 ? address.full_name : address.full_name.slice(0, spaceIndex);
+  const billingLastName = spaceIndex === -1 ? "" : address.full_name.slice(spaceIndex + 1);
+
   // NOTE: length/breadth/height/weight are placeholders — this schema
   // doesn't carry physical product attributes yet. Add e.g. weight_kg /
   // dimensions_cm to product_variants and compute real totals here before
@@ -91,8 +99,13 @@ Deno.serve(async (req) => {
     body: JSON.stringify({
       order_id: order.order_number,
       order_date: new Date(order.created_at).toISOString().slice(0, 19).replace("T", " "),
-      pickup_location: "Primary",
-      billing_customer_name: address.full_name,
+      // Nickname of the pickup address registered in the Shiprocket
+      // dashboard (Settings -> Pickup Addresses) — must match exactly.
+      // Configurable rather than hardcoded so renaming it there doesn't
+      // require redeploying this function.
+      pickup_location: Deno.env.get("SHIPROCKET_PICKUP_LOCATION"),
+      billing_customer_name: billingFirstName,
+      billing_last_name: billingLastName,
       billing_address: address.line1,
       billing_address_2: address.line2 ?? "",
       billing_city: address.city,
