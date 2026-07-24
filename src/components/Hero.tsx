@@ -12,6 +12,7 @@ import { useCartContext } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
+import { Modal } from "@/components/Modal";
 import { moodStyleFor } from "@/lib/moodStyles";
 import { formatInr } from "@/lib/utils";
 import type { ProductWithVariants } from "@/types/domain";
@@ -67,6 +68,7 @@ export function Hero() {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [detailKey, setDetailKey] = useState<string | null>(null);
   const cycleWord = useSlideCycle(HERO_CYCLE_WORDS);
 
   const catalogQuery = useQuery({
@@ -105,7 +107,7 @@ export function Hero() {
 
   return (
     <section ref={timelineRef} className="bg-cream">
-      <div className="mx-auto flex min-h-[calc(100svh-4.5rem)] max-w-5xl flex-col items-center justify-center px-4 py-12 text-center sm:px-6">
+      <div className="mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="div"
           animationNum={0}
@@ -255,9 +257,9 @@ export function Hero() {
               >
                 <button
                   type="button"
-                  onClick={() => scrollTo("products")}
+                  onClick={() => setDetailKey(mood.key)}
                   className="relative block aspect-[4/5] w-full overflow-hidden"
-                  aria-label={`View feelz ${mood.label}`}
+                  aria-label={`View details for feelz ${mood.label}`}
                 >
                   <Image
                     src={mood.src}
@@ -324,6 +326,60 @@ export function Hero() {
         </div>
       </div>
       </div>
+
+      {(() => {
+        const mood = MOOD_GRID.find((m) => m.key === detailKey);
+        if (!mood) return null;
+        const style = moodStyleFor(mood.key);
+        const product = catalogQuery.data?.find((p) => p.name.trim().toLowerCase() === mood.key);
+        const variant = product?.product_variants[0];
+        const price = variant ? (variant.price_override ?? product.price) : null;
+        const cartItem = variant ? items.find((item) => item.variant_id === variant.id) : undefined;
+        const isPending = pendingKey === mood.key;
+        const isAdded = addedKey === mood.key;
+
+        return (
+          <Modal isOpen={!!detailKey} onClose={() => setDetailKey(null)} title={mood.label} panelClassName="max-w-md">
+            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl">
+              <Image src={mood.src} alt={`feelz ${mood.label} mood strip box`} fill sizes="28rem" className="object-cover" />
+            </div>
+
+            <p className="font-tagline mt-3 text-sm italic text-ink/60">{style.tagline}</p>
+
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">what it does</p>
+              <p className="mt-1 text-sm text-ink/80">{style.description}</p>
+            </div>
+
+            <div className="mt-3">
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">ingredients</p>
+              <p className="mt-1 text-sm text-ink/70">{style.ingredients.join(" · ")}</p>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between gap-2 border-t border-ink/10 pt-4">
+              <span className="text-base font-semibold text-ink">
+                {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
+              </span>
+              {cartItem ? (
+                <button type="button" onClick={openDrawer} className="pill-btn gap-1.5 !py-2 text-xs">
+                  <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
+                  cart · {cartItem.quantity}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => handleAddToCart(mood.key, product)}
+                  disabled={!variant || !isReady || !cartId || isPending}
+                  className="pill-btn gap-1.5 !py-2 text-xs disabled:opacity-40"
+                >
+                  {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : isAdded ? <Check className="h-3.5 w-3.5" aria-hidden /> : <ShoppingBag className="h-3.5 w-3.5" aria-hidden />}
+                  {isAdded ? "added" : "add to cart"}
+                </button>
+              )}
+            </div>
+          </Modal>
+        );
+      })()}
     </section>
   );
 }

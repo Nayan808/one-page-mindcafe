@@ -1,4 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
+import { Modal } from "@/components/Modal";
 
 const STEPS = [
   { title: "The Box", description: "Sleek. Pocket-ready. Always within reach.", src: "/how-it-works/step-1.webp" },
@@ -22,6 +26,9 @@ const STEPS = [
 // + ghost numerals keep it on-theme with the rest of the site's visual
 // language (cream/ink, numbered "0X" labels) instead of a generic gallery.
 export function HowItWorksSection() {
+  const [detailIndex, setDetailIndex] = useState<number | null>(null);
+  const detailStep = detailIndex !== null ? STEPS[detailIndex] : null;
+
   return (
     <section id="how-it-works" className="bg-white">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
@@ -57,10 +64,15 @@ export function HowItWorksSection() {
               </span>
 
               <div className="relative shrink-0">
-                <div className="relative h-16 w-16 overflow-hidden rounded-full border-2 border-ink bg-white shadow-sm sm:h-20 sm:w-20">
+                <button
+                  type="button"
+                  onClick={() => setDetailIndex(index)}
+                  aria-label={`View larger image for step ${index + 1}: ${step.title}`}
+                  className="relative block h-16 w-16 cursor-zoom-in overflow-hidden rounded-full border-2 border-ink bg-white shadow-sm transition hover:opacity-90 sm:h-20 sm:w-20"
+                >
                   <Image src={step.src} alt={step.title} fill sizes="80px" className="object-cover" />
-                </div>
-                <span className="font-display absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-cream bg-ink text-[11px] font-bold text-cream">
+                </button>
+                <span className="font-display pointer-events-none absolute -bottom-1.5 -right-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-cream bg-ink text-[11px] font-bold text-cream">
                   {index + 1}
                 </span>
               </div>
@@ -76,6 +88,17 @@ export function HowItWorksSection() {
         </div>
       </div>
       </div>
+
+      <Modal isOpen={!!detailStep} onClose={() => setDetailIndex(null)} title={detailStep?.title ?? ""} panelClassName="max-w-md">
+        {detailStep && (
+          <>
+            <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
+              <Image src={detailStep.src} alt={detailStep.title} fill sizes="28rem" className="object-cover" />
+            </div>
+            <p className="mt-3 text-sm text-ink/70">{detailStep.description}</p>
+          </>
+        )}
+      </Modal>
     </section>
   );
 }
