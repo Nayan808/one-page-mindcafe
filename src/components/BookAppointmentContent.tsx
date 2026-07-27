@@ -169,6 +169,20 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       )
     : bookableExperts;
 
+  // Right now there's only ever one bookable expert (Shivalika) — default
+  // to her instead of making the customer search/click through a picker
+  // for a "choice" that isn't really one. Still only fires once, and only
+  // when nothing's already selected (a URL ?expert= param, or a manual
+  // pick after "choose a different expert"), so it doesn't fight the
+  // customer's own selection if more experts become bookable later.
+  useEffect(() => {
+    if (!expertId && bookableExperts.length === 1) {
+      setExpertId(bookableExperts[0].id);
+      setShowAllExperts(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bookableExperts.length]);
+
   // Only trust the applied preview while the input still matches what was
   // checked — editing the code after applying shouldn't silently keep
   // discounting at the old value.
@@ -246,8 +260,10 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
           <p className="mt-3 text-sm text-ink/60">No experts listed yet — check back soon.</p>
         ) : !showAllExperts && selectedExpert ? (
           <div className="mt-3">
-            <div className="mx-auto max-w-xs">
-              <ExpertCard expert={selectedExpert} />
+            <div className="flex justify-center">
+              <div className="w-full max-w-xs">
+                <ExpertCard expert={selectedExpert} />
+              </div>
             </div>
             <div className="mt-3 text-center">
               <button type="button" onClick={() => setShowAllExperts(true)} className="text-xs font-medium text-ink/60 underline">
@@ -334,7 +350,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
             <div className="mt-3">
               <label className="mb-1 block text-xs font-medium text-ink/70">time slot</label>
               {(() => {
-                const slots = generateTimeSlots(selectedDate);
+                const slots = generateTimeSlots(selectedDate, true, selectedExpert?.working_hours_start, selectedExpert?.working_hours_end);
                 if (slots.length === 0) {
                   return <p className="text-xs text-ink/50">No slots left today — try picking another date.</p>;
                 }

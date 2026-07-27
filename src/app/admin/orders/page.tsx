@@ -3,11 +3,13 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getOrdersAdmin, updateOrderStatusAdmin } from "@/lib/admin-api";
+import { getOrdersAdmin, updateOrderStatusAdmin, deleteOrderAdmin } from "@/lib/admin-api";
+import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatInr } from "@/lib/utils";
 import type { OrderWithItems } from "@/types/domain";
@@ -32,6 +34,9 @@ const STATUS_FILTER_OPTIONS: FilterOption[] = [
 const PAGE_SIZE = 20;
 
 export default function AdminOrdersPage() {
+  const { profile } = useAuth();
+  const isSuperAdmin = profile?.role === "super_admin";
+  const confirmDialog = useConfirmDialog();
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
@@ -81,6 +86,14 @@ export default function AdminOrdersPage() {
       if (context?.previous) queryClient.setQueryData(ordersQueryKey, context.previous);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }),
+  });
+
+  // RLS (orders_super_admin_delete) enforces this server-side too — the
+  // isSuperAdmin check here is just so a plain admin doesn't even see the
+  // option, not the real security boundary.
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteOrderAdmin(createClient(), id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }),
   });
 
   const orders = ordersQuery.data?.orders ?? [];
@@ -159,7 +172,28 @@ export default function AdminOrdersPage() {
         />
       </div>
 
-      <AdminTable columns={columns} rows={orders} getRowId={(o) => o.id} isLoading={ordersQuery.isLoading} emptyLabel="No orders." />
+      <AdminTable
+        columns={columns}
+        rows={orders}
+        getRowId={(o) => o.id}
+        isLoading={ordersQuery.isLoading}
+        emptyLabel="No orders."
+        onDelete={
+          isSuperAdmin
+            ? async (o) => {
+                if (
+                  await confirmDialog({
+                    title: "delete order",
+                    message: `Delete order "${o.order_number}" permanently? This can't be undone.`,
+                    danger: true,
+                  })
+                ) {
+                  remove.mutate(o.id);
+                }
+              }
+            : undefined
+        }
+      />
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-3 text-xs">

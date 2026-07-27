@@ -25,15 +25,23 @@ export function toLocalDateInputValue(date: Date): string {
 // form (customer picking a future time) that's what you want, but on the
 // availability-management screens (expert/admin blocking out slots) a
 // past slot might still need to be visible/toggleable for record-keeping,
-// so it's an opt-in flag rather than always-on.
-export function generateTimeSlots(dateStr: string, excludePast = true): { value: string; label: string }[] {
+// so it's an opt-in flag rather than always-on. `startHour`/`endHour`
+// default to the global business hours but can be overridden per-expert
+// (see experts.working_hours_start/end) — every existing caller that
+// doesn't pass them keeps the same behavior as before.
+export function generateTimeSlots(
+  dateStr: string,
+  excludePast = true,
+  startHour: number = SLOT_START_HOUR,
+  endHour: number = SLOT_END_HOUR,
+): { value: string; label: string }[] {
   if (!dateStr) return [];
   const [year, month, day] = dateStr.split("-").map(Number);
   const now = new Date();
   const isToday = now.getFullYear() === year && now.getMonth() + 1 === month && now.getDate() === day;
 
   const slots: { value: string; label: string }[] = [];
-  for (let minutes = SLOT_START_HOUR * 60; minutes < SLOT_END_HOUR * 60; minutes += SESSION_MINUTES) {
+  for (let minutes = startHour * 60; minutes < endHour * 60; minutes += SESSION_MINUTES) {
     const hour = Math.floor(minutes / 60);
     const minute = minutes % 60;
     const slotDate = new Date(year, month - 1, day, hour, minute);

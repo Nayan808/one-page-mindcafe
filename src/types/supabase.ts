@@ -431,6 +431,8 @@ export interface Database {
           languages: string[];
           therapist_note: string | null;
           sort_order: number;
+          working_hours_start: number;
+          working_hours_end: number;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["experts"]["Row"]> & { name: string };

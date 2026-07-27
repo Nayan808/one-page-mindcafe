@@ -502,17 +502,26 @@ function toHHMM(iso: string): string {
   return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 }
 
+export type BookedSlotInfo = { appointmentId: string; customerName: string | null; scheduledAt: string };
+
 export type SlotAvailability = {
-  // Already booked by a real (non-cancelled) appointment — informational
-  // only, nothing to toggle.
-  booked: Set<string>;
+  // Already booked by a real (non-cancelled) appointment — keyed by "HH:MM".
+  // Carries who booked it + the appointment id, so the availability
+  // manager can show "booked by {name}" and offer a reschedule action —
+  // not just a bare yes/no like the booking form needs.
+  booked: Map<string, BookedSlotInfo>;
   // Manually blocked by the expert/admin — togglable via block/unblockSlot.
   blocked: Set<string>;
 };
 
 // Two sources of "can't be booked": slots another customer has already
-// booked (any non-cancelled appointment for this expert that day) and
+// booked (any non-cancelled appointment for this expert that day, EXCLUDING
+// ones whose payment definitively failed — a failed payment never actually
+// secured the slot, so it shouldn't block anyone else from taking it) and
 // slots the expert/admin manually blocked out (expert_blocked_slots).
+// A 'pending' payment still blocks, deliberately — that's the brief window
+// right after checkout starts, before the webhook lands; treating it as
+// free would risk two customers landing on the same slot mid-checkout.
 // Kept separate rather than pre-unioned — the availability-management UI
 // needs to tell them apart (a booked slot can't be unblocked, a manually
 // blocked one can), while the booking form just treats the union as
@@ -523,9 +532,10 @@ export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: str
   const [appointmentsRes, blockedRes] = await Promise.all([
     sb
       .from("appointments")
-      .select("scheduled_at")
+      .select("id, user_id, scheduled_at")
       .eq("expert_id", expertId)
       .neq("status", "cancelled")
+      .neq("payment_status", "failed")
       .gte("scheduled_at", start)
       .lte("scheduled_at", end),
     sb.from("expert_blocked_slots").select("blocked_at").eq("expert_id", expertId).gte("blocked_at", start).lte("blocked_at", end),
@@ -533,9 +543,25 @@ export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: str
   throwOnError("getSlotAvailability (appointments)", appointmentsRes.error);
   throwOnError("getSlotAvailability (blocked)", blockedRes.error);
 
-  const booked = new Set<string>();
-  for (const a of appointmentsRes.data ?? []) {
-    if (a.scheduled_at) booked.add(toHHMM(a.scheduled_at));
+  const appointments = appointmentsRes.data ?? [];
+  // appointments.user_id has no FK to public.profiles (only to
+  // auth.users) — same two-query merge pattern as getExpertAppointments.
+  const userIds = [...new Set(appointments.map((a) => a.user_id))];
+  const nameById = new Map<string, string | null>();
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await sb.from("profiles").select("id, full_name").in("id", userIds);
+    throwOnError("getSlotAvailability (profiles)", profilesError);
+    for (const p of profiles ?? []) nameById.set(p.id, p.full_name);
+  }
+
+  const booked = new Map<string, BookedSlotInfo>();
+  for (const a of appointments) {
+    if (!a.scheduled_at) continue;
+    booked.set(toHHMM(a.scheduled_at), {
+      appointmentId: a.id,
+      customerName: nameById.get(a.user_id) ?? null,
+      scheduledAt: a.scheduled_at,
+    });
   }
   const blocked = new Set<string>();
   for (const b of blockedRes.data ?? []) {
@@ -548,7 +574,27 @@ export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: str
 // select, without needing to distinguish why.
 export async function getUnavailableSlots(sb: Sb, expertId: string, dateStr: string): Promise<Set<string>> {
   const { booked, blocked } = await getSlotAvailability(sb, expertId, dateStr);
-  return new Set([...booked, ...blocked]);
+  return new Set([...booked.keys(), ...blocked]);
+}
+
+// Reschedules one appointment — RLS (appointments_update) and the
+// prevent_customer_appointment_tampering trigger both already allow the
+// assigned expert (or admin) to change scheduled_at freely; no new DB work
+// needed for this, just the call.
+export async function updateAppointmentSchedule(sb: Sb, appointmentId: string, scheduledAt: string): Promise<void> {
+  const { error } = await sb.from("appointments").update({ scheduled_at: scheduledAt }).eq("id", appointmentId);
+  throwOnError("updateAppointmentSchedule", error);
+}
+
+// RLS (experts_self_write) lets the expert update their own row or an
+// admin update any row; prevent_expert_self_edit_overreach restricts a
+// self-edit to just these two columns.
+export async function updateExpertWorkingHours(sb: Sb, expertId: string, startHour: number, endHour: number): Promise<void> {
+  const { error } = await sb
+    .from("experts")
+    .update({ working_hours_start: startHour, working_hours_end: endHour })
+    .eq("id", expertId);
+  throwOnError("updateExpertWorkingHours", error);
 }
 
 // dateStr + slotValue ("HH:MM") -> the same local-time construction

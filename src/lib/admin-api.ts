@@ -244,6 +244,15 @@ export async function updateOrderStatusAdmin(
   throwOnError("updateOrderStatusAdmin", error);
 }
 
+// RLS (orders_super_admin_delete) restricts this to super_admin — a plain
+// admin passes is_admin() everywhere else in this file but not here,
+// deleting a real order is destructive/hard to reverse. order_items
+// cascades automatically (on delete cascade, see setup.sql).
+export async function deleteOrderAdmin(sb: Sb, orderId: string): Promise<void> {
+  const { error } = await sb.from("orders").delete().eq("id", orderId);
+  throwOnError("deleteOrderAdmin", error);
+}
+
 // --- Appointments -----------------------------------------------------------
 
 export async function getAppointmentsAdmin(
@@ -292,6 +301,13 @@ export async function updateAppointmentAdmin(
 ): Promise<void> {
   const { error } = await sb.from("appointments").update(input).eq("id", appointmentId);
   throwOnError("updateAppointmentAdmin", error);
+}
+
+// RLS (appointments_super_admin_delete) restricts this to super_admin,
+// same reasoning as deleteOrderAdmin.
+export async function deleteAppointmentAdmin(sb: Sb, appointmentId: string): Promise<void> {
+  const { error } = await sb.from("appointments").delete().eq("id", appointmentId);
+  throwOnError("deleteAppointmentAdmin", error);
 }
 
 // --- Products & variants ----------------------------------------------------

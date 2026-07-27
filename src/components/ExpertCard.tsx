@@ -38,7 +38,7 @@ export function ExpertCard({
     .toUpperCase();
 
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-ink bg-white p-6 text-center shadow-lg">
+    <div className="flex w-full flex-col items-center rounded-2xl border border-ink bg-white p-6 text-center shadow-lg">
       {expert.photo_url && !imageFailed ? (
         <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-ink">
           <Image src={expert.photo_url} alt={expert.name} fill className="object-cover" onError={() => setImageFailed(true)} />

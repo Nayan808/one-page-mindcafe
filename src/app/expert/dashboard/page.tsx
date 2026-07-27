@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 import { getExpertAppointments, getExpertByProfileId, updateAppointmentStatus } from "@/lib/api";
@@ -44,6 +45,7 @@ export default function ExpertDashboardPage() {
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [meetLinkDraft, setMeetLinkDraft] = useState("");
   const [showAvailability, setShowAvailability] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/expert/login");
@@ -146,8 +148,8 @@ export default function ExpertDashboardPage() {
     }
 
     return (
-      <li key={appointment.id} className="rounded-xl border border-ink/15 bg-white p-4 text-sm">
-        <div className="flex items-center justify-between gap-2">
+      <li key={appointment.id} className="rounded-xl border border-ink/15 bg-white p-3 text-sm sm:p-4">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <span className="font-medium capitalize text-ink">{appointment.therapy_category.replace("-", " & ")}</span>
           <span className="text-xs font-medium text-ink/60">
             {appointment.payment_status === "paid" ? STATUS_LABELS[appointment.status] : "Awaiting payment"}
@@ -298,7 +300,7 @@ export default function ExpertDashboardPage() {
           </form>
         ) : (
           actions.length > 0 && (
-            <div className="mt-3 flex gap-2">
+            <div className="mt-3 flex flex-wrap gap-2">
               {actions.map((action) => (
                 <button
                   key={action.label}
@@ -389,7 +391,37 @@ export default function ExpertDashboardPage() {
         {past.length > 0 && (
           <section>
             <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">history</h2>
-            <ul className="mt-3 space-y-2">{past.map(renderAppointment)}</ul>
+            <div className="relative mt-3">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
+              <input
+                type="text"
+                value={historySearch}
+                onChange={(event) => setHistorySearch(event.target.value)}
+                placeholder="search history by client, category, or notes…"
+                className="input pl-9 text-sm"
+              />
+            </div>
+            {(() => {
+              const term = historySearch.trim().toLowerCase();
+              const shown = term
+                ? past.filter(
+                    (a) =>
+                      (a.profiles?.full_name ?? "").toLowerCase().includes(term) ||
+                      a.therapy_category.toLowerCase().includes(term) ||
+                      (a.notes ?? "").toLowerCase().includes(term),
+                  )
+                : past.slice(0, 1);
+              return shown.length === 0 ? (
+                <p className="mt-3 text-sm text-ink/60">No matches in history.</p>
+              ) : (
+                <>
+                  <ul className="mt-3 space-y-2">{shown.map(renderAppointment)}</ul>
+                  {!term && past.length > 1 && (
+                    <p className="mt-2 text-xs text-ink/50">Showing the most recent — search above for older ones ({past.length} total).</p>
+                  )}
+                </>
+              );
+            })()}
           </section>
         )}
       </div>
