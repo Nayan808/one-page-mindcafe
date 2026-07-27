@@ -12,7 +12,7 @@ import type { SiteSetting } from "@/types/domain";
 
 const KNOWN_KEYS = [
   { key: "announcement_bar", example: '{ "text": "Feelz now at Zostel!", "enabled": true, "href": "/feelz" }' },
-  { key: "homepage_stats", example: '{ "chips": ["10 strips per box", "1.5g total", "4 moods x 2.5mg"] }' },
+  { key: "homepage_stats", example: '{ "chips": ["10 strips per box", "₹29 per strip", "1.5g total", "4 moods x 2.5mg"] }' },
 ];
 
 export default function AdminSiteSettingsPage() {
