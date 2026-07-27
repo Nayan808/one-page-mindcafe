@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import { Globe, Mail, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -48,7 +49,7 @@ function NewsletterForm() {
   }
 
   if (status === "done") {
-    return <p className="mt-2 text-sm text-emerald-700">You&apos;re subscribed — thanks!</p>;
+    return <p className="mt-2 text-sm text-emerald-700">You&apos;re subscribed. Thanks!</p>;
   }
 
   return (
@@ -62,7 +63,7 @@ function NewsletterForm() {
         className="input !py-2 text-sm"
       />
       <button type="submit" disabled={status === "submitting"} className="pill-btn shrink-0 !py-2 text-xs">
-        {status === "submitting" ? "…" : "subscribe"}
+        {status === "submitting" ? "…" : "Subscribe"}
       </button>
     </form>
   );
@@ -74,9 +75,9 @@ export function Footer() {
     <footer className="mx-3 mb-3 rounded-2xl border border-ink/10 px-6 py-8 text-center sm:mx-6 sm:mb-6 sm:px-10 sm:text-left">
       <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="font-display text-2xl font-bold lowercase">feelz</p>
+          <p className="font-display text-2xl font-bold">Feelz</p>
           <p className="mx-auto mt-2 max-w-xs text-sm text-ink/60 sm:mx-0">
-            sublingual mood strips, made by mindcafe, incubated at zo world, distributed by zostel.
+            Sublingual mood strips, made by Mindcafe, incubated at Zo World, distributed by Zostel.
           </p>
           <ul className="mt-3 space-y-1 text-sm text-ink/70">
             <li>
@@ -103,7 +104,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">counselling</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Counselling</p>
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
               <Link href="/counselling" className="hover:text-ink hover:underline">
@@ -129,7 +130,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">company</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Company</p>
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
               <Link href="/about" className="hover:text-ink hover:underline">
@@ -155,7 +156,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">accounts</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Accounts</p>
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
               <button type="button" onClick={openAuthModal} className="hover:text-ink hover:underline">
@@ -178,21 +179,37 @@ export function Footer() {
 
       <div className="mt-8 grid gap-8 border-t border-ink/10 pt-8 sm:grid-cols-2 lg:grid-cols-4">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">stay in the loop</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Stay in the Loop</p>
           <NewsletterForm />
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">fine print</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Good to Know</p>
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
-            <li>not for medicinal use</li>
-            <li>not for children, pregnant women, or those under 18</li>
-            <li>fssai compliant · made in india</li>
+            <li>A wellness supplement, not a medicine</li>
+            <li>For healthy adults 18+, not recommended during pregnancy or breastfeeding</li>
+            <li>FSSAI compliant · Proudly made in India</li>
           </ul>
+          <div className="mt-3 flex items-center justify-center gap-4 sm:justify-start">
+            <Image
+              src="/certifications/fssai-logo.png"
+              alt="FSSAI compliant"
+              width={64}
+              height={36}
+              className="h-7 w-auto object-contain"
+            />
+            <Image
+              src="/certifications/made-in-india-badge.png"
+              alt="Made in India"
+              width={48}
+              height={48}
+              className="h-10 w-auto object-contain"
+            />
+          </div>
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">contact</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Contact</p>
           <ul className="mt-2 space-y-3 text-sm">
             <li>
               <a
@@ -217,7 +234,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">follow</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Follow</p>
           {/* lucide-react has no brand icons in this version — generic
               Globe stands in for LinkedIn/Facebook; Instagram gets its own
               real glyph via InstagramIcon above. */}
@@ -232,7 +249,7 @@ export function Footer() {
               href="https://www.instagram.com/mindcafeindia/"
               target="_blank"
               rel="noreferrer"
-              aria-label="Instagram — mindcafeindia"
+              aria-label="Instagram: mindcafeindia"
               className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink"
             >
               <InstagramIcon className="h-4 w-4" />
@@ -242,7 +259,7 @@ export function Footer() {
               href="https://www.instagram.com/sportcafeindia/"
               target="_blank"
               rel="noreferrer"
-              aria-label="Instagram — sportcafeindia"
+              aria-label="Instagram: sportcafeindia"
               className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink"
             >
               <InstagramIcon className="h-4 w-4" />
@@ -254,7 +271,7 @@ export function Footer() {
       </div>
 
       <div className="mt-8 flex flex-col items-center gap-3 border-t border-ink/10 pt-6 text-xs text-ink/50 sm:flex-row sm:items-center sm:justify-between">
-        <p>© 2026 Mindcafe — A Venture of Sneh Care Club Pvt. Ltd. All rights reserved.</p>
+        <p>© 2026 Mindcafe, a venture of Sneh Care Club Pvt. Ltd. All rights reserved.</p>
         <div className="flex gap-4">
           <Link href="/legal/privacy" className="hover:text-ink hover:underline">
             privacy

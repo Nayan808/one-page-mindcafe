@@ -23,11 +23,11 @@ export function CounsellingHero() {
       <div className="absolute inset-0 bg-black/60" />
       <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
         <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
-          certified professionals — private &amp; confidential
+          certified professionals, private &amp; confidential
         </span>
 
-        <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl leading-[1.05] font-bold lowercase tracking-tight sm:text-5xl">
-          professional mental health <span className="font-tagline italic">support.</span>
+        <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl">
+          Professional mental health <span className="font-tagline italic">support.</span>
         </h1>
 
         <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
@@ -37,11 +37,11 @@ export function CounsellingHero() {
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/book-appointment" className="pill-btn-white">
-            book a session
+            Book a Session
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </Link>
           <a href="#how-it-works" className="pill-btn-outline !border-cream/30 !text-cream hover:!bg-cream/10">
-            how it works
+            How It Works
           </a>
         </div>
 

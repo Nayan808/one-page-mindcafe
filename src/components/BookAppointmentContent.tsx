@@ -45,10 +45,10 @@ function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
 
   return (
     <div className="mx-auto max-w-lg space-y-4 px-4 py-16 text-center sm:px-6">
-      <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">booking requested</p>
-      <h1 className="font-display text-3xl font-bold lowercase text-ink">you&apos;re on the list</h1>
+      <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Booking Requested</p>
+      <h1 className="font-display text-3xl font-bold text-ink">You&apos;re on the list</h1>
       <p className="text-sm text-ink/60">
-        We&apos;ll confirm your session shortly — this updates automatically, no need to refresh.
+        We&apos;ll confirm your session shortly. This updates automatically, no need to refresh.
       </p>
 
       <div className="rounded-xl border border-ink/15 bg-cream p-4 text-left text-sm">
@@ -70,7 +70,7 @@ function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
           <div className="mt-2 flex justify-between">
             <span className="text-ink/60">Payment</span>
             <span className="font-medium text-ink">
-              {formatInr(appointment.total)} — {PAYMENT_STATUS_LABELS[appointment.payment_status] ?? appointment.payment_status}
+              {formatInr(appointment.total)} · {PAYMENT_STATUS_LABELS[appointment.payment_status] ?? appointment.payment_status}
             </span>
           </div>
         )}
@@ -85,7 +85,7 @@ function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
       {appointment.payment_status === "paid" &&
         (appointment.intake_completed_at ? (
           <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-            Thanks — we&apos;ve shared your answers with your counsellor ahead of the session.
+            Thanks, we&apos;ve shared your answers with your counsellor ahead of the session.
           </p>
         ) : (
           <AppointmentIntakeForm appointmentId={appointment.id} />
@@ -245,19 +245,43 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-4 py-16 sm:px-6">
       <div className="text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">counselling</p>
-        <h1 className="font-display mt-3 text-3xl font-bold lowercase text-ink sm:text-4xl">book a session</h1>
+        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Counselling</p>
+        <h1 className="font-display mt-3 text-3xl font-bold text-ink sm:text-4xl">Book a session</h1>
         <p className="mx-auto mt-3 max-w-md text-sm text-ink/60">
-          Tell us what you're looking for — we&apos;ll confirm the details with you directly.
+          Tell us what you're looking for. We&apos;ll confirm the details with you directly.
         </p>
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. expert</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. Category</h2>
+        <p className="mt-1 text-xs text-ink/50">Optional. Leave it on &ldquo;all&rdquo; if you're not sure.</p>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => setCategory("all")}
+            className={`rounded-xl border p-3 text-left text-sm font-medium ${category === "all" ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
+          >
+            All
+          </button>
+          {(categoriesQuery.data ?? []).map((c) => (
+            <button
+              key={c.slug}
+              type="button"
+              onClick={() => setCategory(c.slug)}
+              className={`rounded-xl border p-3 text-left text-sm font-medium ${category === c.slug ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
+            >
+              {c.title}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. Expert</h2>
         {expertsQuery.isLoading ? (
           <p className="mt-3 text-sm text-ink/60">Loading experts…</p>
-        ) : bookableExperts.length === 0 ? (
-          <p className="mt-3 text-sm text-ink/60">No experts listed yet — check back soon.</p>
+        ) : (expertsQuery.data ?? []).length === 0 ? (
+          <p className="mt-3 text-sm text-ink/60">No experts listed yet. Check back soon.</p>
         ) : !showAllExperts && selectedExpert ? (
           <div className="mt-3">
             <div className="flex justify-center">
@@ -267,7 +291,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
             </div>
             <div className="mt-3 text-center">
               <button type="button" onClick={() => setShowAllExperts(true)} className="text-xs font-medium text-ink/60 underline">
-                choose a different expert
+                Choose a Different Expert
               </button>
             </div>
           </div>
@@ -329,7 +353,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
       {category && (
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">3. preferred time</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">3. Preferred time</h2>
           <p className="mt-1 text-xs text-ink/50">Sessions run 45 minutes. Pick a date, then a slot.</p>
 
           <label className="mb-1 mt-3 block text-xs font-medium text-ink/70">date</label>
@@ -352,7 +376,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
               {(() => {
                 const slots = generateTimeSlots(selectedDate, true, selectedExpert?.working_hours_start, selectedExpert?.working_hours_end);
                 if (slots.length === 0) {
-                  return <p className="text-xs text-ink/50">No slots left today — try picking another date.</p>;
+                  return <p className="text-xs text-ink/50">No slots left today. Try picking another date.</p>;
                 }
                 return (
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
@@ -409,7 +433,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
             </div>
           )}
 
-          <p className="mt-2 text-xs text-ink/50">A starting point — we&apos;ll confirm what actually works.</p>
+          <p className="mt-2 text-xs text-ink/50">A starting point. We&apos;ll confirm what actually works.</p>
 
           <textarea
             value={notes}
@@ -423,7 +447,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
       {category && (
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">4. payment</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">4. Payment</h2>
           <div className="mt-3">
             <label className="mb-1 block text-sm text-ink/70">Coupon code (optional)</label>
             <div className="flex gap-2">
@@ -444,13 +468,13 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
                 disabled={!couponCode.trim() || isCheckingCoupon || discountAmount > 0}
                 className="pill-btn-outline shrink-0 !py-2 text-xs normal-case tracking-normal"
               >
-                {isCheckingCoupon ? "checking…" : discountAmount > 0 ? "applied" : "apply"}
+                {isCheckingCoupon ? "Checking…" : discountAmount > 0 ? "Applied" : "Apply"}
               </button>
             </div>
             {couponError && <p className="mt-1.5 text-sm text-red-600">{couponError}</p>}
             {discountAmount > 0 && (
               <p className="mt-1.5 text-sm text-emerald-700">
-                &ldquo;{appliedCoupon!.code}&rdquo; applied — {formatInr(discountAmount)} off
+                &ldquo;{appliedCoupon!.code}&rdquo; applied, {formatInr(discountAmount)} off
               </p>
             )}
           </div>
@@ -482,7 +506,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         disabled={!category || !expertId || createAppointment.isPending}
         className="pill-btn w-full"
       >
-        {createAppointment.isPending ? "processing…" : total === 0 ? "confirm free session" : "pay & request this session"}
+        {createAppointment.isPending ? "Processing…" : total === 0 ? "Confirm Free Session" : "Pay & Request This Session"}
       </button>
     </div>
   );
@@ -506,10 +530,10 @@ function BookAppointmentInner() {
   if (status === "unauthenticated") {
     return (
       <div className="mx-auto max-w-sm px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold lowercase text-ink">sign in to book a session</h1>
+        <h1 className="font-display text-2xl font-bold text-ink">Sign in to book a session</h1>
         <p className="mt-2 text-sm text-ink/60">Sign in to book counselling with one of our experts.</p>
         <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
-          sign in
+          Sign In
         </button>
       </div>
     );

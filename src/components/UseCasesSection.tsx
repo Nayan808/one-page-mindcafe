@@ -10,23 +10,23 @@ import { Reveal } from "@/components/Reveal";
 // (font-display, border-ink/10, Reveal scroll-in).
 const USE_CASES = [
   {
-    title: "travelling India",
+    title: "Travelling India",
     body: "Stay fresh, focused, and balanced through long journeys, changing schedules, and life on the move.",
   },
   {
-    title: "remote work",
+    title: "Remote work",
     body: "Stay clear and productive when your workspace changes every day.",
   },
   {
-    title: "digital overload",
+    title: "Digital overload",
     body: "Reset when screens, notifications, and constant input drain your energy.",
   },
   {
-    title: "social ease",
+    title: "Social ease",
     body: "Feel more comfortable meeting new people, speaking up, and entering new spaces.",
   },
   {
-    title: "better sleep",
+    title: "Better sleep",
     body: "Unwind after long days, calm the mind, and wake up feeling restored.",
   },
 ];
@@ -36,9 +36,9 @@ export function UseCasesSection() {
     <section className="bg-white">
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
         <Reveal className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">built for modern india</p>
-          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight lowercase text-ink sm:text-5xl">
-            for every moment your brain needs support
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Built for Modern India</p>
+          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+            For every moment your brain needs support
           </h2>
         </Reveal>
 
@@ -49,7 +49,7 @@ export function UseCasesSection() {
                 <span className="font-display text-3xl font-bold text-ink/15 transition-colors duration-300 group-hover:text-ink/30 sm:text-4xl">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <h3 className="font-display text-lg font-bold lowercase text-ink sm:text-xl">{item.title}</h3>
+                <h3 className="font-display text-lg font-bold text-ink sm:text-xl">{item.title}</h3>
                 <p className="max-w-xs text-sm leading-relaxed text-ink/60 sm:max-w-none">{item.body}</p>
               </div>
             </Reveal>

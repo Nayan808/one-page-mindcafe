@@ -50,7 +50,7 @@ function ProfileSection() {
 
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
-      <h2 className="font-display text-lg font-bold lowercase text-ink">profile</h2>
+      <h2 className="font-display text-lg font-bold text-ink">Profile</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-4 grid gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm text-ink/70">Full Name</label>
@@ -72,7 +72,7 @@ function ProfileSection() {
         </div>
         <div className="flex items-end gap-3 sm:col-span-2">
           <button type="submit" disabled={isSaving} className="pill-btn">
-            {isSaving ? "saving…" : "save changes"}
+            {isSaving ? "Saving…" : "Save Changes"}
           </button>
           {saved && <span className="text-sm text-emerald-700">Saved.</span>}
         </div>
@@ -104,10 +104,10 @@ function AddressesSection() {
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold lowercase text-ink">saved addresses</h2>
+        <h2 className="font-display text-lg font-bold text-ink">Saved addresses</h2>
         {!showAddForm && !editingId && (
           <button type="button" onClick={() => setShowAddForm(true)} className="text-sm font-medium text-ink underline">
-            + add new
+            + Add New
           </button>
         )}
       </div>
@@ -119,7 +119,7 @@ function AddressesSection() {
               <AddressForm
                 onSubmit={handleEdit}
                 isSubmitting={editAddress.isPending}
-                submitLabel="Save address"
+                submitLabel="Save Address"
                 defaultValues={{
                   label: address.label ?? undefined,
                   full_name: address.full_name,
@@ -133,7 +133,7 @@ function AddressesSection() {
                 }}
               />
               <button type="button" onClick={() => setEditingId(null)} className="mt-2 text-xs text-ink/60 underline">
-                cancel
+                Cancel
               </button>
             </div>
           ) : (
@@ -176,9 +176,9 @@ function AddressesSection() {
 
         {showAddForm && (
           <div className="rounded-xl border border-ink/15 p-3">
-            <AddressForm onSubmit={handleAdd} isSubmitting={addAddress.isPending} submitLabel="Save address" />
+            <AddressForm onSubmit={handleAdd} isSubmitting={addAddress.isPending} submitLabel="Save Address" />
             <button type="button" onClick={() => setShowAddForm(false)} className="mt-2 text-xs text-ink/60 underline">
-              cancel
+              Cancel
             </button>
           </div>
         )}
@@ -199,20 +199,20 @@ function OrderHistorySection() {
 
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
-      <h2 className="font-display text-lg font-bold lowercase text-ink">order history</h2>
+      <h2 className="font-display text-lg font-bold text-ink">Order history</h2>
 
       {selectedOrderId ? (
         <div className="mt-4">
           <OrderConfirmation
             orderId={selectedOrderId}
             onStartNewOrder={() => setSelectedOrderId(null)}
-            backLabel="back to orders"
+            backLabel="Back to Orders"
           />
         </div>
       ) : isLoading ? (
         <p className="mt-4 text-sm text-ink/60">Loading your orders…</p>
       ) : orders.length === 0 ? (
-        <p className="mt-4 text-sm text-ink/60">No orders yet — anything you buy will show up here.</p>
+        <p className="mt-4 text-sm text-ink/60">No orders yet. Anything you buy will show up here.</p>
       ) : (
         <ul className="mt-4 space-y-2">
           {orders.map((order) => (
@@ -255,7 +255,7 @@ function AppointmentsSection() {
 
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
-      <h2 className="font-display text-lg font-bold lowercase text-ink">counselling appointments</h2>
+      <h2 className="font-display text-lg font-bold text-ink">Counselling appointments</h2>
 
       {isLoading ? (
         <p className="mt-4 text-sm text-ink/60">Loading your appointments…</p>
@@ -305,9 +305,9 @@ export default function AccountPage() {
   if (status === "unauthenticated") {
     return (
       <div className="mx-auto max-w-sm px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold lowercase text-ink">sign in to view your account</h1>
+        <h1 className="font-display text-2xl font-bold text-ink">Sign in to view your account</h1>
         <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
-          sign in
+          Sign In
         </button>
       </div>
     );
@@ -319,7 +319,7 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-12 sm:px-6">
-      <h1 className="font-display text-3xl font-bold lowercase text-ink">your account</h1>
+      <h1 className="font-display text-3xl font-bold text-ink">Your account</h1>
       <ProfileSection />
       <AddressesSection />
       <OrderHistorySection />

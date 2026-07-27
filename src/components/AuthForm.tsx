@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 // an actionable nudge toward the one auth path that isn't rate-limited.
 function friendlyError(error: string): string {
   if (error.toLowerCase().includes("rate limit")) {
-    return "too many email codes requested — try log in with google instead.";
+    return "Too many email codes requested. Try logging in with Google instead.";
   }
   return error;
 }
@@ -83,7 +83,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
   return (
     <div>
       <button type="button" onClick={handleGoogle} disabled={isGoogleLoading} className="pill-btn w-full">
-        {isGoogleLoading ? "redirecting…" : "continue with google"}
+        {isGoogleLoading ? "Redirecting…" : "Continue with Google"}
       </button>
 
       <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-label text-ink/40">
@@ -117,10 +117,10 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
           {formError && <p className="text-sm text-red-600">{friendlyError(formError)}</p>}
 
           <button type="submit" disabled={isSending} className="pill-btn w-full">
-            {isSending ? "sending code…" : "send code"}
+            {isSending ? "Sending Code…" : "Send Code"}
           </button>
           <p className="text-center text-xs text-ink/50">
-            We&apos;ll email you a one-time code — no password needed.
+            We&apos;ll email you a one-time code, no password needed.
           </p>
         </form>
       ) : (
@@ -144,7 +144,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
           {formError && <p className="text-sm text-red-600">{friendlyError(formError)}</p>}
 
           <button type="submit" disabled={isVerifying} className="pill-btn w-full">
-            {isVerifying ? "verifying…" : "verify & continue"}
+            {isVerifying ? "Verifying…" : "Verify & Continue"}
           </button>
 
           <div className="flex items-center justify-between text-xs">
@@ -157,10 +157,10 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
               }}
               className="text-ink/60 underline"
             >
-              change email
+              Change Email
             </button>
             <button type="button" onClick={handleResend} disabled={isSending} className="text-ink/60 underline">
-              {isSending ? "resending…" : "resend code"}
+              {isSending ? "Resending…" : "Resend Code"}
             </button>
           </div>
         </form>

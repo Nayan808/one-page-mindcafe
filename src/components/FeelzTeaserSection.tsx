@@ -29,9 +29,9 @@ export function FeelzTeaserSection() {
     <section className="bg-white py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">feelz</p>
-          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight lowercase text-ink sm:text-5xl">
-            mood strips, on demand
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Feelz</p>
+          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+            Mood strips, on demand
           </h2>
         </Reveal>
 
@@ -58,11 +58,11 @@ export function FeelzTeaserSection() {
                     )}
                   </button>
                   <Link href="/feelz" className="flex flex-1 flex-col px-3 py-3.5 text-center">
-                    <p className="font-display text-sm font-bold lowercase text-ink">{product.name}</p>
+                    <p className="font-display text-sm font-bold text-ink">{product.name}</p>
                     <p className="font-tagline mt-0.5 text-xs italic text-ink/60">{style.tagline}</p>
-                    <ul className="mt-2 space-y-1 text-left text-xs leading-snug text-ink/70">
+                    <ul className="mt-2 list-disc list-inside space-y-1 text-left text-xs font-medium leading-snug text-ink">
                       {style.useCases.slice(0, 3).map((useCase) => (
-                        <li key={useCase}>— {useCase}</li>
+                        <li key={useCase}>{useCase}</li>
                       ))}
                     </ul>
                   </Link>
@@ -74,7 +74,7 @@ export function FeelzTeaserSection() {
 
         <div className="mt-10 text-center">
           <Link href="/feelz" className="pill-btn-outline">
-            shop all feelz
+            Shop All Feelz
           </Link>
         </div>
       </div>
@@ -86,7 +86,7 @@ export function FeelzTeaserSection() {
           </div>
         )}
         <Link href="/feelz" className="pill-btn mt-4 w-full text-center">
-          shop feelz
+          Shop Feelz
         </Link>
       </Modal>
     </section>

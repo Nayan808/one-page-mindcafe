@@ -37,9 +37,9 @@ export function CounsellingTeaserSection() {
     <section className="bg-white py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">counselling</p>
-          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight lowercase text-ink sm:text-5xl">
-            talk to someone who gets it
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Counselling</p>
+          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+            Talk to someone who gets it
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm text-ink/60">
             1:1 sessions with certified counsellors: individual, family, child &amp; adolescent, and specialized
@@ -87,10 +87,10 @@ export function CounsellingTeaserSection() {
 
         <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
           <Link href="/book-appointment" className="pill-btn">
-            book a session
+            Book a Session
           </Link>
           <Link href="/counselling" className="pill-btn-outline">
-            explore counselling
+            Explore Counselling
           </Link>
         </div>
       </div>

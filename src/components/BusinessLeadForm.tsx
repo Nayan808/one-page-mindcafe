@@ -38,7 +38,7 @@ export function BusinessLeadForm() {
   if (status === "done") {
     return (
       <div className="rounded-2xl border border-ink bg-white p-8 text-center">
-        <h3 className="font-display text-xl font-bold lowercase text-ink">thanks — we&apos;ll be in touch</h3>
+        <h3 className="font-display text-xl font-bold text-ink">Thanks, we&apos;ll be in touch</h3>
         <p className="mt-2 text-sm text-ink/60">Someone from our team will reach out within 1 business day.</p>
       </div>
     );
@@ -72,7 +72,7 @@ export function BusinessLeadForm() {
         <textarea {...register("message")} rows={3} className="input" />
       </div>
       <button type="submit" disabled={isSubmitting} className="pill-btn w-full">
-        {isSubmitting ? "sending…" : "get in touch"}
+        {isSubmitting ? "Sending…" : "Get in Touch"}
       </button>
     </form>
   );

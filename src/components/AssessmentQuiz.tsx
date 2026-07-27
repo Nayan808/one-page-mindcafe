@@ -38,7 +38,7 @@ const QUESTIONS: {
       { label: "Stress, anxiety, or feeling overwhelmed", value: "individual" },
       { label: "A relationship, family, or partner issue", value: "family-relationship" },
       { label: "Something about my identity, or women's-health specific", value: "specialized" },
-      { label: "Not sure yet — I just want someone to talk to", value: "individual" },
+      { label: "Not sure yet, I just want someone to talk to", value: "individual" },
     ],
   },
   {
@@ -115,18 +115,18 @@ export function AssessmentQuiz() {
     const category = resultCategoryQuery.data;
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center sm:px-6">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">your result</p>
-        <h1 className="font-display mt-3 text-3xl font-bold lowercase text-ink">
+        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Your Result</p>
+        <h1 className="font-display mt-3 text-3xl font-bold text-ink">
           {category?.title ?? CATEGORY_LABELS[result] ?? result}
         </h1>
         {category?.body && <p className="mt-4 text-sm leading-relaxed text-ink/70">{category.body}</p>}
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href={`/book-appointment?category=${result}`} className="pill-btn">
-            book a session
+            Book a Session
           </Link>
           <Link href={`/experts?category=${result}`} className="pill-btn-outline">
-            browse experts
+            Browse Experts
           </Link>
         </div>
       </div>
@@ -147,7 +147,7 @@ export function AssessmentQuiz() {
         ))}
       </div>
 
-      <h1 className="font-display mt-6 text-center text-2xl font-bold lowercase text-ink sm:text-3xl">
+      <h1 className="font-display mt-6 text-center text-2xl font-bold text-ink sm:text-3xl">
         {question.question}
       </h1>
 
@@ -171,7 +171,7 @@ export function AssessmentQuiz() {
           onClick={() => setStep(step - 1)}
           className="mt-6 text-xs font-medium uppercase tracking-label text-ink/50 hover:text-ink"
         >
-          ← back
+          ← Back
         </button>
       )}
     </div>

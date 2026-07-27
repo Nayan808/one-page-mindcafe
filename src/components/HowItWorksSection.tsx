@@ -9,7 +9,7 @@ const STEPS = [
   { title: "Open Box", description: "Open and take out a strip with ease.", src: "/how-it-works/step-2.webp" },
   {
     title: "The Strip",
-    description: "Tear the inner packaging, take out the ultra-thin, fast-dissolving strip — designed for real life.",
+    description: "Tear the inner packaging, take out the ultra-thin, fast-dissolving strip, designed for real life.",
     src: "/how-it-works/step-3.webp",
   },
   {
@@ -39,7 +39,7 @@ export function HowItWorksSection() {
           <span className="h-px w-10 bg-ink/20" aria-hidden />
         </div>
         <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
-          — how it works —
+          How Feelz Works
         </h2>
       </div>
 

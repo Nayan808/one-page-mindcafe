@@ -31,10 +31,10 @@ function CheckoutContent() {
       ) : isLoading ? (
         <p className="text-sm text-ink/60">Loading cart…</p>
       ) : items.length === 0 ? (
-        <p className="text-sm text-ink/60">Your cart is empty — redirecting…</p>
+        <p className="text-sm text-ink/60">Your cart is empty. Redirecting…</p>
       ) : (
         <div className="space-y-6">
-          <h1 className="font-display text-3xl font-bold lowercase">checkout</h1>
+          <h1 className="font-display text-3xl font-bold">Checkout</h1>
 
           <ul className="space-y-2">
             {items.map((item) => {

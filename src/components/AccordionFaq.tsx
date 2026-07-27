@@ -20,7 +20,7 @@ export function AccordionFaq({ id, heading, items }: { id?: string; heading: str
           <span className="h-px w-10 bg-ink/20" aria-hidden />
         </div>
         <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
-          — {heading} —
+          {heading}
         </h2>
       </div>
 

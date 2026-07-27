@@ -1,23 +1,23 @@
 const CONTENT: Record<"privacy" | "terms" | "refund", { title: string; body: string[] }> = {
   privacy: {
-    title: "privacy policy",
+    title: "Privacy policy",
     body: [
-      "This page will describe what personal data mindcafe collects, why, and how it's stored and protected.",
-      "Placeholder — replace with reviewed copy before this page goes live for real users.",
+      "This page will describe what personal data Mindcafe collects, why, and how it's stored and protected.",
+      "Placeholder: replace with reviewed copy before this page goes live for real users.",
     ],
   },
   terms: {
-    title: "terms of service",
+    title: "Terms of service",
     body: [
-      "This page will set out the terms governing use of mindcafe's products and services.",
-      "Placeholder — replace with reviewed copy before this page goes live for real users.",
+      "This page will set out the terms governing use of Mindcafe's products and services.",
+      "Placeholder: replace with reviewed copy before this page goes live for real users.",
     ],
   },
   refund: {
-    title: "refund & cancellation policy",
+    title: "Refund & cancellation policy",
     body: [
       "This page will explain how refunds and order cancellations are handled for Feelz orders and counselling sessions.",
-      "Placeholder — replace with reviewed copy before this page goes live for real users.",
+      "Placeholder: replace with reviewed copy before this page goes live for real users.",
     ],
   },
 };
@@ -33,9 +33,9 @@ export function LegalPage({ type }: { type: "privacy" | "terms" | "refund" }) {
     <div className="bg-white">
       <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6">
         <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800">
-          DRAFT — pending legal review, not final copy.
+          DRAFT: pending legal review, not final copy.
         </div>
-        <h1 className="font-display text-3xl font-bold lowercase text-ink">{title}</h1>
+        <h1 className="font-display text-3xl font-bold text-ink">{title}</h1>
         <div className="mt-6 space-y-4 text-sm leading-relaxed text-ink/70">
           {body.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>

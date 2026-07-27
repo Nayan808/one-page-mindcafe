@@ -32,7 +32,7 @@ export function PressMentionsSection() {
     <section className="bg-white py-16">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">as seen on</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">As Seen On</p>
         </Reveal>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">

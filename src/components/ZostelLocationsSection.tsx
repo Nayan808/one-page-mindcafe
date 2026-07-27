@@ -71,10 +71,10 @@ export function ZostelLocationsSection() {
         <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
         <span className="h-px w-10 bg-ink/20" aria-hidden />
       </div>
-      <p className="mt-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">available now</p>
+      <p className="mt-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">Available Now</p>
 
       <h2 className="font-display mx-auto mt-4 max-w-2xl text-3xl font-bold leading-[1.1] text-ink sm:text-4xl">
-        find feelz at Zostel locations across india.
+        Find Feelz at Zostel Locations Across India.
       </h2>
       <p className="mx-auto mt-3 max-w-xl text-sm text-ink/60 sm:text-base">
         Search your city or Zostel property to check if we&apos;re there yet.
@@ -85,7 +85,7 @@ export function ZostelLocationsSection() {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="search your city or Zostel…"
+          placeholder="Search your city or Zostel…"
           className="input !pl-10 !pr-9"
         />
         {query && (
@@ -103,14 +103,14 @@ export function ZostelLocationsSection() {
       {locationsQuery.isLoading ? (
         <p className="mt-10 text-sm text-ink/60">Loading pickup points…</p>
       ) : locations.length === 0 ? (
-        <p className="mt-10 text-sm text-ink/60">No pickup points listed yet — check back soon.</p>
+        <p className="mt-10 text-sm text-ink/60">No pickup points listed yet. Check back soon.</p>
       ) : trimmedQuery && results.length === 0 ? (
         <div className="mt-10 rounded-2xl border border-ink/15 bg-white p-6">
           <p className="text-sm text-ink text-left sm:text-center">
-            Not available at &ldquo;{query.trim()}&rdquo; yet — we&apos;re still growing our Zostel network.
+            Not available at &ldquo;{query.trim()}&rdquo; yet. We&apos;re still growing our Zostel network.
           </p>
           <button type="button" onClick={scrollToProducts} className="pill-btn mt-4">
-            order online instead
+            Order Online Instead
           </button>
         </div>
       ) : trimmedQuery ? (
@@ -181,7 +181,7 @@ export function ZostelLocationsSection() {
       )}
 
       <p className="mx-auto mt-6 max-w-md text-xs text-ink/50">
-        Available at hostel reception — ask for &ldquo;feelz by mindcafe&rdquo;.{" "}
+        Available at hostel reception: ask for &ldquo;Feelz by mindcafe&rdquo;.{" "}
         <button type="button" onClick={scrollToProducts} className="font-semibold text-ink underline">
           Can&apos;t find it? Order online →
         </button>

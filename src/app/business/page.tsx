@@ -15,17 +15,17 @@ import { Reveal } from "@/components/Reveal";
 const OFFERINGS = [
   {
     image: "/business/offerings/counselling-program.webp",
-    title: "counselling program",
+    title: "Counselling program",
     description: "Confidential 1:1 sessions with certified professionals for stress and anxiety management.",
   },
   {
     image: "/business/offerings/mental-wellness.webp",
-    title: "wellness workshops",
+    title: "Wellness workshops",
     description: "Interactive group sessions on emotional resilience, communication, and burnout prevention.",
   },
   {
     image: "/business/offerings/brain-performance.webp",
-    title: "brain performance tools",
+    title: "Brain performance tools",
     description: "Feelz wellness strips, self-help courses, guided journals, and digital resources for the team.",
   },
 ];
@@ -35,32 +35,32 @@ const STATS = ["20,000+ people served", "20+ organisations partnered", "20,000+ 
 const ORG_TYPES = [
   {
     image: "/business/who-we-work-with/startup.webp",
-    title: "startups scaling under pressure",
+    title: "Startups scaling under pressure",
     description: "Mental health solutions for startups navigating rapid growth and pressure.",
   },
   {
     image: "/business/who-we-work-with/corporate.webp",
-    title: "corporates managing large teams",
+    title: "Corporates managing large teams",
     description: "Workforce wellness programs for corporates managing large, diverse teams.",
   },
   {
     image: "/business/who-we-work-with/university.webp",
-    title: "universities supporting students & staff",
+    title: "Universities supporting students & staff",
     description: "Mental health support systems for universities empowering students and staff.",
   },
   {
     image: "/business/who-we-work-with/travel.webp",
-    title: "hospitality & travel teams with dynamic workforces",
+    title: "Hospitality & travel teams with dynamic workforces",
     description: "Wellbeing solutions for hospitality and travel teams with dynamic workforces.",
   },
   {
     image: "/business/who-we-work-with/ngo.webp",
-    title: "ngos & mission-led organisations",
+    title: "NGOs & mission-led organisations",
     description: "Mental health partnerships for NGOs and mission-driven organisations.",
   },
   {
     image: "/business/who-we-work-with/manufacturing.webp",
-    title: "manufacturing / field-force teams",
+    title: "Manufacturing / field-force teams",
     description: "Workforce wellness programs for manufacturing and field-force teams.",
   },
 ];
@@ -86,7 +86,7 @@ const MARQUEE_LOGOS = [...MARQUEE_HALF, ...MARQUEE_HALF];
 const AWARDS = [
   {
     image: "/business/women-faces-foxstory.webp",
-    title: "Women Faces of the Year — Fox Story",
+    title: "Women Faces of the Year: Fox Story",
     description: "Named a Top 10 trailblazing woman leader in mental wellness and entrepreneurship.",
   },
   {
@@ -104,32 +104,32 @@ const AWARDS = [
 const PROCESS_STEPS = [
   {
     Icon: Phone,
-    label: "01 — discovery",
-    title: "understand your needs",
+    label: "01: Discovery",
+    title: "Understand your needs",
     description: "Free discovery call to learn your team size, culture, challenges, and wellness goals.",
   },
   {
     Icon: ClipboardList,
-    label: "02 — diagnose",
-    title: "assess & identify",
+    label: "02: Diagnose",
+    title: "Assess & identify",
     description: "Anonymous stress audit and team survey to identify key risk areas and priority gaps.",
   },
   {
     Icon: PenTool,
-    label: "03 — design",
-    title: "custom roadmap",
-    description: "Tailored program combining counselling, workshops, and tools — built for your organisation.",
+    label: "03: Design",
+    title: "Custom roadmap",
+    description: "Tailored program combining counselling, workshops, and tools, built for your organisation.",
   },
   {
     Icon: Rocket,
-    label: "04 — deliver",
-    title: "program launch",
+    label: "04: Deliver",
+    title: "Program launch",
     description: "We roll out sessions and workshops with minimal disruption to your operations.",
   },
   {
     Icon: TrendingUp,
-    label: "05 — measure",
-    title: "track & improve",
+    label: "05: Measure",
+    title: "Track & improve",
     description: "Outcome dashboards, anonymous feedback, and regular check-ins to continuously improve.",
   },
 ];
@@ -151,7 +151,7 @@ function CorporateTestimonials() {
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <h2 className="font-display text-center text-2xl font-bold lowercase text-ink sm:text-3xl">what teams say</h2>
+      <h2 className="font-display text-center text-2xl font-bold text-ink sm:text-3xl">What teams say</h2>
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {reviews.map((review) => (
           <div key={review.id} className="rounded-2xl border border-ink/10 bg-cream p-5 text-left text-sm">
@@ -178,10 +178,10 @@ export default function BusinessPage() {
         <div className="absolute inset-0 bg-black/55" />
         <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
-            build healthier teams
+            Build Healthier Teams
           </span>
-          <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl font-bold lowercase leading-[1.05] sm:text-5xl">
-            improve <span className="font-tagline italic">team performance.</span>
+          <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl font-bold leading-[1.05] sm:text-5xl">
+            Improve <span className="font-tagline italic">team performance.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
             For companies, universities, startups, and institutions seeking structured mental wellness solutions
@@ -189,10 +189,10 @@ export default function BusinessPage() {
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <a href="#get-in-touch" className="pill-btn-white">
-              partner with us →
+              Partner With Us →
             </a>
             <a href="#whats-included" className="pill-btn-outline !border-cream/30 !text-cream hover:!bg-cream/10">
-              explore offerings
+              Explore Offerings
             </a>
           </div>
         </div>
@@ -212,9 +212,9 @@ export default function BusinessPage() {
 
       <section className="bg-white">
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">who we work with</p>
-        <h2 className="font-display mt-2 text-center text-2xl font-bold lowercase text-ink sm:text-3xl">
-          built for every type of <span className="font-tagline italic">organisation</span>.
+        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Who We Work With</p>
+        <h2 className="font-display mt-2 text-center text-2xl font-bold text-ink sm:text-3xl">
+          Built for every type of <span className="font-tagline italic">organisation</span>.
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {ORG_TYPES.map((org) => (
@@ -222,7 +222,7 @@ export default function BusinessPage() {
               <div className="relative mx-auto h-16 w-16">
                 <Image src={org.image} alt="" fill className="object-contain" />
               </div>
-              <h3 className="font-display mt-3 text-lg font-bold lowercase text-ink">{org.title}</h3>
+              <h3 className="font-display mt-3 text-lg font-bold text-ink">{org.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-ink/60">{org.description}</p>
             </div>
           ))}
@@ -232,7 +232,7 @@ export default function BusinessPage() {
 
       <section className="bg-white">
         <Reveal className="py-10">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/40">trusted by teams at</p>
+        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/40">Trusted by teams at</p>
         <div
           className="relative mt-6 overflow-hidden"
           style={{ maskImage: "linear-gradient(to right, transparent, black 8%, black 92%, transparent)" }}
@@ -250,9 +250,9 @@ export default function BusinessPage() {
 
       <section className="bg-white">
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">recognition & impact</p>
-        <h2 className="font-display mt-2 text-center text-2xl font-bold lowercase text-ink sm:text-3xl">
-          making an impact, <span className="font-tagline italic">together</span>.
+        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Recognition & Impact</p>
+        <h2 className="font-display mt-2 text-center text-2xl font-bold text-ink sm:text-3xl">
+          Making an impact, <span className="font-tagline italic">together</span>.
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {AWARDS.map((award) => (
@@ -272,9 +272,9 @@ export default function BusinessPage() {
 
       <section className="bg-white">
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">how it works</p>
-        <h2 className="font-display mt-2 text-center text-2xl font-bold lowercase text-ink sm:text-3xl">
-          from enquiry to <span className="font-tagline italic">lasting impact</span>.
+        <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">How It Works</p>
+        <h2 className="font-display mt-2 text-center text-2xl font-bold text-ink sm:text-3xl">
+          From enquiry to <span className="font-tagline italic">lasting impact</span>.
         </h2>
 
         <div className="relative mt-16">
@@ -290,7 +290,7 @@ export default function BusinessPage() {
 
                 <div className="pt-1 sm:mt-4 sm:pt-0">
                   <p className="text-[11px] font-semibold uppercase tracking-label text-ink/40">{step.label}</p>
-                  <h3 className="font-display mt-1 text-base font-bold lowercase text-ink sm:text-lg">{step.title}</h3>
+                  <h3 className="font-display mt-1 text-base font-bold text-ink sm:text-lg">{step.title}</h3>
                   <p className="mt-1 max-w-[13rem] text-xs leading-snug text-ink/60 sm:mx-auto sm:text-sm">{step.description}</p>
                 </div>
               </div>
@@ -302,7 +302,7 @@ export default function BusinessPage() {
 
       <section id="whats-included" className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <h2 className="font-display text-center text-2xl font-bold lowercase text-ink sm:text-3xl">what&apos;s included</h2>
+        <h2 className="font-display text-center text-2xl font-bold text-ink sm:text-3xl">What&apos;s included</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {OFFERINGS.map((offering) => (
             <div key={offering.title} className="overflow-hidden rounded-2xl border border-ink/15 shadow-sm">
@@ -310,7 +310,7 @@ export default function BusinessPage() {
                 <Image src={offering.image} alt={offering.title} fill className="object-cover" />
               </div>
               <div className="p-5 text-center">
-                <h3 className="font-display text-lg font-bold lowercase text-ink">{offering.title}</h3>
+                <h3 className="font-display text-lg font-bold text-ink">{offering.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink/60">{offering.description}</p>
               </div>
             </div>
@@ -324,8 +324,8 @@ export default function BusinessPage() {
       <section id="get-in-touch" className="bg-white">
         <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="text-center">
-          <h2 className="font-display text-2xl font-bold lowercase text-ink sm:text-3xl">
-            grow with <span className="font-tagline italic">mindcafe.</span>
+          <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
+            Grow with <span className="font-tagline italic">Mindcafe.</span>
           </h2>
           <p className="mt-3 text-sm text-ink/60">Tell us about your team and we&apos;ll get back within a business day.</p>
         </div>

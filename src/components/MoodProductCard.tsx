@@ -72,14 +72,14 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
     >
       <div className="flex items-start justify-between">
         <span className="text-[11px] font-semibold uppercase tracking-label opacity-80">
-          no. 0{index + 1} · feelz
+          no. 0{index + 1} · Feelz
         </span>
         <span className="rounded-full bg-black/20 px-3 py-1 text-[11px] font-semibold backdrop-blur">
           {formatInr(price)}
         </span>
       </div>
 
-      <h3 className="font-display mt-3 text-4xl font-bold lowercase leading-none sm:text-5xl">{product.name}</h3>
+      <h3 className="font-display mt-3 text-4xl font-bold leading-none sm:text-5xl">{product.name}</h3>
       <p className="font-tagline mt-1 text-base italic opacity-90">{mood.tagline}</p>
 
       <div className="mt-5 flex items-start gap-4">
@@ -88,13 +88,13 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
           style={{ background: mood.badgeBg }}
           aria-hidden
         >
-          <span className="text-[9px] font-semibold uppercase text-white/90">feelz</span>
-          <span className="text-[10px] font-bold lowercase text-white">{key}</span>
+          <span className="text-[9px] font-semibold uppercase text-white/90">Feelz</span>
+          <span className="text-[10px] font-bold text-white">{key}</span>
         </div>
 
-        <ul className="space-y-1 text-sm opacity-90">
+        <ul className="list-disc list-inside space-y-1 text-sm font-medium opacity-90">
           {mood.useCases.map((useCase) => (
-            <li key={useCase}>— {useCase}</li>
+            <li key={useCase}>{useCase}</li>
           ))}
         </ul>
       </div>
@@ -150,7 +150,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
           disabled={!isReady || isOutOfStock || addItem.isPending || !variant}
           className="flex-1 rounded-full bg-black/85 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50"
         >
-          {addItem.isPending ? "adding…" : user ? "add to cart" : "sign in to add"}
+          {addItem.isPending ? "Adding…" : user ? "Add to Cart" : "Sign In to Add"}
         </button>
       </div>
 

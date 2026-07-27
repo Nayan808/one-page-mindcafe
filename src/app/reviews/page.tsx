@@ -29,8 +29,8 @@ export default function ReviewsPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">reviews</p>
-        <h1 className="font-display mt-3 text-3xl font-bold lowercase text-ink sm:text-4xl">what people say</h1>
+        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Reviews</p>
+        <h1 className="font-display mt-3 text-3xl font-bold text-ink sm:text-4xl">What people say</h1>
       </div>
 
       <div className="mt-8 flex flex-wrap justify-center gap-2">
@@ -86,7 +86,7 @@ export default function ReviewsPage() {
                 disabled={page === 0}
                 className="pill-btn-outline !py-2 text-xs disabled:opacity-40"
               >
-                previous
+                Previous
               </button>
               <span className="text-xs text-ink/50">
                 page {page + 1} of {totalPages}
@@ -97,7 +97,7 @@ export default function ReviewsPage() {
                 disabled={page >= totalPages - 1}
                 className="pill-btn-outline !py-2 text-xs disabled:opacity-40"
               >
-                next
+                Next
               </button>
             </div>
           )}

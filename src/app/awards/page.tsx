@@ -10,7 +10,7 @@ const FEATURED = [
     image: "/business/women-faces-foxstory.webp",
     year: "2024",
     tag: "national recognition",
-    title: "Fox Story — Women Faces of the Year",
+    title: "Fox Story: Women Faces of the Year",
     description: "Founder Sneh Nigam honored for her contributions to mental health advocacy, inspiring deeper conversations around mental health accessibility across India.",
   },
   {
@@ -18,14 +18,14 @@ const FEATURED = [
     year: "2024",
     tag: "startup mahakumbh",
     title: "Women Entrepreneur of the Year 2024",
-    description: "Awarded at Startup Mahakumbh, inaugurated by PM Modi — recognising Sneh Nigam's dedication to mental health innovation and accessible wellness solutions.",
+    description: "Awarded at Startup Mahakumbh, inaugurated by PM Modi, recognising Sneh Nigam's dedication to mental health innovation and accessible wellness solutions.",
   },
   {
     image: "/business/startup-of-year.webp",
     year: "2022",
     tag: "mit-wpu",
     title: "Startup of the Year 2022",
-    description: "Won at MIT-WPU within just 7 months of launch — highlighting our innovative approach and measurable impact in mental wellness across India.",
+    description: "Won at MIT-WPU within just 7 months of launch, highlighting our innovative approach and measurable impact in mental wellness across India.",
   },
 ];
 
@@ -75,14 +75,14 @@ export default function AwardsPage() {
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
           <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
-            since december 2021
+            Since December 2021
           </span>
-          <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl font-bold lowercase leading-[1.05] sm:text-5xl">
-            awards &amp; <span className="font-tagline italic">achievements.</span>
+          <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl font-bold leading-[1.05] sm:text-5xl">
+            Awards &amp; <span className="font-tagline italic">achievements.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
             From a single startup in Bhopal to a <strong className="text-cream">nationally recognised mental
-            wellness platform</strong> — every milestone is a reflection of the community that made it possible.
+            wellness platform</strong>, every milestone is a reflection of the community that made it possible.
           </p>
 
           <div className="mx-auto mt-10 grid max-w-2xl grid-cols-2 gap-6 sm:grid-cols-4">
@@ -104,9 +104,9 @@ export default function AwardsPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">featured recognition</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              three awards that define our <span className="font-tagline italic">commitment.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Featured Recognition</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              Three awards that define our <span className="font-tagline italic">commitment.</span>
             </h2>
           </div>
 
@@ -135,9 +135,9 @@ export default function AwardsPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">impact by numbers</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              the results speak <span className="font-tagline italic">for themselves.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Impact by Numbers</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              The results speak <span className="font-tagline italic">for themselves.</span>
             </h2>
           </div>
 
@@ -155,9 +155,9 @@ export default function AwardsPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">other recognition</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              recognised by <span className="font-tagline italic">leaders across India.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Other Recognition</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              Recognised by <span className="font-tagline italic">leaders across India.</span>
             </h2>
           </div>
 
@@ -179,21 +179,21 @@ export default function AwardsPage() {
 
       <section className="bg-white">
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
-          <h2 className="font-display text-2xl font-bold lowercase text-ink sm:text-3xl">
-            be part of the <span className="font-tagline italic">next chapter.</span>
+          <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
+            Be part of the <span className="font-tagline italic">next chapter.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm text-ink/60">
             The best milestones are the ones we make together. Join Mindcafe in building a mentally healthier India.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Link href="/counselling" className="pill-btn">
-              book a session →
+              Book a Session →
             </Link>
             <Link href="/business" className="pill-btn-outline">
-              partner with us
+              Partner With Us
             </Link>
             <Link href="/about" className="pill-btn-outline">
-              our story
+              Our Story
             </Link>
           </div>
         </div>
