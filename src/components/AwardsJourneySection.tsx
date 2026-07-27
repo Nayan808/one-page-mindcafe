@@ -16,7 +16,7 @@ const JOURNEY = [
   {
     date: "Feb 2022",
     title: "Top 5 Startups of Madhya Pradesh",
-    description: "Recognized as a leading startup in MP — this milestone validated our mission and opened doors for collaborations to make mental health support more accessible.",
+    description: "Recognized as a leading startup in MP; this milestone validated our mission and opened doors for collaborations to make mental health support more accessible.",
     image: "/awards/journey/startups-of-mp.webp",
   },
   {
@@ -34,7 +34,7 @@ const JOURNEY = [
   {
     date: "Sep 2022",
     title: "MIT-WPU Startup of the Year",
-    description: 'Won "Startup of the Year" — highlighting our innovative approach and impact in mental wellness within just 7 months of launch.',
+    description: 'Won "Startup of the Year," highlighting our innovative approach and impact in mental wellness within just 7 months of launch.',
     image: "/awards/journey/startup-of-the-year-2022.webp",
   },
   {
@@ -69,7 +69,7 @@ const JOURNEY = [
   },
   {
     date: "Sep 2024",
-    title: "Fox Story — Women Faces of the Year",
+    title: "Fox Story: Women Faces of the Year",
     description: "Founder Sneh Nigam honoured for her contributions to mental health advocacy, inspiring deeper conversations around mental health accessibility.",
     image: "/awards/journey/women-faces-fox-story.webp",
   },
@@ -106,9 +106,9 @@ export function AwardsJourneySection() {
     <section className="overflow-hidden bg-white">
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
         <div className="text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">our journey</p>
-          <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-            every milestone, every <span className="font-tagline italic">step forward.</span>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Our Journey</p>
+          <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+            Every milestone, every <span className="font-tagline italic">step forward.</span>
           </h2>
         </div>
 

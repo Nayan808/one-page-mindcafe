@@ -6,8 +6,8 @@ import { getFaqs } from "@/lib/api";
 import { AccordionFaq } from "@/components/AccordionFaq";
 
 const CATEGORY_HEADINGS: Record<string, string> = {
-  feelz: "feelz",
-  counselling: "counselling",
+  feelz: "Feelz",
+  counselling: "Counselling",
 };
 
 export default function FaqPage() {
@@ -25,14 +25,14 @@ export default function FaqPage() {
   return (
     <div>
       <div className="mx-auto max-w-2xl px-4 pt-16 text-center sm:px-6">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">help</p>
-        <h1 className="font-display mt-3 text-3xl font-bold lowercase text-ink sm:text-4xl">frequently asked questions</h1>
+        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Help</p>
+        <h1 className="font-display mt-3 text-3xl font-bold text-ink sm:text-4xl">Frequently asked questions</h1>
       </div>
 
       {faqsQuery.isLoading ? (
         <p className="mt-10 text-center text-sm text-ink/60">Loading…</p>
       ) : Object.keys(grouped).length === 0 ? (
-        <p className="mt-10 text-center text-sm text-ink/60">No FAQs listed yet — check back soon.</p>
+        <p className="mt-10 text-center text-sm text-ink/60">No FAQs listed yet. Check back soon.</p>
       ) : (
         Object.entries(grouped).map(([category, items]) => (
           <AccordionFaq

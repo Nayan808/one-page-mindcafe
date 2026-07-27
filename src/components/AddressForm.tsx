@@ -25,7 +25,7 @@ type AddressFormProps = {
   defaultValues?: Partial<AddressFormValues>;
 };
 
-export function AddressForm({ onSubmit, isSubmitting, submitLabel = "Use this address", defaultValues }: AddressFormProps) {
+export function AddressForm({ onSubmit, isSubmitting, submitLabel = "Use This Address", defaultValues }: AddressFormProps) {
   const {
     register,
     handleSubmit,

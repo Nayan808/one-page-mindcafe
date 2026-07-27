@@ -15,16 +15,25 @@ const serifItalic = Instrument_Serif({
   weight: "400",
   style: "italic",
 });
+const serifDisplay = Instrument_Serif({
+  variable: "--font-serif-display",
+  subsets: ["latin"],
+  weight: "400",
+  style: "normal",
+});
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "mindcafe",
-  description: "A paper-thin strip. Sixty seconds on the tongue. Four moods, on demand — delivered or picked up at a Zostel.",
+  title: "Mindcafe",
+  description: "A paper-thin strip. Sixty seconds on the tongue. Four moods, on demand, delivered or picked up at a Zostel.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${display.variable} ${serifItalic.variable} ${body.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      className={`${display.variable} ${serifItalic.variable} ${serifDisplay.variable} ${body.variable} h-full antialiased`}
+    >
       <body className="flex min-h-full flex-col bg-cream text-ink">
         <AppLoadingOverlay />
         <Providers>

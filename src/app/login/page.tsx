@@ -24,12 +24,12 @@ function LoginContent() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4 py-16 sm:px-6">
-      <h1 className="font-display text-3xl font-bold lowercase text-ink">sign in</h1>
-      <p className="mt-2 text-sm text-ink/60">Sign in to shop feelz, book counselling, and track your orders.</p>
+      <h1 className="font-display text-3xl font-bold text-ink">Sign in</h1>
+      <p className="mt-2 text-sm text-ink/60">Sign in to shop Feelz, book counselling, and track your orders.</p>
 
       {oauthError && (
         <p className="mt-4 rounded-lg bg-red-50 p-3 text-sm text-red-700">
-          Google sign-in didn&apos;t go through — try again, or use email below.
+          Google sign-in didn&apos;t go through. Try again, or use email below.
         </p>
       )}
 

@@ -11,49 +11,49 @@ const MOOD_IMAGE: Record<MoodKey, string> = {
 
 const PERSONAS: { title: string; tagline: string; description: string; moods: MoodKey[]; wide?: boolean; tilt: string; zostel?: boolean }[] = [
   {
-    title: "the traveller",
-    tagline: "pocket-sized, zostel-approved",
+    title: "The traveller",
+    tagline: "Pocket-sized, Zostel-approved",
     description:
-      "Hopping between hostels, cities, and time zones. feelz travels light — no water, no fuss, fits in any pocket. first stocked at every Zostel in India.",
+      "Hopping between hostels, cities, and time zones. Feelz travels light, no water, no fuss, fits in any pocket. First stocked at every Zostel in India.",
     moods: ["rest", "focus"],
     wide: true,
     tilt: "rotate-6",
     zostel: true,
   },
   {
-    title: "the student",
-    tagline: "exam-season survival kit",
-    description: "Exam season, long study nights, social pressure. feelz supports the mind through the demands without sedating it.",
+    title: "The student",
+    tagline: "Exam-season survival kit",
+    description: "Exam season, long study nights, social pressure. Feelz supports the mind through the demands without sedating it.",
     moods: ["focus", "joy"],
     tilt: "-rotate-6",
   },
   {
-    title: "the remote worker",
-    tagline: "focus, minus the office",
-    description: "Working from home or cafés. When your environment isn't built for focus, feelz helps you create it internally.",
+    title: "The remote worker",
+    tagline: "Focus, minus the office",
+    description: "Working from home or cafés. When your environment isn't built for focus, Feelz helps you create it internally.",
     moods: ["focus"],
     tilt: "rotate-3",
   },
   {
-    title: "the night owl",
-    tagline: "for the 2am scroll",
-    description: "Can't switch off at midnight. rest strips with melatonin and l-theanine help you wind down naturally — wake up actually rested.",
+    title: "The night owl",
+    tagline: "For the 2am scroll",
+    description: "Can't switch off at midnight. Rest strips with melatonin and L-Theanine help you wind down naturally; wake up actually rested.",
     moods: ["rest"],
     wide: true,
     tilt: "-rotate-6",
   },
   {
-    title: "the overthinker",
-    tagline: "quiet the noise",
-    description: "Social situations, new places, unfamiliar people. joy and extrovert are built exactly for these moments of overload.",
+    title: "The overthinker",
+    tagline: "Quiet the noise",
+    description: "Social situations, new places, unfamiliar people. Joy and Extrovert are built exactly for these moments of overload.",
     moods: ["extrovert", "joy"],
     wide: true,
     tilt: "rotate-6",
   },
   {
-    title: "the professional",
-    tagline: "calm under deadline",
-    description: "Back-to-back meetings, tight deadlines, constant noise. focus when it matters, rest when you need to switch off.",
+    title: "The professional",
+    tagline: "Calm under deadline",
+    description: "Back-to-back meetings, tight deadlines, constant noise. Focus when it matters, rest when you need to switch off.",
     moods: ["focus", "rest"],
     tilt: "-rotate-3",
   },
@@ -70,7 +70,7 @@ export function WhoItsForSection() {
           <span className="h-px w-10 bg-ink/20" aria-hidden />
         </div>
         <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
-          — who it&apos;s for —
+          Who Is It For
         </h2>
       </div>
 
@@ -97,10 +97,10 @@ export function WhoItsForSection() {
 
               <div className="relative max-w-[70%] sm:max-w-[65%]">
                 <span className="text-[11px] font-semibold uppercase tracking-label opacity-80">
-                  who it&apos;s for · 0{index + 1}
+                  Who it&apos;s for · 0{index + 1}
                 </span>
 
-                <h3 className="font-display mt-3 text-3xl font-bold lowercase leading-none sm:text-4xl">
+                <h3 className="font-display mt-3 text-3xl font-bold leading-none sm:text-4xl">
                   {persona.title}
                 </h3>
                 <p className="font-tagline mt-1.5 text-base italic opacity-90">{persona.tagline}</p>
@@ -123,7 +123,7 @@ export function WhoItsForSection() {
                       <span className="relative h-4 w-4 overflow-hidden rounded-full">
                         <Image src="/press/zostel.png" alt="" fill className="object-cover" />
                       </span>
-                      zostel
+                      Zostel
                     </span>
                   )}
                 </div>

@@ -24,7 +24,7 @@ export const STATUS_LABELS: Record<string, string> = {
 export function OrderConfirmation({
   orderId,
   onStartNewOrder,
-  backLabel = "place another order",
+  backLabel = "Place Another Order",
 }: {
   orderId: string;
   onStartNewOrder: () => void;
@@ -53,18 +53,18 @@ export function OrderConfirmation({
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      <h2 className="font-display text-3xl font-bold lowercase">order {order.order_number}</h2>
+      <h2 className="font-display text-3xl font-bold">Order {order.order_number}</h2>
 
       {isPendingConfirmation && (
         <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-700">
-          Confirming your payment — this updates automatically, no need to refresh.
+          Confirming your payment. This updates automatically, no need to refresh.
         </p>
       )}
 
       {isPickup && order.pickup_code && (
         <div className="rounded-xl border border-ink/15 bg-white p-5 text-center">
           {isCollected ? (
-            <p className="text-sm font-medium text-emerald-700">Collected — thanks!</p>
+            <p className="text-sm font-medium text-emerald-700">Collected. Thanks!</p>
           ) : (
             <>
               <p className="text-sm text-ink/60">Show this at the Zostel front desk to collect your order</p>

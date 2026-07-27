@@ -77,12 +77,12 @@ export function ExpertCard({
               onClick={(event) => event.stopPropagation()}
               className="pill-btn-outline !py-2 text-xs"
             >
-              view details
+              View Details
             </Link>
           )}
           {bookHref && expert.is_bookable !== false && (
             <Link href={bookHref} onClick={(event) => event.stopPropagation()} className="pill-btn !py-2 text-xs">
-              book with {expert.name.split(" ")[0]}
+              Book with {expert.name.split(" ")[0]}
             </Link>
           )}
         </div>

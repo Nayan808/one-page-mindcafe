@@ -12,6 +12,7 @@
   --color-foreground: var(--ink);
   --font-display: var(--font-display);
   --font-serif-italic: var(--font-serif-italic);
+  --font-serif-display: var(--font-serif-display);
   --font-sans: var(--font-body);
 }
 
@@ -24,6 +25,7 @@ body {
   background: var(--cream);
   color: var(--ink);
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
+  font-weight: 500;
 }
 
 .font-display {
@@ -33,6 +35,26 @@ body {
 .font-tagline {
   font-family: var(--font-serif-italic), serif;
   font-style: italic;
+}
+
+.font-hero {
+  font-family: var(--font-serif-display), serif;
+}
+
+/* Site-wide premium heading treatment: every top-level section/page
+   heading (h1/h2 carrying .font-display) renders in the same editorial
+   serif as the homepage hero instead of the bold geometric sans, for a
+   more luxury/premium feel. Smaller sub-headings, numerals, badges, and
+   the nav wordmark keep .font-display's original sans (they use h3/span/p,
+   never h1/h2, so this rule doesn't reach them). Instrument Serif only
+   ships a single (400) weight, so font-bold is neutralized here too —
+   the utility class stays in each heading's JSX for the size-scale
+   convention, but this rule wins since Tailwind's utilities live in a
+   lower-priority cascade layer than this plain, unlayered CSS. */
+h1.font-display,
+h2.font-display {
+  font-family: var(--font-serif-display), serif;
+  font-weight: 400;
 }
 
 .tracking-label {

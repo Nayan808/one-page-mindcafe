@@ -17,7 +17,7 @@ function scrollToTop() {
 }
 
 const NAV_LINKS = [
-  { href: "/feelz", label: "feelz" },
+  { href: "/feelz", label: "Feelz" },
   { href: "/counselling", label: "counselling" },
   { href: "/business", label: "for business" },
   { href: "/about", label: "about" },
@@ -138,7 +138,7 @@ export function Header() {
                 : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
             }
           >
-            book session
+            Book Session
           </Link>
 
           {status === "authenticated" && (
@@ -151,7 +151,7 @@ export function Header() {
               }
             >
               <ShoppingBag className={`h-3.5 w-3.5 ${headerSolid ? "text-ink" : "text-white"}`} aria-hidden />
-              cart{itemCount > 0 ? ` · ${itemCount}` : ""}
+              Cart{itemCount > 0 ? ` · ${itemCount}` : ""}
             </button>
           )}
 
@@ -160,7 +160,7 @@ export function Header() {
           ) : (
             status !== "loading" && (
               <button type="button" onClick={openAuthModal} className="pill-btn !py-2 text-xs">
-                log in
+                Log In
               </button>
             )
           )}
@@ -241,7 +241,7 @@ export function Header() {
                 }}
                 className="pill-btn-outline w-full normal-case tracking-normal"
               >
-                sign out
+                Sign Out
               </button>
             </>
           ) : (
@@ -254,7 +254,7 @@ export function Header() {
                 }}
                 className="pill-btn mt-2 w-full normal-case tracking-normal"
               >
-                log in
+                Log In
               </button>
             )
           )}

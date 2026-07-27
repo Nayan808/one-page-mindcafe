@@ -84,7 +84,7 @@ const TESTS = [
     category: "personality",
     categoryLabel: "Personality",
     title: "Introversion / Extroversion Test",
-    description: "Discover where you fall on the introversion-extroversion spectrum — a key aspect of the Big Five personality traits that shapes how you engage with the world.",
+    description: "Discover where you fall on the introversion-extroversion spectrum, a key aspect of the Big Five personality traits that shapes how you engage with the world.",
     questions: 20,
     minutes: 3,
     href: "https://www.psychologytoday.com/us/tests/personality/extroversion-introversion-test",
@@ -109,9 +109,9 @@ export default function SelfAssessmentPage() {
     <div>
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">self-assessment tests</p>
-          <h1 className="font-display mx-auto mt-4 max-w-xl text-3xl font-bold lowercase leading-[1.15] sm:text-4xl">
-            know your mind better.
+          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">Self-Assessment Tests</p>
+          <h1 className="font-display mx-auto mt-4 max-w-xl text-3xl font-bold leading-[1.15] sm:text-4xl">
+            Know your mind better.
           </h1>
           <p className="mt-4 text-sm text-cream/70 sm:text-base">
             Take free, professionally verified self-assessment tests to better understand your mental health,
@@ -125,7 +125,7 @@ export default function SelfAssessmentPage() {
           <div className="mx-auto max-w-2xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-center text-xs leading-relaxed text-amber-800">
             These assessments are developed by Psychology Today. Mindcafe&apos;s mental health professionals have
             verified the accuracy levels, but do not hold responsibility for errors or glitches in results. These
-            assessments are <strong>for reference purposes only — not for diagnostic purposes.</strong> Please
+            assessments are <strong>for reference purposes only, not for diagnostic purposes.</strong> Please
             consult a qualified mental health professional for a formal diagnosis.
           </div>
 
@@ -182,7 +182,7 @@ export default function SelfAssessmentPage() {
                 </div>
 
                 <div className="relative mt-4 flex flex-col items-center gap-1.5 border-t border-ink/10 pt-4">
-                  <span className="text-sm font-semibold text-ink">take the test →</span>
+                  <span className="text-sm font-semibold text-ink">Take the Test →</span>
                   <span className="flex items-center gap-1 text-[11px] text-ink/40">
                     <ExternalLink className="h-3 w-3" aria-hidden />
                     opens on psychologytoday.com

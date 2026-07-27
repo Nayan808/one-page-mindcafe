@@ -57,10 +57,10 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
       }}
       className="mt-6 rounded-xl border border-ink/15 bg-white p-5 text-left"
     >
-      <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">before your session</p>
-      <h2 className="font-display mt-1 text-lg font-bold lowercase text-ink">tell your counsellor a bit about you</h2>
+      <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Before Your Session</p>
+      <h2 className="font-display mt-1 text-lg font-bold text-ink">Tell your counsellor a bit about you</h2>
       <p className="mt-1 text-xs text-ink/50">
-        This helps your expert prepare — they&apos;ll see your answers on their dashboard before the session.
+        This helps your expert prepare. They&apos;ll see your answers on their dashboard before the session.
       </p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
@@ -90,7 +90,7 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           rows={3}
-          placeholder="Share as much or as little as you'd like — your counsellor will read this before your session."
+          placeholder="Share as much or as little as you'd like; your counsellor will read this before your session."
           className="input"
         />
       </div>
@@ -120,7 +120,7 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
                   {c.label}
                 </button>
               ))}
-              {filteredConcerns.length === 0 && <p className="py-2 text-xs text-ink/50">No matches — try a different search.</p>}
+              {filteredConcerns.length === 0 && <p className="py-2 text-xs text-ink/50">No matches. Try a different search.</p>}
             </div>
           </>
         ) : (
@@ -134,7 +134,7 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
               }}
               className="text-xs underline"
             >
-              change
+              Change
             </button>
           </div>
         )}
@@ -143,7 +143,7 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
       {concern && (
         <div className="mt-4 space-y-4">
           <p className="text-xs text-ink/50">
-            {answeredCount} of {concern.questions.length} answered — answer as many as you&apos;d like.
+            {answeredCount} of {concern.questions.length} answered. Answer as many as you&apos;d like.
           </p>
           {concern.questions.map((q) => (
             <div key={q.question}>
@@ -167,10 +167,10 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
         </div>
       )}
 
-      {submit.isError && <p className="mt-3 text-sm text-red-600">Something went wrong saving this — try again.</p>}
+      {submit.isError && <p className="mt-3 text-sm text-red-600">Something went wrong saving this. Try again.</p>}
 
       <button type="submit" disabled={submit.isPending} className="pill-btn mt-5 w-full">
-        {submit.isPending ? "saving…" : "save and continue"}
+        {submit.isPending ? "Saving…" : "Save and Continue"}
       </button>
     </form>
   );

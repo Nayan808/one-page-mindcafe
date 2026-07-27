@@ -171,7 +171,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           onClick={() => setMode("takeaway")}
           className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium ${mode === "takeaway" ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/70"}`}
         >
-          takeaway at a zostel
+          takeaway at a Zostel
         </button>
       </div>
 
@@ -192,7 +192,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           <input
             value={guestEmail}
             onChange={(event) => setGuestEmail(event.target.value)}
-            placeholder="Email — for your pickup code"
+            placeholder="Email, for your pickup code"
             className="input sm:col-span-2"
           />
         </div>
@@ -204,7 +204,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             <input
               value={guestEmail}
               onChange={(event) => setGuestEmail(event.target.value)}
-              placeholder="Email — for your order confirmation"
+              placeholder="Email, for your order confirmation"
               className="input"
             />
           )}
@@ -240,7 +240,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                 onClick={() => setShowNewAddressForm(true)}
                 className="text-sm font-medium text-ink underline"
               >
-                + use a new address
+                + Use a New Address
               </button>
             </div>
           )}
@@ -255,7 +255,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                   </span>
                 </span>
                 <button type="button" onClick={() => setGuestAddress(null)} className="text-xs text-ink underline">
-                  edit
+                  Edit
                 </button>
               </div>
             ) : (
@@ -264,11 +264,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
 
           {serviceability === "checking" && <p className="text-sm text-ink/60">Checking serviceability…</p>}
           {serviceability !== "unchecked" && serviceability !== "checking" && !serviceability.ok && (
-            <p className="text-sm text-amber-700">This pincode isn&apos;t serviceable yet — try takeaway instead.</p>
+            <p className="text-sm text-amber-700">This pincode isn&apos;t serviceable yet. Try takeaway instead.</p>
           )}
           {serviceability !== "unchecked" && serviceability !== "checking" && serviceability.ok && (
             <p className="text-sm text-emerald-700">
-              Deliverable — fee {serviceability.fee === 0 ? "free" : formatInr(serviceability.fee)}
+              Deliverable: fee {serviceability.fee === 0 ? "free" : formatInr(serviceability.fee)}
             </p>
           )}
         </div>
@@ -333,13 +333,13 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             disabled={!couponCode.trim() || isCheckingCoupon || discountAmount > 0}
             className="pill-btn-outline shrink-0 !py-2 text-xs normal-case tracking-normal"
           >
-            {isCheckingCoupon ? "checking…" : discountAmount > 0 ? "applied" : "apply"}
+            {isCheckingCoupon ? "Checking…" : discountAmount > 0 ? "Applied" : "Apply"}
           </button>
         </div>
         {couponError && <p className="mt-1.5 text-sm text-red-600">{couponError}</p>}
         {discountAmount > 0 && (
           <p className="mt-1.5 text-sm text-emerald-700">
-            &ldquo;{appliedCoupon!.code}&rdquo; applied — {formatInr(discountAmount)} off
+            &ldquo;{appliedCoupon!.code}&rdquo; applied, {formatInr(discountAmount)} off
           </p>
         )}
       </div>
@@ -368,7 +368,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
       {error && <p className="text-sm text-red-600">{error}</p>}
 
       <button type="button" onClick={handlePlaceOrder} disabled={!canPay || isSubmitting} className="pill-btn w-full">
-        {isSubmitting ? "processing…" : "pay now"}
+        {isSubmitting ? "Processing…" : "Pay Now"}
       </button>
     </div>
   );

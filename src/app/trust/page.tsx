@@ -37,18 +37,18 @@ const TRUST_PILLARS = [
 const PRINCIPLES = [
   {
     Icon: CheckCircle2,
-    title: "safety first",
+    title: "Safety first",
     description: "Every ingredient in Feelz has an established safety profile. We do not use compounds with unknown or contested safety records.",
   },
   {
     Icon: Sparkles,
-    title: "genuine effectiveness",
+    title: "Genuine effectiveness",
     description: "Ingredients are selected based on traditional wellness use and research-backed associations with mental performance and wellbeing.",
   },
   {
     Icon: Leaf,
-    title: "everyday compatibility",
-    description: "Formulations are designed to fit seamlessly into real life — no need to build routines around them. Open. Place. Dissolve.",
+    title: "Everyday compatibility",
+    description: "Formulations are designed to fit seamlessly into real life. No need to build routines around them. Open. Place. Dissolve.",
   },
 ];
 
@@ -64,23 +64,23 @@ const INGREDIENTS = [
 ];
 
 const SELECTION_STEPS = [
-  { title: "safety profile", description: "Only ingredients with established, documented safety records approved for dietary supplement use in India." },
-  { title: "wellness efficacy", description: "Traditionally associated with mental performance, emotional balance, and cognitive support through decades of use." },
-  { title: "lifestyle fit", description: "Dosages designed for daily or occasional use — not requiring clinical supervision for healthy adults." },
+  { title: "Safety profile", description: "Only ingredients with established, documented safety records approved for dietary supplement use in India." },
+  { title: "Wellness efficacy", description: "Traditionally associated with mental performance, emotional balance, and cognitive support through decades of use." },
+  { title: "Lifestyle fit", description: "Dosages designed for daily or occasional use, not requiring clinical supervision for healthy adults." },
 ];
 
 const MANUFACTURING_STEPS = [
-  { Icon: BarChart3, tag: "QC", title: "ingredient verification", description: "Every raw ingredient is verified for identity, purity, and compliance before entering production." },
-  { Icon: Factory, tag: "GMP", title: "controlled environments", description: "Manufacturing takes place in certified facilities with controlled temperature, humidity, and cleanliness standards." },
-  { Icon: Package, tag: "QA", title: "packaging integrity", description: "Each unit is checked for packaging seal integrity, correct labelling, and product consistency before dispatch." },
-  { Icon: ScanLine, tag: "traceability", title: "batch-level monitoring", description: "Every batch is tracked from raw ingredients to finished product, ensuring full traceability and accountability." },
+  { Icon: BarChart3, tag: "QC", title: "Ingredient verification", description: "Every raw ingredient is verified for identity, purity, and compliance before entering production." },
+  { Icon: Factory, tag: "GMP", title: "Controlled environments", description: "Manufacturing takes place in certified facilities with controlled temperature, humidity, and cleanliness standards." },
+  { Icon: Package, tag: "QA", title: "Packaging integrity", description: "Each unit is checked for packaging seal integrity, correct labelling, and product consistency before dispatch." },
+  { Icon: ScanLine, tag: "traceability", title: "Batch-level monitoring", description: "Every batch is tracked from raw ingredients to finished product, ensuring full traceability and accountability." },
 ];
 
 const USE_CASES = [
-  { Icon: Plane, title: "travel fatigue", description: "Beat the mental drain of long journeys, new environments, and constant adaptation." },
-  { Icon: Laptop, title: "work exhaustion", description: "Support focus and clarity through demanding professional schedules." },
-  { Icon: GraduationCap, title: "study demands", description: "Maintain cognitive performance during exam periods and intensive study." },
-  { Icon: Moon, title: "sleep preparation", description: "Wind down naturally before bed for deeper, more restful sleep." },
+  { Icon: Plane, title: "Travel fatigue", description: "Beat the mental drain of long journeys, new environments, and constant adaptation." },
+  { Icon: Laptop, title: "Work exhaustion", description: "Support focus and clarity through demanding professional schedules." },
+  { Icon: GraduationCap, title: "Study demands", description: "Maintain cognitive performance during exam periods and intensive study." },
+  { Icon: Moon, title: "Sleep preparation", description: "Wind down naturally before bed for deeper, more restful sleep." },
 ];
 
 const CERTIFICATIONS = [
@@ -98,10 +98,10 @@ const LABEL_ELEMENTS = [
 ];
 
 const USAGE_STEPS = [
-  { step: "1", title: "open the pack", description: "Each pack is sealed for freshness. Open just before use." },
-  { step: "2", title: "place on your tongue", description: "Let the strip rest on your tongue — do not chew." },
-  { step: "3", title: "allow it to dissolve", description: "The strip dissolves naturally within seconds. No water required." },
-  { step: "4", title: "follow daily limits", description: "Do not exceed the recommended usage stated on your product's packaging." },
+  { step: "1", title: "Open the pack", description: "Each pack is sealed for freshness. Open just before use." },
+  { step: "2", title: "Place on your tongue", description: "Let the strip rest on your tongue. Do not chew." },
+  { step: "3", title: "Allow it to dissolve", description: "The strip dissolves naturally within seconds. No water required." },
+  { step: "4", title: "Follow daily limits", description: "Do not exceed the recommended usage stated on your product's packaging." },
 ];
 
 const CONSULT_LIST = [
@@ -113,27 +113,27 @@ const CONSULT_LIST = [
 ];
 
 const IMPROVEMENT_AREAS = [
-  { Icon: MessageCircle, title: "customer feedback", description: "Every review, message, and complaint shapes our next product iteration." },
-  { Icon: BookOpen, title: "wellness research", description: "We stay current with nutraceutical science and wellness research from India and globally." },
-  { Icon: ShieldCheck, title: "safety standards", description: "As regulatory guidelines evolve, we update our formulations and processes accordingly." },
-  { Icon: Collab, title: "expert collaboration", description: "We work with healthcare professionals, psychologists, and wellness practitioners in our product development." },
+  { Icon: MessageCircle, title: "Customer feedback", description: "Every review, message, and complaint shapes our next product iteration." },
+  { Icon: BookOpen, title: "Wellness research", description: "We stay current with nutraceutical science and wellness research from India and globally." },
+  { Icon: ShieldCheck, title: "Safety standards", description: "As regulatory guidelines evolve, we update our formulations and processes accordingly." },
+  { Icon: Collab, title: "Expert collaboration", description: "We work with healthcare professionals, psychologists, and wellness practitioners in our product development." },
 ];
 
 const DIGITAL_TRUST_SECTIONS = [
   {
-    title: "data privacy",
-    body: "Your account details, order history, and anything shared in a counselling session are stored securely and never sold to third parties. Payment details are handled entirely by Razorpay — this app never sees or stores your card/UPI information directly.",
+    title: "Data privacy",
+    body: "Your account details, order history, and anything shared in a counselling session are stored securely and never sold to third parties. Payment details are handled entirely by Razorpay. This app never sees or stores your card/UPI information directly.",
   },
   {
-    title: "payments & refunds",
-    body: "Every order — Feelz products and counselling sessions alike — is paid in full upfront through Razorpay at checkout; nothing is collected later or on delivery. Because payment is collected upfront and orders are processed right away, we're unable to offer refunds or cancellations once an order is placed, so please review your cart or session details before confirming. If something arrives damaged, incorrect, or a session needs rescheduling, reach out and we'll help sort it out.",
+    title: "Payments & refunds",
+    body: "Every order, whether Feelz products or counselling sessions, is paid in full upfront through Razorpay at checkout; nothing is collected later or on delivery. Because payment is collected upfront and orders are processed right away, we're unable to offer refunds or cancellations once an order is placed, so please review your cart or session details before confirming. If something arrives damaged, incorrect, or a session needs rescheduling, reach out and we'll help sort it out.",
   },
   {
-    title: "session confidentiality",
-    body: "What you share with a counsellor stays between you and them, with the standard safety exceptions any licensed professional follows (like risk of harm to yourself or others) — always explained upfront, never a surprise.",
+    title: "Session confidentiality",
+    body: "What you share with a counsellor stays between you and them, with the standard safety exceptions any licensed professional follows (like risk of harm to yourself or others), always explained upfront, never a surprise.",
   },
   {
-    title: "account security",
+    title: "Account security",
     body: "Sign in with Google or an email one-time code; either way, access to your data is scoped to your account only. If you ever suspect unauthorized access, reach out and we'll help immediately.",
   },
 ];
@@ -143,13 +143,13 @@ export default function TrustPage() {
     <div>
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <h1 className="font-display mx-auto max-w-xl text-3xl font-bold lowercase leading-[1.15] sm:text-4xl">
-            our commitment to <span className="font-tagline italic">safety &amp; transparency.</span>
+          <h1 className="font-display mx-auto max-w-xl text-3xl font-bold leading-[1.15] sm:text-4xl">
+            Our commitment to <span className="font-tagline italic">safety &amp; transparency.</span>
           </h1>
           <p className="mt-4 text-sm text-cream/70 sm:text-base">
             At Mindcafe, we believe mental wellness products should be built on a foundation of safety,
-            responsibility, and transparency. Every step of product development — from ingredient selection to
-            manufacturing — is guided by recognised safety standards for nutraceutical products.
+            responsibility, and transparency. Every step of product development, from ingredient selection to
+            manufacturing, is guided by recognised safety standards for nutraceutical products.
           </p>
           <div className="mx-auto mt-8 flex max-w-lg flex-wrap items-center justify-center gap-2">
             {TRUST_PILLARS.map((pillar) => (
@@ -168,13 +168,13 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">what guides us</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              three principles that guide <span className="font-tagline italic">everything we do.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">What Guides Us</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              Three principles that guide <span className="font-tagline italic">everything we do.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are designed to support everyday mental wellbeing through convenient, on-the-go wellness
-              formats. We don&apos;t take shortcuts — every part of Feelz is held to a standard we&apos;d be
+              formats. We don&apos;t take shortcuts: every part of Feelz is held to a standard we&apos;d be
               comfortable with ourselves, and confidently recommend to our own families.
             </p>
           </div>
@@ -185,7 +185,7 @@ export default function TrustPage() {
                 <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-ink/10 bg-cream">
                   <item.Icon className="h-5 w-5 text-ink" aria-hidden />
                 </div>
-                <h3 className="font-display mt-4 text-lg font-bold lowercase text-ink">{item.title}</h3>
+                <h3 className="font-display mt-4 text-lg font-bold text-ink">{item.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink/60">{item.description}</p>
               </div>
             ))}
@@ -196,8 +196,8 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">ingredients — sample</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">key feelz ingredients.</h2>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Ingredients: Sample</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">Key Feelz ingredients.</h2>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-2.5">
             {INGREDIENTS.map((ing) => (
@@ -216,12 +216,12 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">carefully selected</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              you know exactly what <span className="font-tagline italic">you&apos;re taking.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Carefully Selected</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              You know exactly what <span className="font-tagline italic">you&apos;re taking.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
-              Feelz formulations use ingredients well-established in the nutraceutical and wellness industry — many
+              Feelz formulations use ingredients well-established in the nutraceutical and wellness industry, many
               rooted in traditional Indian wellness practice (Ashwagandha, Brahmi, Bacopa), refined with modern
               scientific understanding. We never use proprietary blends to obscure quantities.
             </p>
@@ -229,7 +229,7 @@ export default function TrustPage() {
           <div className="mt-10 grid gap-4 sm:grid-cols-3">
             {SELECTION_STEPS.map((step) => (
               <div key={step.title} className="rounded-2xl border border-ink/15 p-6 text-center">
-                <h3 className="font-display text-base font-bold lowercase text-ink">{step.title}</h3>
+                <h3 className="font-display text-base font-bold text-ink">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink/60">{step.description}</p>
               </div>
             ))}
@@ -240,9 +240,9 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">responsible manufacturing</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              consistent quality. <span className="font-tagline italic">every single batch.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Manufacturing</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              Consistent quality. <span className="font-tagline italic">every single batch.</span>
             </h2>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -252,7 +252,7 @@ export default function TrustPage() {
                   <step.Icon className="h-5 w-5 text-ink" aria-hidden />
                 </div>
                 <p className="mt-3 text-[11px] font-semibold uppercase tracking-label text-ink/40">{step.tag}</p>
-                <h3 className="font-display mt-1 text-sm font-bold lowercase text-ink">{step.title}</h3>
+                <h3 className="font-display mt-1 text-sm font-bold text-ink">{step.title}</h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-ink/60">{step.description}</p>
               </div>
             ))}
@@ -263,12 +263,12 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">designed for everyday wellness</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              a wellness tool. <span className="font-tagline italic">not a medicine.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Designed for Everyday Wellness</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              A wellness tool. <span className="font-tagline italic">not a medicine.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
-              Feelz products are developed as wellness support tools, not as pharmaceutical treatments — designed to
+              Feelz products are developed as wellness support tools, not as pharmaceutical treatments, designed to
               support everyday mental wellness in situations most modern Indians face regularly.
             </p>
           </div>
@@ -278,7 +278,7 @@ export default function TrustPage() {
                 <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-cream">
                   <item.Icon className="h-5 w-5 text-ink" aria-hidden />
                 </div>
-                <h3 className="font-display mt-3 text-sm font-bold lowercase text-ink">{item.title}</h3>
+                <h3 className="font-display mt-3 text-sm font-bold text-ink">{item.title}</h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-ink/60">{item.description}</p>
               </div>
             ))}
@@ -293,9 +293,9 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">regulatory compliance</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              aligned with india&apos;s <span className="font-tagline italic">nutraceutical regulations.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Regulatory Compliance</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              Aligned with India&apos;s <span className="font-tagline italic">nutraceutical regulations.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are developed to align with nutraceutical safety guidelines and regulatory standards
@@ -320,12 +320,12 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">transparency</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              every label tells <span className="font-tagline italic">the full story.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Transparency</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              Every label tells <span className="font-tagline italic">the full story.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
-              We believe customers should always know what they are consuming — no ambiguity, no omissions.
+              We believe customers should always know what they are consuming: no ambiguity, no omissions.
             </p>
           </div>
 
@@ -340,7 +340,7 @@ export default function TrustPage() {
             </ul>
 
             <div className="rounded-2xl border border-ink bg-white p-6 shadow-lg">
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/40">sample product label</p>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/40">Sample Product Label</p>
               <h3 className="font-display mt-1 text-lg font-bold text-ink">Feelz Calm</h3>
               <p className="text-xs text-ink/50">Melt-in-mouth wellness strip · 30 strips · 15g</p>
               <dl className="mt-4 space-y-2 text-xs text-ink/70">
@@ -375,9 +375,9 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">responsible usage</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              use feelz <span className="font-tagline italic">safely &amp; effectively.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Usage</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              Use Feelz <span className="font-tagline italic">safely &amp; effectively.</span>
             </h2>
           </div>
 
@@ -387,7 +387,7 @@ export default function TrustPage() {
                 <span className="font-display mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-ink text-sm font-bold text-cream">
                   {step.step}
                 </span>
-                <h3 className="font-display mt-3 text-sm font-bold lowercase text-ink">{step.title}</h3>
+                <h3 className="font-display mt-3 text-sm font-bold text-ink">{step.title}</h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-ink/60">{step.description}</p>
               </div>
             ))}
@@ -410,7 +410,7 @@ export default function TrustPage() {
           </div>
 
           <div className="mx-auto mt-6 max-w-2xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-center text-xs leading-relaxed text-amber-800">
-            The Sleep strip contains 0.5mg Melatonin — a low, clinically referenced dose. It should only be used
+            The Sleep strip contains 0.5mg Melatonin, a low, clinically referenced dose. It should only be used
             before bedtime. Do not drive or operate machinery after taking the Sleep variant.
           </div>
         </div>
@@ -419,12 +419,12 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">continuous improvement</p>
-            <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-              we never stop <span className="font-tagline italic">getting better.</span>
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Continuous Improvement</p>
+            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+              We never stop <span className="font-tagline italic">getting better.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
-              Good enough is not good enough. We listen, we learn, and we evolve — because your trust depends on it.
+              Good enough is not good enough. We listen, we learn, and we evolve, because your trust depends on it.
             </p>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -433,7 +433,7 @@ export default function TrustPage() {
                 <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-full border border-ink/10 bg-cream">
                   <area.Icon className="h-5 w-5 text-ink" aria-hidden />
                 </div>
-                <h3 className="font-display mt-3 text-sm font-bold lowercase text-ink">{area.title}</h3>
+                <h3 className="font-display mt-3 text-sm font-bold text-ink">{area.title}</h3>
                 <p className="mt-1.5 text-xs leading-relaxed text-ink/60">{area.description}</p>
               </div>
             ))}
@@ -443,22 +443,22 @@ export default function TrustPage() {
 
       <section className="bg-white">
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">everyday support, not a replacement</p>
-          <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-            feelz is everyday support. <span className="font-tagline italic">not a replacement.</span>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Everyday Support, Not a Replacement</p>
+          <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+            Feelz is everyday support. <span className="font-tagline italic">not a replacement.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink/60">
-            Mental wellbeing is complex and deeply personal. Feelz products support everyday lifestyle challenges —
+            Mental wellbeing is complex and deeply personal. Feelz products support everyday lifestyle challenges;
             they are not a replacement for professional mental health care. If you&apos;re experiencing ongoing
             emotional distress or a condition requiring clinical support, Mindcafe&apos;s 1:1 counselling connects
             you with certified professionals in a private, judgment-free space.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <Link href="/counselling" className="pill-btn">
-              book a session →
+              Book a Session →
             </Link>
             <Link href="/counselling" className="pill-btn-outline">
-              learn more
+              Learn More
             </Link>
           </div>
         </div>
@@ -467,21 +467,21 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
           <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-center text-xs font-medium text-amber-800">
-            DRAFT — pending legal/compliance review, not final copy.
+            DRAFT: pending legal/compliance review, not final copy.
           </div>
 
           <div className="text-center">
             <ShieldCheck className="mx-auto h-8 w-8 text-ink" aria-hidden />
-            <h2 className="font-display mt-3 text-2xl font-bold lowercase text-ink">digital trust &amp; data privacy</h2>
+            <h2 className="font-display mt-3 text-2xl font-bold text-ink">Digital trust &amp; data privacy</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
-              The above covers what&apos;s in every Feelz strip — this part covers your account, payments, and data.
+              The above covers what&apos;s in every Feelz strip. This part covers your account, payments, and data.
             </p>
           </div>
 
           <div className="mt-10 space-y-8">
             {DIGITAL_TRUST_SECTIONS.map((section) => (
               <div key={section.title}>
-                <h3 className="font-display text-lg font-bold lowercase text-ink">{section.title}</h3>
+                <h3 className="font-display text-lg font-bold text-ink">{section.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-ink/70">{section.body}</p>
               </div>
             ))}
@@ -489,24 +489,24 @@ export default function TrustPage() {
 
           <div className="mt-10 flex items-center justify-center gap-2 rounded-xl border border-ink/10 bg-cream p-4">
             <ShieldCheck className="h-4 w-4 text-ink/60" aria-hidden />
-            <span className="text-sm font-medium text-ink">ISO/IEC 27001 — information security aligned</span>
+            <span className="text-sm font-medium text-ink">ISO/IEC 27001: information security aligned</span>
           </div>
         </div>
       </section>
 
       <section className="bg-white">
         <div className="mx-auto max-w-lg px-4 pb-20 text-center sm:px-6">
-          <h2 className="font-display text-xl font-bold lowercase text-ink">have questions about safety?</h2>
+          <h2 className="font-display text-xl font-bold text-ink">Have questions about safety?</h2>
           <p className="mt-2 text-sm text-ink/60">
-            If you&apos;d like more information about Feelz products, ingredients, or usage guidelines — our team
+            If you&apos;d like more information about Feelz products, ingredients, or usage guidelines, our team
             would be happy to help.
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
             <a href="mailto:team@mindcafe.app" className="text-sm font-semibold text-ink underline">
-              contact mindcafe support →
+              Contact Mindcafe Support →
             </a>
             <Link href="/feelz" className="text-sm font-semibold text-ink underline">
-              back to feelz
+              Back to Feelz
             </Link>
           </div>
         </div>

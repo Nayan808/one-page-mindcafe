@@ -74,9 +74,9 @@ export function CartDrawer() {
             <p className="text-sm text-ink/60">Loading cart…</p>
           ) : items.length === 0 ? (
             <div className="space-y-4 text-center">
-              <p className="text-sm text-ink/60">Your cart is empty — add a mood strip to get started.</p>
+              <p className="text-sm text-ink/60">Your cart is empty. Add a mood strip to get started.</p>
               <button type="button" onClick={goToProducts} className="pill-btn">
-                buy feelz
+                Buy Feelz
               </button>
             </div>
           ) : (
@@ -136,7 +136,7 @@ export function CartDrawer() {
               </div>
 
               <button type="button" onClick={handleCheckout} className="pill-btn w-full">
-                go to checkout
+                Go to Checkout
               </button>
             </div>
           )}

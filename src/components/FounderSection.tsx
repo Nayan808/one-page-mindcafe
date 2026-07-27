@@ -14,9 +14,9 @@ export function FounderSection() {
   return (
     <section className="bg-white">
       <Reveal className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">the person behind mindcafe</p>
-        <h2 className="font-display mt-2 text-2xl font-bold lowercase text-ink sm:text-3xl">
-          meet our <span className="font-tagline italic">founder.</span>
+        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">The Person Behind Mindcafe</p>
+        <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+          Meet our <span className="font-tagline italic">founder.</span>
         </h2>
 
         <div className="mt-10 flex flex-col gap-8 rounded-3xl border border-ink/25 p-6 sm:flex-row sm:items-center sm:p-8">
@@ -26,7 +26,7 @@ export function FounderSection() {
 
           <div className="text-center sm:text-left">
             <p className="font-tagline text-lg italic leading-snug text-ink sm:text-xl">
-              &ldquo;I built Mindcafe because I believe the mind deserves the same care as the body — and that every
+              &ldquo;I built Mindcafe because I believe the mind deserves the same care as the body, and that every
               Indian should have access to that care, regardless of where they are or what they can afford.&rdquo;
             </p>
 
@@ -35,8 +35,8 @@ export function FounderSection() {
 
             <p className="mt-4 text-sm leading-relaxed text-ink/60">
               At Mindcafe, we provide a safe, anonymous platform to share your feelings and connect with expert
-              advice. Alongside, our transformational programs — crafted by psychologists, neurologists, yoga
-              practitioners, and more — are here to guide you toward healing and growth.
+              advice. Alongside, our transformational programs, crafted by psychologists, neurologists, yoga
+              practitioners, and more, are here to guide you toward healing and growth.
             </p>
 
             <div className="mt-5 flex flex-wrap justify-center gap-2 sm:justify-start">

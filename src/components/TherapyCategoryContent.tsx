@@ -21,10 +21,10 @@ export function TherapyCategoryContent({ category }: { category: string }) {
   if (!therapyCategory) {
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold lowercase text-ink">category not found</h1>
-        <p className="mt-2 text-sm text-ink/60">That therapy category doesn&apos;t exist — here are the ones we offer.</p>
+        <h1 className="font-display text-2xl font-bold text-ink">Category not found</h1>
+        <p className="mt-2 text-sm text-ink/60">That therapy category doesn&apos;t exist. Here are the ones we offer.</p>
         <Link href="/counselling" className="pill-btn mt-6">
-          back to counselling
+          Back to Counselling
         </Link>
       </div>
     );
@@ -34,8 +34,8 @@ export function TherapyCategoryContent({ category }: { category: string }) {
     <div>
       <section className="border-b border-ink/10 bg-ink text-cream">
         <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">counselling</p>
-          <h1 className="font-display mt-3 text-3xl font-bold lowercase sm:text-4xl">{therapyCategory.title}</h1>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">Counselling</p>
+          <h1 className="font-display mt-3 text-3xl font-bold sm:text-4xl">{therapyCategory.title}</h1>
         </div>
       </section>
 
@@ -50,10 +50,10 @@ export function TherapyCategoryContent({ category }: { category: string }) {
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href={`/book-appointment?category=${therapyCategory.slug}`} className="pill-btn">
-            book a session
+            Book a Session
           </Link>
           <Link href={`/experts?category=${therapyCategory.slug}`} className="pill-btn-outline">
-            find an expert
+            Find an Expert
           </Link>
           <Link href="/counselling" className="text-xs font-medium uppercase tracking-label text-ink/50 hover:text-ink">
             back to counselling

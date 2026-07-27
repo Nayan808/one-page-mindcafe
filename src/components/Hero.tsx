@@ -37,10 +37,10 @@ function useSlideCycle(words: string[], intervalMs = 1800) {
 const HERO_CYCLE_WORDS = ["tear it.", "place it.", "feel it."];
 
 const MOOD_GRID = [
-  { key: "extrovert", label: "extrovert", src: "/products/extrovert.png" },
-  { key: "focus", label: "focus", src: "/products/focus.png" },
-  { key: "joy", label: "joy", src: "/products/joy.png" },
-  { key: "rest", label: "rest", src: "/products/rest.png" },
+  { key: "extrovert", label: "Extrovert", src: "/products/extrovert.png" },
+  { key: "focus", label: "Focus", src: "/products/focus.png" },
+  { key: "joy", label: "Joy", src: "/products/joy.png" },
+  { key: "rest", label: "Rest", src: "/products/rest.png" },
 ];
 
 const revealVariants = {
@@ -130,13 +130,13 @@ export function Hero() {
             new
           </span>
           <span className="inline-flex items-center px-1 text-ink sm:text-sm">
-            incubated at zo world
+            incubated at Zo World
             <span className="ml-1 inline-flex items-center gap-1 font-semibold">
               · distributed by
               <span className="relative h-4 w-4 overflow-hidden rounded-full">
                 <Image src="/press/zostel.png" alt="" fill className="object-cover" />
               </span>
-              zostel
+              Zostel
             </span>
           </span>
           <ArrowRight className="h-3 w-3 text-ink" aria-hidden />
@@ -147,7 +147,7 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold lowercase tracking-tight text-ink sm:text-6xl xl:text-7xl"
+          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight text-ink sm:text-6xl xl:text-7xl"
         >
           <span className="relative block h-[1.15em] overflow-hidden text-center">
             <AnimatePresence mode="popLayout">
@@ -179,8 +179,8 @@ export function Hero() {
           customVariants={revealVariants}
           className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-ink/70 sm:text-xl"
         >
-          fast-dissolving mood strips — focus, extrovert, joy &amp; rest, on demand. no water, no sugar, made in
-          india.
+          Fast-dissolving mood strips: Focus, Extrovert, Joy &amp; Rest, on demand. No water, no sugar, made in
+          India.
         </TimelineContent>
 
         <TimelineContent
@@ -194,7 +194,7 @@ export function Hero() {
             onClick={() => scrollTo("mood-picks")}
             className="inline-flex items-center justify-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90"
           >
-            shop feelz ↓
+            Shop Feelz ↓
           </button>
           <button
             onClick={() => scrollTo("zostel-locations")}
@@ -203,7 +203,7 @@ export function Hero() {
             <span className="relative h-4 w-4 overflow-hidden rounded-full">
               <Image src="/press/zostel.png" alt="" fill className="object-cover" />
             </span>
-            find at zostel
+            Find at Zostel
           </button>
         </TimelineContent>
 
@@ -214,7 +214,7 @@ export function Hero() {
           customVariants={revealVariants}
           className="mx-auto mt-6 flex max-w-lg flex-wrap items-center justify-center gap-2"
         >
-          {["fssai ✓", "no sugar", "no water needed", "made in india"].map((tag) => (
+          {["FSSAI ✓", "No Sugar", "No Water Needed", "Made in India"].map((tag) => (
             <span key={tag} className="badge-pill">
               {tag}
             </span>
@@ -231,7 +231,7 @@ export function Hero() {
             <span className="h-px w-10 bg-ink/20" aria-hidden />
           </div>
           <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
-            — our strips —
+            Our Strips
           </h2>
         </div>
 
@@ -259,18 +259,18 @@ export function Hero() {
                   type="button"
                   onClick={() => setDetailKey(mood.key)}
                   className="relative block aspect-[4/5] w-full overflow-hidden"
-                  aria-label={`View details for feelz ${mood.label}`}
+                  aria-label={`View details for Feelz ${mood.label}`}
                 >
                   <Image
                     src={mood.src}
-                    alt={`feelz ${mood.label} mood strip box`}
+                    alt={`Feelz ${mood.label} mood strip box`}
                     fill
                     sizes="(min-width: 768px) 22vw, 45vw"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
 
                   <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/95 via-ink/75 to-ink/10 p-4 text-left opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-label text-cream/60">what it does</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-label text-cream/60">What It Does</p>
                     <p className="mt-1 text-xs leading-snug text-cream/95 sm:text-[13px]">{style.description}</p>
                     <p className="mt-2 text-[10px] leading-snug text-cream/55">{style.ingredients.join(" · ")}</p>
                   </div>
@@ -278,7 +278,7 @@ export function Hero() {
 
                 <div className="flex flex-1 flex-col justify-between gap-3 p-4 text-left">
                   <div>
-                    <h3 className="font-display text-lg font-bold lowercase leading-none text-ink sm:text-xl">
+                    <h3 className="font-display text-lg font-bold leading-none text-ink sm:text-xl">
                       {mood.label}
                     </h3>
                     <p className="font-tagline mt-1 text-xs italic text-ink/60 sm:text-sm">{style.tagline}</p>
@@ -317,7 +317,7 @@ export function Hero() {
                         </button>
                       )}
                     </div>
-                    {hasError && <p className="mt-1.5 text-[10px] font-medium text-red-700/80">couldn&apos;t add — try again</p>}
+                    {hasError && <p className="mt-1.5 text-[10px] font-medium text-red-700/80">couldn&apos;t add, try again</p>}
                   </div>
                 </div>
               </TimelineContent>
@@ -341,18 +341,18 @@ export function Hero() {
         return (
           <Modal isOpen={!!detailKey} onClose={() => setDetailKey(null)} title={mood.label} panelClassName="max-w-md">
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl">
-              <Image src={mood.src} alt={`feelz ${mood.label} mood strip box`} fill sizes="28rem" className="object-cover" />
+              <Image src={mood.src} alt={`Feelz ${mood.label} mood strip box`} fill sizes="28rem" className="object-cover" />
             </div>
 
             <p className="font-tagline mt-3 text-sm italic text-ink/60">{style.tagline}</p>
 
             <div className="mt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">what it does</p>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">What It Does</p>
               <p className="mt-1 text-sm text-ink/80">{style.description}</p>
             </div>
 
             <div className="mt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">ingredients</p>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Ingredients</p>
               <p className="mt-1 text-sm text-ink/70">{style.ingredients.join(" · ")}</p>
             </div>
 
@@ -363,7 +363,7 @@ export function Hero() {
               {cartItem ? (
                 <button type="button" onClick={openDrawer} className="pill-btn gap-1.5 !py-2 text-xs">
                   <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                  cart · {cartItem.quantity}
+                  Cart · {cartItem.quantity}
                 </button>
               ) : (
                 <button
@@ -373,7 +373,7 @@ export function Hero() {
                   className="pill-btn gap-1.5 !py-2 text-xs disabled:opacity-40"
                 >
                   {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : isAdded ? <Check className="h-3.5 w-3.5" aria-hidden /> : <ShoppingBag className="h-3.5 w-3.5" aria-hidden />}
-                  {isAdded ? "added" : "add to cart"}
+                  {isAdded ? "Added" : "Add to Cart"}
                 </button>
               )}
             </div>

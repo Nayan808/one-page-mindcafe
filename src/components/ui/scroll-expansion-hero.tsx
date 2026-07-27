@@ -147,8 +147,8 @@ const ScrollExpandMedia = ({
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
-  const mediaWidth = (isMobileState ? 340 : 300) + scrollProgress * (isMobileState ? 650 : 1250);
-  const mediaHeight = (isMobileState ? 480 : 400) + scrollProgress * (isMobileState ? 220 : 400);
+  const mediaWidth = (isMobileState ? 340 : 260) + scrollProgress * (isMobileState ? 650 : 1290);
+  const mediaHeight = (isMobileState ? 480 : 340) + scrollProgress * (isMobileState ? 220 : 460);
   const textTranslateX = scrollProgress * (isMobileState ? 180 : 150);
 
   const firstWord = title ? title.split(" ")[0] : "";
@@ -190,20 +190,20 @@ const ScrollExpandMedia = ({
                 justify-center, no manual translate math needed. Mobile
                 keeps the original overlapping/centered "scroll expand"
                 look untouched (no lg: classes below affect it). */}
-            <div className="flex flex-col items-center justify-center w-full h-[100dvh] relative">
+            <div className="flex flex-col items-center justify-center w-full h-[100dvh] relative pt-6 sm:pt-8 lg:pt-10">
               <div
                 className={`flex items-center justify-center text-center gap-4 w-full relative z-10 transition-none flex-col ${
                   textBlend ? "mix-blend-difference" : "mix-blend-normal"
                 }`}
               >
                 <motion.h2
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-cream transition-none"
+                  className="font-hero text-4xl md:text-5xl lg:text-6xl font-normal tracking-tight text-cream transition-none"
                   style={{ transform: `translateX(-${textTranslateX}vw)` }}
                 >
                   {firstWord}
                 </motion.h2>
                 <motion.h2
-                  className="text-4xl md:text-5xl lg:text-6xl font-bold text-center text-blue-200 transition-none"
+                  className="font-hero text-4xl md:text-5xl lg:text-6xl font-normal text-center tracking-tight text-cream/85 transition-none"
                   style={{ transform: `translateX(${textTranslateX}vw)` }}
                 >
                   {restOfTitle}
