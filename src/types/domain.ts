@@ -23,6 +23,7 @@ export type Assessment = Tables["assessments"]["Row"];
 export type BusinessLead = Tables["business_leads"]["Row"];
 export type ContactMessage = Tables["contact_messages"]["Row"];
 export type ExpertBlockedSlot = Tables["expert_blocked_slots"]["Row"];
+export type AppointmentNote = Tables["appointment_notes"]["Row"];
 export type ExpertApplication = Tables["expert_applications"]["Row"];
 export type FeelzPreorder = Tables["feelz_preorders"]["Row"];
 export type Faq = Tables["faqs"]["Row"];

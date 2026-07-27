@@ -1,13 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { createClient } from "@/lib/supabase/client";
-import { getExpertAppointments, getExpertByProfileId, updateAppointmentStatus } from "@/lib/api";
-import type { Appointment, AppointmentWithCustomer } from "@/types/domain";
+import {
+  ApiError,
+  getExpertAppointmentNotes,
+  getExpertAppointments,
+  getExpertByProfileId,
+  saveAppointmentNote,
+  updateAppointmentStatus,
+  updateExpertProfile,
+  uploadExpertPhoto,
+} from "@/lib/api";
+import type { Appointment, AppointmentWithCustomer, Expert } from "@/types/domain";
 import { formatInr } from "@/lib/utils";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 
@@ -57,6 +66,143 @@ const NEXT_ACTIONS: Record<string, { label: string; nextStatus: Appointment["sta
   ],
 };
 
+// Private, per-session notes — never shown to the client, distinct from the
+// public appointment.notes the customer submitted at booking. Collapsed by
+// default so a card with no notes yet doesn't grow every list; "dirty" is
+// judged against initialNotes so a save right after loading immediately
+// reads as saved rather than staying in a stale "unsaved" state.
+function AppointmentNoteEditor({
+  initialNotes,
+  onSave,
+  isSaving,
+}: {
+  initialNotes: string;
+  onSave: (notes: string) => void;
+  isSaving: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(initialNotes);
+  const dirty = draft !== initialNotes;
+
+  return (
+    <div className="mt-3 border-t border-ink/10 pt-2.5">
+      <button type="button" onClick={() => setOpen((v) => !v)} className="text-xs font-medium text-ink/50 underline">
+        {open ? "hide private notes" : initialNotes ? "view private notes" : "add private notes"}
+      </button>
+      {open && (
+        <div className="mt-2">
+          <textarea
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            rows={3}
+            placeholder="Only visible to you — not shown to the client."
+            className="input text-xs"
+          />
+          <div className="mt-1.5 flex items-center gap-2">
+            <button
+              type="button"
+              disabled={!dirty || isSaving}
+              onClick={() => onSave(draft)}
+              className="pill-btn-outline !py-1 text-[11px]"
+            >
+              {isSaving ? "saving…" : "save notes"}
+            </button>
+            {!dirty && initialNotes && <span className="text-[11px] text-ink/40">saved</span>}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Self-edit of bio/long_bio/photo_url — the trigger
+// (prevent_expert_self_edit_overreach) already scopes what a non-admin
+// write is allowed to touch, so this form only exposes exactly those three
+// fields rather than the full admin edit form's surface (name, specialties,
+// is_bookable, ...).
+function ExpertProfileEditor({ expert }: { expert: Expert }) {
+  const queryClient = useQueryClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [bio, setBio] = useState(expert.bio ?? "");
+  const [longBio, setLongBio] = useState(expert.long_bio ?? "");
+  const [photoUrl, setPhotoUrl] = useState(expert.photo_url);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  const dirty = bio !== (expert.bio ?? "") || longBio !== (expert.long_bio ?? "") || photoUrl !== expert.photo_url;
+
+  const uploadPhoto = useMutation({
+    mutationFn: (file: File) => uploadExpertPhoto(createClient(), file),
+    onSuccess: (url) => {
+      setPhotoUrl(url);
+      setUploadError(null);
+    },
+    onError: (err) => setUploadError(err instanceof ApiError ? err.message : "Upload failed"),
+  });
+
+  const saveProfile = useMutation({
+    mutationFn: () => updateExpertProfile(createClient(), expert.id, { bio, longBio, photoUrl }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["expert-self", expert.profile_id] }),
+  });
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoUrl} alt="" className="h-14 w-14 shrink-0 rounded-full border border-ink/15 object-cover" />
+        ) : (
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-dashed border-ink/25 text-center text-[9px] leading-tight text-ink/40">
+            no photo
+          </div>
+        )}
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) uploadPhoto.mutate(file);
+            }}
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadPhoto.isPending}
+            className="pill-btn-outline !py-1.5 text-xs"
+          >
+            {uploadPhoto.isPending ? "uploading…" : "change photo"}
+          </button>
+          {uploadError && <p className="mt-1 text-[11px] text-red-600">{uploadError}</p>}
+        </div>
+      </div>
+
+      <div>
+        <label className="text-xs font-medium text-ink/60">short bio</label>
+        <textarea value={bio} onChange={(event) => setBio(event.target.value)} rows={2} className="input mt-1 text-sm" />
+      </div>
+      <div>
+        <label className="text-xs font-medium text-ink/60">full bio</label>
+        <textarea value={longBio} onChange={(event) => setLongBio(event.target.value)} rows={5} className="input mt-1 text-sm" />
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          disabled={!dirty || saveProfile.isPending}
+          onClick={() => saveProfile.mutate()}
+          className="pill-btn !py-1.5 text-xs"
+        >
+          {saveProfile.isPending ? "saving…" : "save profile"}
+        </button>
+        {!dirty && saveProfile.isSuccess && <span className="text-[11px] text-ink/40">saved</span>}
+      </div>
+    </div>
+  );
+}
+
 export default function ExpertDashboardPage() {
   const { status, user, profile } = useAuth();
   const router = useRouter();
@@ -68,6 +214,7 @@ export default function ExpertDashboardPage() {
   const [meetLinkDraft, setMeetLinkDraft] = useState("");
   const [meetLinkError, setMeetLinkError] = useState<string | null>(null);
   const [showAvailability, setShowAvailability] = useState(false);
+  const [showProfileEditor, setShowProfileEditor] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
   const [showAllHistory, setShowAllHistory] = useState(false);
 
@@ -85,6 +232,12 @@ export default function ExpertDashboardPage() {
   const appointmentsQuery = useQuery({
     queryKey: ["expert-appointments", expertQuery.data?.id],
     queryFn: () => getExpertAppointments(createClient(), expertQuery.data!.id),
+    enabled: Boolean(expertQuery.data),
+  });
+
+  const notesQuery = useQuery({
+    queryKey: ["expert-appointment-notes", expertQuery.data?.id],
+    queryFn: () => getExpertAppointmentNotes(createClient(), expertQuery.data!.id),
     enabled: Boolean(expertQuery.data),
   });
 
@@ -119,6 +272,12 @@ export default function ExpertDashboardPage() {
       setMeetLinkDraft("");
       setMeetLinkError(null);
     },
+  });
+
+  const saveNote = useMutation({
+    mutationFn: (args: { appointmentId: string; notes: string }) =>
+      saveAppointmentNote(createClient(), args.appointmentId, expertQuery.data!.id, args.notes),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["expert-appointment-notes", expertQuery.data?.id] }),
   });
 
   if (status !== "authenticated" || profile?.role !== "expert") {
@@ -287,6 +446,12 @@ export default function ExpertDashboardPage() {
           </div>
         )}
 
+        <AppointmentNoteEditor
+          initialNotes={notesQuery.data?.get(appointment.id)?.notes ?? ""}
+          onSave={(notes) => saveNote.mutate({ appointmentId: appointment.id, notes })}
+          isSaving={saveNote.isPending && saveNote.variables?.appointmentId === appointment.id}
+        />
+
         {isConfirming ? (
           <form
             className="mt-3 flex flex-col gap-2 sm:flex-row"
@@ -400,6 +565,24 @@ export default function ExpertDashboardPage() {
           {showAvailability && (
             <div className="mt-3 rounded-xl border border-ink/15 bg-white p-4">
               <AvailabilityManager expertId={expertQuery.data.id} />
+            </div>
+          )}
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">edit my profile</h2>
+            <button
+              type="button"
+              onClick={() => setShowProfileEditor((v) => !v)}
+              className="pill-btn-outline shrink-0 !py-1.5 text-xs"
+            >
+              {showProfileEditor ? "hide" : "show"}
+            </button>
+          </div>
+          {showProfileEditor && (
+            <div className="mt-3 rounded-xl border border-ink/15 bg-white p-4">
+              <ExpertProfileEditor expert={expertQuery.data} />
             </div>
           )}
         </section>

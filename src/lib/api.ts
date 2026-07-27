@@ -3,6 +3,7 @@ import type { Database } from "@/types/supabase";
 import type {
   Address,
   Appointment,
+  AppointmentNote,
   AppointmentWithCustomer,
   AppointmentWithExpert,
   Cart,
@@ -618,6 +619,66 @@ export async function unblockSlot(sb: Sb, expertId: string, dateStr: string, slo
     .eq("expert_id", expertId)
     .eq("blocked_at", slotToIso(dateStr, slotValue));
   throwOnError("unblockSlot", error);
+}
+
+// Private per-session notes (appointment_notes table) — RLS scopes these to
+// the assigned expert or admin only, deliberately excluding the customer
+// even though they can read the appointment row itself. Bulk-fetched once
+// per dashboard load and keyed by appointment_id so the UI can look one up
+// per card without a query per card.
+export async function getExpertAppointmentNotes(sb: Sb, expertId: string): Promise<Map<string, AppointmentNote>> {
+  const { data, error } = await sb.from("appointment_notes").select("*").eq("expert_id", expertId);
+  throwOnError("getExpertAppointmentNotes", error);
+  return new Map((data ?? []).map((n) => [n.appointment_id, n]));
+}
+
+// Upsert on appointment_id (unique constraint) so the first save creates the
+// row and every save after that just updates it in place.
+export async function saveAppointmentNote(sb: Sb, appointmentId: string, expertId: string, notes: string): Promise<void> {
+  const { error } = await sb
+    .from("appointment_notes")
+    .upsert({ appointment_id: appointmentId, expert_id: expertId, notes, updated_at: new Date().toISOString() }, { onConflict: "appointment_id" });
+  throwOnError("saveAppointmentNote", error);
+}
+
+// RLS (experts_self_write) + prevent_expert_self_edit_overreach now also
+// allow a self-edit of bio/long_bio/photo_url (see
+// 20260724110000_expert_self_edit_bio_photo) — everything else on the row
+// (name, specialties, is_bookable, etc.) stays admin-only and the trigger
+// rejects those columns outright for a non-admin caller.
+export async function updateExpertProfile(
+  sb: Sb,
+  expertId: string,
+  input: { bio: string; longBio: string; photoUrl: string | null },
+): Promise<void> {
+  const { error } = await sb
+    .from("experts")
+    .update({ bio: input.bio, long_bio: input.longBio, photo_url: input.photoUrl })
+    .eq("id", expertId);
+  throwOnError("updateExpertProfile", error);
+}
+
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// Expert-callable counterpart to uploadExpertPhotoAdmin (admin-api.ts) —
+// same bucket/validation/random-filename logic, now reachable by an expert
+// too via the expert_photos_expert_insert storage policy.
+export async function uploadExpertPhoto(sb: Sb, file: File): Promise<string> {
+  if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+    throw new ApiError("uploadExpertPhoto", { message: "Please upload a JPEG, PNG, or WebP image" });
+  }
+  if (file.size > MAX_PHOTO_BYTES) {
+    throw new ApiError("uploadExpertPhoto", { message: "Image must be under 5MB" });
+  }
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await sb.storage.from("expert-photos").upload(path, file, { upsert: false });
+  throwOnError("uploadExpertPhoto", uploadError);
+
+  const { data } = sb.storage.from("expert-photos").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export type IntakeFormInput = {
