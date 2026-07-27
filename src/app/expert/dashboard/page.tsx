@@ -24,6 +24,28 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
   failed: "payment failed",
 };
 
+// Normalizes a pasted meeting link (adding https:// if the scheme was left
+// off) and rejects obvious garbage — a bare "." or "test" would otherwise
+// normalize into something that looks like a URL (e.g. "https://.") but
+// goes nowhere, and there was nothing catching that before. A real check
+// (parses as a URL, has a hostname with an actual dot in it) instead of
+// just "did they type something".
+function normalizeMeetLink(raw: string): { value: string } | { error: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { error: "Paste a meeting link first." };
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    return { error: "That doesn't look like a valid link." };
+  }
+  if (!url.hostname.includes(".") || url.hostname.replace(/\./g, "").length === 0) {
+    return { error: "That doesn't look like a valid link." };
+  }
+  return { value: candidate };
+}
+
 const NEXT_ACTIONS: Record<string, { label: string; nextStatus: Appointment["status"] }[]> = {
   pending: [
     { label: "confirm", nextStatus: "confirmed" },
@@ -44,8 +66,10 @@ export default function ExpertDashboardPage() {
   // inline entry form open, and the draft link being typed for it.
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [meetLinkDraft, setMeetLinkDraft] = useState("");
+  const [meetLinkError, setMeetLinkError] = useState<string | null>(null);
   const [showAvailability, setShowAvailability] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
+  const [showAllHistory, setShowAllHistory] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/expert/login");
@@ -93,6 +117,7 @@ export default function ExpertDashboardPage() {
       queryClient.invalidateQueries({ queryKey: ["expert-appointments", expertQuery.data?.id] });
       setConfirmingId(null);
       setMeetLinkDraft("");
+      setMeetLinkError(null);
     },
   });
 
@@ -142,6 +167,7 @@ export default function ExpertDashboardPage() {
       if (action.nextStatus === "confirmed") {
         setConfirmingId(appointment.id);
         setMeetLinkDraft("");
+        setMeetLinkError(null);
         return;
       }
       updateStatus.mutate({ appointmentId: appointment.id, status: action.nextStatus });
@@ -266,32 +292,46 @@ export default function ExpertDashboardPage() {
             className="mt-3 flex flex-col gap-2 sm:flex-row"
             onSubmit={(event) => {
               event.preventDefault();
-              const trimmed = meetLinkDraft.trim();
-              if (!trimmed) return;
               // Experts often paste just the bare link (e.g.
               // "meet.google.com/abc-defg-hij") without the scheme — add
               // https:// if it's missing rather than rejecting it, since
-              // there's no reason to make them type that part.
-              const normalized = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
-              updateStatus.mutate({ appointmentId: appointment.id, status: "confirmed", meetLink: normalized });
+              // there's no reason to make them type that part. But
+              // something that isn't a real link at all (a stray ".",
+              // "test", ...) gets rejected instead of silently saved.
+              const result = normalizeMeetLink(meetLinkDraft);
+              if ("error" in result) {
+                setMeetLinkError(result.error);
+                return;
+              }
+              setMeetLinkError(null);
+              updateStatus.mutate({ appointmentId: appointment.id, status: "confirmed", meetLink: result.value });
             }}
           >
-            <input
-              type="text"
-              required
-              autoFocus
-              placeholder="paste the meeting link (Zoom, Meet, ...)"
-              value={meetLinkDraft}
-              onChange={(event) => setMeetLinkDraft(event.target.value)}
-              className="input !py-1.5 text-xs"
-            />
+            <div className="flex-1">
+              <input
+                type="text"
+                required
+                autoFocus
+                placeholder="paste the meeting link (Zoom, Meet, ...)"
+                value={meetLinkDraft}
+                onChange={(event) => {
+                  setMeetLinkDraft(event.target.value);
+                  setMeetLinkError(null);
+                }}
+                className="input !py-1.5 text-xs"
+              />
+              {meetLinkError && <p className="mt-1 text-[11px] text-red-600">{meetLinkError}</p>}
+            </div>
             <div className="flex gap-2">
               <button type="submit" disabled={updateStatus.isPending} className="pill-btn !py-1.5 text-xs">
                 confirm booking
               </button>
               <button
                 type="button"
-                onClick={() => setConfirmingId(null)}
+                onClick={() => {
+                  setConfirmingId(null);
+                  setMeetLinkError(null);
+                }}
                 className="pill-btn-outline !py-1.5 text-xs"
               >
                 back
@@ -347,14 +387,16 @@ export default function ExpertDashboardPage() {
         </div>
 
         <section>
-          <button
-            type="button"
-            onClick={() => setShowAvailability((v) => !v)}
-            className="flex w-full items-center justify-between text-sm font-semibold uppercase tracking-label text-ink/70"
-          >
-            manage availability
-            <span className="text-xs normal-case text-ink/50">{showAvailability ? "hide" : "show"}</span>
-          </button>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">manage availability</h2>
+            <button
+              type="button"
+              onClick={() => setShowAvailability((v) => !v)}
+              className="pill-btn-outline shrink-0 !py-1.5 text-xs"
+            >
+              {showAvailability ? "hide" : "show"}
+            </button>
+          </div>
           {showAvailability && (
             <div className="mt-3 rounded-xl border border-ink/15 bg-white p-4">
               <AvailabilityManager expertId={expertQuery.data.id} />
@@ -410,14 +452,28 @@ export default function ExpertDashboardPage() {
                       a.therapy_category.toLowerCase().includes(term) ||
                       (a.notes ?? "").toLowerCase().includes(term),
                   )
-                : past.slice(0, 1);
+                : showAllHistory
+                  ? past
+                  : past.slice(0, 1);
               return shown.length === 0 ? (
                 <p className="mt-3 text-sm text-ink/60">No matches in history.</p>
               ) : (
                 <>
                   <ul className="mt-3 space-y-2">{shown.map(renderAppointment)}</ul>
-                  {!term && past.length > 1 && (
-                    <p className="mt-2 text-xs text-ink/50">Showing the most recent — search above for older ones ({past.length} total).</p>
+                  {!term && !showAllHistory && past.length > 1 && (
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <p className="text-xs text-ink/50">Showing the most recent of {past.length} total.</p>
+                      <button type="button" onClick={() => setShowAllHistory(true)} className="pill-btn-outline shrink-0 !py-1.5 text-xs">
+                        show all
+                      </button>
+                    </div>
+                  )}
+                  {!term && showAllHistory && past.length > 1 && (
+                    <div className="mt-2 text-right">
+                      <button type="button" onClick={() => setShowAllHistory(false)} className="text-xs font-medium text-ink/60 underline">
+                        show recent only
+                      </button>
+                    </div>
                   )}
                 </>
               );

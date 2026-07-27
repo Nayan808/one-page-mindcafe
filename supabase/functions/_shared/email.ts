@@ -5,7 +5,7 @@
 // Silently no-ops (logs a warning, doesn't throw) when EMAIL_PROVIDER_API_KEY
 // isn't set, so a missing secret never turns into a failed order/booking —
 // notifications are best-effort, not load-bearing.
-const FROM_ADDRESS = "MindCafe <notifications@mindcafe.app>";
+const FROM_ADDRESS = "Mindcafe <notifications@mindcafe.app>";
 
 export const SITE_URL = Deno.env.get("SITE_URL") ?? "https://mindcafe.app";
 
@@ -76,7 +76,7 @@ export function renderEmail({ heading, paragraphs, cta }: EmailBody): { text: st
         </tr>
         <tr>
           <td style="padding:18px 32px 26px;border-top:1px solid #efe9dd;">
-            <p style="margin:0;font-size:11px;line-height:1.6;color:#a89f8f;">Automated notification from MindCafe — you're receiving this because of activity on your account.</p>
+            <p style="margin:0;font-size:11px;line-height:1.6;color:#a89f8f;">Automated notification from Mindcafe — you're receiving this because of activity on your account.</p>
           </td>
         </tr>
       </table>

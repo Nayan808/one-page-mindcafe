@@ -138,7 +138,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         amount: result.amount,
         currency: result.currency,
         razorpayOrderId: result.razorpay_order_id,
-        name: "MindCafe",
+        name: "Mindcafe",
         prefill: {
           name: profile?.full_name ?? guestName ?? undefined,
           email: user?.email ?? guestEmail ?? undefined,

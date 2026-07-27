@@ -228,7 +228,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         amount: result.amount,
         currency: result.currency,
         razorpayOrderId: result.razorpayOrderId,
-        name: "MindCafe Counselling",
+        name: "Mindcafe Counselling",
         prefill: {
           name: profile?.full_name ?? undefined,
           email: user.email ?? undefined,
