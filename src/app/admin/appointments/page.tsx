@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getAppointmentsAdmin, updateAppointmentAdmin, getAllExpertsAdmin } from "@/lib/admin-api";
+import { getAppointmentsAdmin, updateAppointmentAdmin, deleteAppointmentAdmin, getAllExpertsAdmin } from "@/lib/admin-api";
+import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
 import { Modal } from "@/components/Modal";
+import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatInr } from "@/lib/utils";
 import type { AppointmentWithDetails } from "@/types/domain";
@@ -22,6 +24,9 @@ const STATUS_FILTER_OPTIONS: FilterOption[] = [
 ];
 
 export default function AdminAppointmentsPage() {
+  const { profile } = useAuth();
+  const isSuperAdmin = profile?.role === "super_admin";
+  const confirmDialog = useConfirmDialog();
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
@@ -80,6 +85,14 @@ export default function AdminAppointmentsPage() {
       if (context?.previous) queryClient.setQueryData(appointmentsQueryKey, context.previous);
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: ["admin", "appointments"] }),
+  });
+
+  // RLS (appointments_super_admin_delete) enforces this server-side too —
+  // the isSuperAdmin check here is just so a plain admin doesn't even see
+  // the option, not the real security boundary.
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteAppointmentAdmin(createClient(), id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "appointments"] }),
   });
 
   const appointments = appointmentsQuery.data?.appointments ?? [];
@@ -181,7 +194,28 @@ export default function AdminAppointmentsPage() {
         />
       </div>
 
-      <AdminTable columns={columns} rows={appointments} getRowId={(a) => a.id} isLoading={appointmentsQuery.isLoading} emptyLabel="No appointments." />
+      <AdminTable
+        columns={columns}
+        rows={appointments}
+        getRowId={(a) => a.id}
+        isLoading={appointmentsQuery.isLoading}
+        emptyLabel="No appointments."
+        onDelete={
+          isSuperAdmin
+            ? async (a) => {
+                if (
+                  await confirmDialog({
+                    title: "delete appointment",
+                    message: "Delete this appointment permanently? This can't be undone.",
+                    danger: true,
+                  })
+                ) {
+                  remove.mutate(a.id);
+                }
+              }
+            : undefined
+        }
+      />
 
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-3 text-xs">

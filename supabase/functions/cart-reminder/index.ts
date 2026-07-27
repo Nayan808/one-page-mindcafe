@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
       paragraphs: ["Your feelz are still waiting in your cart. Head back to pick up where you left off."],
       cta: { label: "back to feelz", url: `${SITE_URL}/feelz` },
     });
-    await sendEmail(email, "You left something in your cart — MindCafe", text, html);
+    await sendEmail(email, "You left something in your cart — Mindcafe", text, html);
     await sb.from("carts").update({ reminder_sent_at: new Date().toISOString() }).eq("id", cart.id);
     sent++;
   }

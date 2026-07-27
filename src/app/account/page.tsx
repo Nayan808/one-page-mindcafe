@@ -267,9 +267,18 @@ function AppointmentsSection() {
             <li key={appointment.id} className="rounded-xl border border-ink/15 p-3 text-sm">
               <div className="flex items-center justify-between gap-2">
                 <span className="font-medium capitalize text-ink">{appointment.therapy_category.replace("-", " & ")}</span>
-                <span className="text-xs font-medium text-ink/60">
-                  {APPOINTMENT_STATUS_LABELS[appointment.status] ?? appointment.status}
-                </span>
+                {/* Payment status takes priority over booking status — a
+                    failed/incomplete payment never actually secured this
+                    slot, so showing "pending confirmation" (implying the
+                    booking itself just needs the expert to act) would be
+                    misleading. */}
+                {appointment.payment_status === "failed" ? (
+                  <span className="text-xs font-medium text-red-600">Payment failed</span>
+                ) : appointment.payment_status === "pending" ? (
+                  <span className="text-xs font-medium text-amber-600">Payment pending</span>
+                ) : (
+                  <span className="text-xs font-medium text-ink/60">{APPOINTMENT_STATUS_LABELS[appointment.status] ?? appointment.status}</span>
+                )}
               </div>
               {appointment.experts && <p className="mt-1 text-ink/60">with {appointment.experts.name}</p>}
               <p className="mt-1 text-ink/50">

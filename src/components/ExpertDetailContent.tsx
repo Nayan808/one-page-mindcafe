@@ -118,7 +118,7 @@ export function ExpertDetailContent({ expertId }: { expertId: string }) {
             <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">Specialisation</h2>
             <div className="mt-3 flex flex-wrap gap-1.5">
               {expert.modalities.map((modality) => (
-                <span key={modality} className="rounded-full border border-ink/20 bg-cream px-3 py-1.5 text-xs font-medium text-ink">
+                <span key={modality} className="rounded-full border border-ink/20 px-3 py-1.5 text-xs font-medium text-ink">
                   {modality}
                 </span>
               ))}
@@ -131,7 +131,7 @@ export function ExpertDetailContent({ expertId }: { expertId: string }) {
             <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">You might relate if…</h2>
             <ul className="mt-3 space-y-3">
               {expert.client_concerns.map((concern, index) => (
-                <li key={index} className="flex gap-2 rounded-xl border border-ink/15 bg-cream p-4 text-sm italic text-ink/70">
+                <li key={index} className="flex gap-2 rounded-xl border border-ink/15 bg-white p-4 text-sm italic text-ink/70">
                   <Quote className="mt-0.5 h-4 w-4 shrink-0 text-ink/30" aria-hidden />
                   <span>{concern}</span>
                 </li>

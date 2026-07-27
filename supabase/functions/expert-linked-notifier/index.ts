@@ -21,10 +21,10 @@ Deno.serve(async (req) => {
   if (!email) return jsonResponse({ skipped: true, reason: "no email on this account" });
 
   const { text, html } = renderEmail({
-    heading: "You're now listed as a MindCafe expert",
-    paragraphs: [`Hi ${record.name}, your account now has expert access on MindCafe.`, "Sign in with the same email and password you already use."],
+    heading: "You're now listed as a Mindcafe expert",
+    paragraphs: [`Hi ${record.name}, your account now has expert access on Mindcafe.`, "Sign in with the same email and password you already use."],
     cta: { label: "sign in", url: `${SITE_URL}/expert/login` },
   });
-  await sendEmail(email, "You're now listed as a MindCafe expert", text, html);
+  await sendEmail(email, "You're now listed as a Mindcafe expert", text, html);
   return jsonResponse({ sent: true });
 });

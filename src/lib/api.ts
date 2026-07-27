@@ -3,6 +3,7 @@ import type { Database } from "@/types/supabase";
 import type {
   Address,
   Appointment,
+  AppointmentNote,
   AppointmentWithCustomer,
   AppointmentWithExpert,
   Cart,
@@ -485,6 +486,199 @@ export async function updateAppointmentStatus(
     .update({ status, ...(meetLink ? { meet_link: meetLink } : {}) })
     .eq("id", appointmentId);
   throwOnError("updateAppointmentStatus", error);
+}
+
+// Local day boundaries (not UTC) for a yyyy-mm-dd string — same reasoning
+// as toLocalDateInputValue in BookAppointmentContent.tsx: the date input's
+// value is a local calendar date, so "that day" has to be computed in the
+// browser's local timezone, not sliced off a UTC ISO string.
+function localDayBounds(dateStr: string): { start: string; end: string } {
+  const start = new Date(`${dateStr}T00:00:00`);
+  const end = new Date(`${dateStr}T23:59:59.999`);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function toHHMM(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+export type BookedSlotInfo = { appointmentId: string; customerName: string | null; scheduledAt: string };
+
+export type SlotAvailability = {
+  // Already booked by a real (non-cancelled) appointment — keyed by "HH:MM".
+  // Carries who booked it + the appointment id, so the availability
+  // manager can show "booked by {name}" and offer a reschedule action —
+  // not just a bare yes/no like the booking form needs.
+  booked: Map<string, BookedSlotInfo>;
+  // Manually blocked by the expert/admin — togglable via block/unblockSlot.
+  blocked: Set<string>;
+};
+
+// Two sources of "can't be booked": slots another customer has already
+// booked (any non-cancelled appointment for this expert that day, EXCLUDING
+// ones whose payment definitively failed — a failed payment never actually
+// secured the slot, so it shouldn't block anyone else from taking it) and
+// slots the expert/admin manually blocked out (expert_blocked_slots).
+// A 'pending' payment still blocks, deliberately — that's the brief window
+// right after checkout starts, before the webhook lands; treating it as
+// free would risk two customers landing on the same slot mid-checkout.
+// Kept separate rather than pre-unioned — the availability-management UI
+// needs to tell them apart (a booked slot can't be unblocked, a manually
+// blocked one can), while the booking form just treats the union as
+// unavailable.
+export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: string): Promise<SlotAvailability> {
+  const { start, end } = localDayBounds(dateStr);
+
+  const [appointmentsRes, blockedRes] = await Promise.all([
+    sb
+      .from("appointments")
+      .select("id, user_id, scheduled_at")
+      .eq("expert_id", expertId)
+      .neq("status", "cancelled")
+      .neq("payment_status", "failed")
+      .gte("scheduled_at", start)
+      .lte("scheduled_at", end),
+    sb.from("expert_blocked_slots").select("blocked_at").eq("expert_id", expertId).gte("blocked_at", start).lte("blocked_at", end),
+  ]);
+  throwOnError("getSlotAvailability (appointments)", appointmentsRes.error);
+  throwOnError("getSlotAvailability (blocked)", blockedRes.error);
+
+  const appointments = appointmentsRes.data ?? [];
+  // appointments.user_id has no FK to public.profiles (only to
+  // auth.users) — same two-query merge pattern as getExpertAppointments.
+  const userIds = [...new Set(appointments.map((a) => a.user_id))];
+  const nameById = new Map<string, string | null>();
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await sb.from("profiles").select("id, full_name").in("id", userIds);
+    throwOnError("getSlotAvailability (profiles)", profilesError);
+    for (const p of profiles ?? []) nameById.set(p.id, p.full_name);
+  }
+
+  const booked = new Map<string, BookedSlotInfo>();
+  for (const a of appointments) {
+    if (!a.scheduled_at) continue;
+    booked.set(toHHMM(a.scheduled_at), {
+      appointmentId: a.id,
+      customerName: nameById.get(a.user_id) ?? null,
+      scheduledAt: a.scheduled_at,
+    });
+  }
+  const blocked = new Set<string>();
+  for (const b of blockedRes.data ?? []) {
+    blocked.add(toHHMM(b.blocked_at));
+  }
+  return { booked, blocked };
+}
+
+// Union of both sources — what the booking form treats as unavailable to
+// select, without needing to distinguish why.
+export async function getUnavailableSlots(sb: Sb, expertId: string, dateStr: string): Promise<Set<string>> {
+  const { booked, blocked } = await getSlotAvailability(sb, expertId, dateStr);
+  return new Set([...booked.keys(), ...blocked]);
+}
+
+// Reschedules one appointment — RLS (appointments_update) and the
+// prevent_customer_appointment_tampering trigger both already allow the
+// assigned expert (or admin) to change scheduled_at freely; no new DB work
+// needed for this, just the call.
+export async function updateAppointmentSchedule(sb: Sb, appointmentId: string, scheduledAt: string): Promise<void> {
+  const { error } = await sb.from("appointments").update({ scheduled_at: scheduledAt }).eq("id", appointmentId);
+  throwOnError("updateAppointmentSchedule", error);
+}
+
+// RLS (experts_self_write) lets the expert update their own row or an
+// admin update any row; prevent_expert_self_edit_overreach restricts a
+// self-edit to just these two columns.
+export async function updateExpertWorkingHours(sb: Sb, expertId: string, startHour: number, endHour: number): Promise<void> {
+  const { error } = await sb
+    .from("experts")
+    .update({ working_hours_start: startHour, working_hours_end: endHour })
+    .eq("id", expertId);
+  throwOnError("updateExpertWorkingHours", error);
+}
+
+// dateStr + slotValue ("HH:MM") -> the same local-time construction
+// BookAppointmentContent.tsx uses for scheduled_at, so a blocked slot and
+// a booked slot land on the exact same instant if they're "the same slot".
+function slotToIso(dateStr: string, slotValue: string): string {
+  return new Date(`${dateStr}T${slotValue}:00`).toISOString();
+}
+
+// RLS (expert_blocked_slots_write) only lets the assigned expert or an
+// admin block/unblock their own slots.
+export async function blockSlot(sb: Sb, expertId: string, dateStr: string, slotValue: string): Promise<void> {
+  const { error } = await sb.from("expert_blocked_slots").insert({ expert_id: expertId, blocked_at: slotToIso(dateStr, slotValue) });
+  throwOnError("blockSlot", error);
+}
+
+export async function unblockSlot(sb: Sb, expertId: string, dateStr: string, slotValue: string): Promise<void> {
+  const { error } = await sb
+    .from("expert_blocked_slots")
+    .delete()
+    .eq("expert_id", expertId)
+    .eq("blocked_at", slotToIso(dateStr, slotValue));
+  throwOnError("unblockSlot", error);
+}
+
+// Private per-session notes (appointment_notes table) — RLS scopes these to
+// the assigned expert or admin only, deliberately excluding the customer
+// even though they can read the appointment row itself. Bulk-fetched once
+// per dashboard load and keyed by appointment_id so the UI can look one up
+// per card without a query per card.
+export async function getExpertAppointmentNotes(sb: Sb, expertId: string): Promise<Map<string, AppointmentNote>> {
+  const { data, error } = await sb.from("appointment_notes").select("*").eq("expert_id", expertId);
+  throwOnError("getExpertAppointmentNotes", error);
+  return new Map((data ?? []).map((n) => [n.appointment_id, n]));
+}
+
+// Upsert on appointment_id (unique constraint) so the first save creates the
+// row and every save after that just updates it in place.
+export async function saveAppointmentNote(sb: Sb, appointmentId: string, expertId: string, notes: string): Promise<void> {
+  const { error } = await sb
+    .from("appointment_notes")
+    .upsert({ appointment_id: appointmentId, expert_id: expertId, notes, updated_at: new Date().toISOString() }, { onConflict: "appointment_id" });
+  throwOnError("saveAppointmentNote", error);
+}
+
+// RLS (experts_self_write) + prevent_expert_self_edit_overreach now also
+// allow a self-edit of bio/long_bio/photo_url (see
+// 20260724110000_expert_self_edit_bio_photo) — everything else on the row
+// (name, specialties, is_bookable, etc.) stays admin-only and the trigger
+// rejects those columns outright for a non-admin caller.
+export async function updateExpertProfile(
+  sb: Sb,
+  expertId: string,
+  input: { bio: string; longBio: string; photoUrl: string | null },
+): Promise<void> {
+  const { error } = await sb
+    .from("experts")
+    .update({ bio: input.bio, long_bio: input.longBio, photo_url: input.photoUrl })
+    .eq("id", expertId);
+  throwOnError("updateExpertProfile", error);
+}
+
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const ALLOWED_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+// Expert-callable counterpart to uploadExpertPhotoAdmin (admin-api.ts) —
+// same bucket/validation/random-filename logic, now reachable by an expert
+// too via the expert_photos_expert_insert storage policy.
+export async function uploadExpertPhoto(sb: Sb, file: File): Promise<string> {
+  if (!ALLOWED_PHOTO_TYPES.includes(file.type)) {
+    throw new ApiError("uploadExpertPhoto", { message: "Please upload a JPEG, PNG, or WebP image" });
+  }
+  if (file.size > MAX_PHOTO_BYTES) {
+    throw new ApiError("uploadExpertPhoto", { message: "Image must be under 5MB" });
+  }
+
+  const ext = file.name.split(".").pop() ?? "jpg";
+  const path = `${crypto.randomUUID()}.${ext}`;
+  const { error: uploadError } = await sb.storage.from("expert-photos").upload(path, file, { upsert: false });
+  throwOnError("uploadExpertPhoto", uploadError);
+
+  const { data } = sb.storage.from("expert-photos").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 export type IntakeFormInput = {
