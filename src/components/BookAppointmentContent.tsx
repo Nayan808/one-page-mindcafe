@@ -3,16 +3,24 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
-import { getActiveExperts, getSiteSetting, getTherapyCategories, validateAppointmentCoupon, type CouponPreview } from "@/lib/api";
+import {
+  getActiveExperts,
+  getSiteSetting,
+  getTherapyCategories,
+  getUnavailableSlots,
+  validateAppointmentCoupon,
+  type CouponPreview,
+} from "@/lib/api";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useCreateAppointment, useAppointmentTracking } from "@/lib/query/hooks";
 import { ExpertCard } from "@/components/ExpertCard";
 import { AppointmentIntakeForm } from "@/components/AppointmentIntakeForm";
 import { formatInr } from "@/lib/utils";
+import { generateTimeSlots, toLocalDateInputValue, MAX_BOOKING_DAYS_AHEAD } from "@/lib/timeSlots";
 
 const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
   pending: "Pending confirmation",
@@ -28,33 +36,6 @@ const PAYMENT_STATUS_LABELS: Record<string, string> = {
 };
 
 const DEFAULT_SESSION_PRICE = 999;
-const SESSION_MINUTES = 45;
-const SLOT_START_HOUR = 9; // 9:00 AM
-const SLOT_END_HOUR = 19; // last slot starts by 6:45 PM, so sessions wrap up by 7:30 PM
-
-// 45-minute slots for the given yyyy-mm-dd date, within business hours.
-// Slots already in the past (for today) are excluded — there's no
-// real-time availability backend, so this is a starting point the copy
-// already frames as "we'll confirm what actually works," not a hard lock.
-function generateTimeSlots(dateStr: string): { value: string; label: string }[] {
-  if (!dateStr) return [];
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const now = new Date();
-  const isToday = now.getFullYear() === year && now.getMonth() + 1 === month && now.getDate() === day;
-
-  const slots: { value: string; label: string }[] = [];
-  for (let minutes = SLOT_START_HOUR * 60; minutes < SLOT_END_HOUR * 60; minutes += SESSION_MINUTES) {
-    const hour = Math.floor(minutes / 60);
-    const minute = minutes % 60;
-    const slotDate = new Date(year, month - 1, day, hour, minute);
-    if (isToday && slotDate.getTime() < now.getTime()) continue;
-
-    const label = slotDate.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
-    const value = `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
-    slots.push({ value, label });
-  }
-  return slots;
-}
 
 function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
   const { data: appointment, isLoading } = useAppointmentTracking(appointmentId);
@@ -118,11 +99,11 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
   const router = useRouter();
   const createAppointment = useCreateAppointment();
 
-  // Defaults to "all" (no specific preference) rather than nothing, so
-  // this step never actually blocks booking — picking a category is a
-  // refinement, not a requirement, and "all" is a real, storable value
+  // Defaults to "other" (no specific category picked) rather than nothing,
+  // so this step never actually blocks booking — picking a category is a
+  // refinement, not a requirement, and "other" is a real, storable value
   // (see the appointments_therapy_category_check migration).
-  const [category, setCategory] = useState<string | null>(initialCategory ?? "all");
+  const [category, setCategory] = useState<string | null>(initialCategory ?? "other");
   const [expertId, setExpertId] = useState<string | null>(initialExpertId);
   // Arriving with an expert already picked (e.g. from that expert's own
   // "book with {name}" link elsewhere on the site) should feel like that
@@ -132,6 +113,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
   const [expertSearch, setExpertSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedSlot, setSelectedSlot] = useState("");
+  const [unavailablePopupSlot, setUnavailablePopupSlot] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -151,6 +133,16 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     queryFn: () => getTherapyCategories(createClient()),
   });
 
+  // Only meaningful once both an expert and a date are picked — real
+  // slot availability (already booked, or manually blocked by the expert)
+  // for that specific expert on that specific day.
+  const unavailableSlotsQuery = useQuery({
+    queryKey: ["appointments", "unavailable-slots", expertId, selectedDate],
+    queryFn: () => getUnavailableSlots(createClient(), expertId!, selectedDate),
+    enabled: !!expertId && !!selectedDate,
+  });
+  const unavailableSlots = unavailableSlotsQuery.data ?? new Set<string>();
+
   // Every active expert, always — not filtered by category. Expert choice
   // now comes before category in the flow below, so there's no category
   // yet to filter by at that point; showing the full roster up front (and
@@ -161,16 +153,21 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     queryFn: () => getActiveExperts(createClient()),
   });
 
-  const selectedExpert = (expertsQuery.data ?? []).find((expert) => expert.id === expertId);
+  // The public /experts directory shows every active expert (bookable or
+  // not — non-bookable ones still get a "view details" card there), but
+  // the booking flow itself only ever offers experts actually taking
+  // bookings right now.
+  const bookableExperts = (expertsQuery.data ?? []).filter((expert) => expert.is_bookable !== false);
+  const selectedExpert = bookableExperts.find((expert) => expert.id === expertId);
   const expertSearchTerm = expertSearch.trim().toLowerCase();
   const filteredExperts = expertSearchTerm
-    ? (expertsQuery.data ?? []).filter(
+    ? bookableExperts.filter(
         (expert) =>
           expert.name.toLowerCase().includes(expertSearchTerm) ||
           expert.certifications.some((c) => c.toLowerCase().includes(expertSearchTerm)) ||
           expert.specialties.some((s) => s.toLowerCase().includes(expertSearchTerm)),
       )
-    : (expertsQuery.data ?? []);
+    : bookableExperts;
 
   // Only trust the applied preview while the input still matches what was
   // checked — editing the code after applying shouldn't silently keep
@@ -242,34 +239,10 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       </div>
 
       <div>
-        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. category</h2>
-        <p className="mt-1 text-xs text-ink/50">Optional — leave it on &ldquo;all&rdquo; if you're not sure.</p>
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => setCategory("all")}
-            className={`rounded-xl border p-3 text-left text-sm font-medium ${category === "all" ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
-          >
-            all
-          </button>
-          {(categoriesQuery.data ?? []).map((c) => (
-            <button
-              key={c.slug}
-              type="button"
-              onClick={() => setCategory(c.slug)}
-              className={`rounded-xl border p-3 text-left text-sm font-medium ${category === c.slug ? "border-ink bg-ink text-cream" : "border-ink/15 bg-cream text-ink hover:border-ink/40"}`}
-            >
-              {c.title}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. expert</h2>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">1. expert</h2>
         {expertsQuery.isLoading ? (
           <p className="mt-3 text-sm text-ink/60">Loading experts…</p>
-        ) : (expertsQuery.data ?? []).length === 0 ? (
+        ) : bookableExperts.length === 0 ? (
           <p className="mt-3 text-sm text-ink/60">No experts listed yet — check back soon.</p>
         ) : !showAllExperts && selectedExpert ? (
           <div className="mt-3">
@@ -325,24 +298,41 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         )}
       </div>
 
+      <div>
+        <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. category</h2>
+        <p className="mt-1 text-xs text-ink/50">Optional — leave it as &ldquo;other&rdquo; if you're not sure.</p>
+        <select value={category ?? "other"} onChange={(event) => setCategory(event.target.value)} className="input mt-3">
+          {(categoriesQuery.data ?? []).map((c) => (
+            <option key={c.slug} value={c.slug}>
+              {c.title}
+            </option>
+          ))}
+          <option value="other">other</option>
+        </select>
+      </div>
+
       {category && (
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">3. preferred time</h2>
           <p className="mt-1 text-xs text-ink/50">Sessions run 45 minutes. Pick a date, then a slot.</p>
 
+          <label className="mb-1 mt-3 block text-xs font-medium text-ink/70">date</label>
           <input
             type="date"
             value={selectedDate}
-            min={new Date().toISOString().slice(0, 10)}
+            min={toLocalDateInputValue(new Date())}
+            max={toLocalDateInputValue(new Date(Date.now() + MAX_BOOKING_DAYS_AHEAD * 24 * 60 * 60 * 1000))}
             onChange={(event) => {
               setSelectedDate(event.target.value);
               setSelectedSlot("");
+              setUnavailablePopupSlot(null);
             }}
-            className="input mt-3"
+            className="input bg-white"
           />
 
           {selectedDate && (
             <div className="mt-3">
+              <label className="mb-1 block text-xs font-medium text-ink/70">time slot</label>
               {(() => {
                 const slots = generateTimeSlots(selectedDate);
                 if (slots.length === 0) {
@@ -350,20 +340,53 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
                 }
                 return (
                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
-                    {slots.map((slot) => (
-                      <button
-                        key={slot.value}
-                        type="button"
-                        onClick={() => setSelectedSlot(slot.value)}
-                        className={`rounded-lg border px-2 py-2 text-xs font-medium ${
-                          selectedSlot === slot.value
-                            ? "border-ink bg-ink text-cream"
-                            : "border-ink/15 bg-cream text-ink hover:border-ink/40"
-                        }`}
-                      >
-                        {slot.label}
-                      </button>
-                    ))}
+                    {slots.map((slot) => {
+                      const isUnavailable = unavailableSlots.has(slot.value);
+                      return (
+                        <div key={slot.value} className="relative">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              isUnavailable ? setUnavailablePopupSlot(slot.value) : setSelectedSlot(slot.value)
+                            }
+                            aria-disabled={isUnavailable}
+                            style={
+                              isUnavailable
+                                ? {
+                                    backgroundImage:
+                                      "linear-gradient(to top right, transparent calc(50% - 1px), rgb(17 17 16 / 0.35) calc(50% - 1px), rgb(17 17 16 / 0.35) calc(50% + 1px), transparent calc(50% + 1px))",
+                                  }
+                                : undefined
+                            }
+                            className={`w-full rounded-lg border px-2 py-2 text-xs font-medium ${
+                              isUnavailable
+                                ? "cursor-not-allowed border-ink/10 bg-white text-ink/40"
+                                : selectedSlot === slot.value
+                                  ? "border-ink bg-ink text-cream"
+                                  : "border-ink/15 bg-white text-ink hover:border-ink/40"
+                            }`}
+                          >
+                            {slot.label}
+                          </button>
+
+                          {unavailablePopupSlot === slot.value && (
+                            <div className="absolute left-1/2 top-full z-10 mt-1.5 w-max -translate-x-1/2 rounded-lg border border-ink/15 bg-ink px-2.5 py-1.5 text-[11px] font-medium text-cream shadow-lg">
+                              <div className="flex items-center gap-1.5">
+                                not available
+                                <button
+                                  type="button"
+                                  onClick={() => setUnavailablePopupSlot(null)}
+                                  aria-label="Dismiss"
+                                  className="text-cream/70 hover:text-cream"
+                                >
+                                  <X className="h-3 w-3" aria-hidden />
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               })()}

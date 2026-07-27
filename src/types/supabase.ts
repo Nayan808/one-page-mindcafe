@@ -545,6 +545,20 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["contact_messages"]["Row"]>;
         Relationships: [];
       };
+      expert_blocked_slots: {
+        Row: {
+          id: string;
+          expert_id: string;
+          blocked_at: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["expert_blocked_slots"]["Row"]> & {
+          expert_id: string;
+          blocked_at: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["expert_blocked_slots"]["Row"]>;
+        Relationships: [];
+      };
       faqs: {
         Row: {
           id: string;

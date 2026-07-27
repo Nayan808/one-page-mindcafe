@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getExpertAppointments, getExpertByProfileId, updateAppointmentStatus } from "@/lib/api";
 import type { Appointment, AppointmentWithCustomer } from "@/types/domain";
 import { formatInr } from "@/lib/utils";
+import { AvailabilityManager } from "@/components/AvailabilityManager";
 
 const STATUS_LABELS: Record<string, string> = {
   pending: "Pending",
@@ -42,6 +43,7 @@ export default function ExpertDashboardPage() {
   // inline entry form open, and the draft link being typed for it.
   const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [meetLinkDraft, setMeetLinkDraft] = useState("");
+  const [showAvailability, setShowAvailability] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") router.replace("/expert/login");
@@ -341,6 +343,22 @@ export default function ExpertDashboardPage() {
             <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">needs response</p>
           </div>
         </div>
+
+        <section>
+          <button
+            type="button"
+            onClick={() => setShowAvailability((v) => !v)}
+            className="flex w-full items-center justify-between text-sm font-semibold uppercase tracking-label text-ink/70"
+          >
+            manage availability
+            <span className="text-xs normal-case text-ink/50">{showAvailability ? "hide" : "show"}</span>
+          </button>
+          {showAvailability && (
+            <div className="mt-3 rounded-xl border border-ink/15 bg-white p-4">
+              <AvailabilityManager expertId={expertQuery.data.id} />
+            </div>
+          )}
+        </section>
 
         <section>
           <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">needs your response ({pending.length})</h2>

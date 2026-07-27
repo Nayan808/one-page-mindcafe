@@ -487,6 +487,93 @@ export async function updateAppointmentStatus(
   throwOnError("updateAppointmentStatus", error);
 }
 
+// Local day boundaries (not UTC) for a yyyy-mm-dd string — same reasoning
+// as toLocalDateInputValue in BookAppointmentContent.tsx: the date input's
+// value is a local calendar date, so "that day" has to be computed in the
+// browser's local timezone, not sliced off a UTC ISO string.
+function localDayBounds(dateStr: string): { start: string; end: string } {
+  const start = new Date(`${dateStr}T00:00:00`);
+  const end = new Date(`${dateStr}T23:59:59.999`);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+function toHHMM(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+export type SlotAvailability = {
+  // Already booked by a real (non-cancelled) appointment — informational
+  // only, nothing to toggle.
+  booked: Set<string>;
+  // Manually blocked by the expert/admin — togglable via block/unblockSlot.
+  blocked: Set<string>;
+};
+
+// Two sources of "can't be booked": slots another customer has already
+// booked (any non-cancelled appointment for this expert that day) and
+// slots the expert/admin manually blocked out (expert_blocked_slots).
+// Kept separate rather than pre-unioned — the availability-management UI
+// needs to tell them apart (a booked slot can't be unblocked, a manually
+// blocked one can), while the booking form just treats the union as
+// unavailable.
+export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: string): Promise<SlotAvailability> {
+  const { start, end } = localDayBounds(dateStr);
+
+  const [appointmentsRes, blockedRes] = await Promise.all([
+    sb
+      .from("appointments")
+      .select("scheduled_at")
+      .eq("expert_id", expertId)
+      .neq("status", "cancelled")
+      .gte("scheduled_at", start)
+      .lte("scheduled_at", end),
+    sb.from("expert_blocked_slots").select("blocked_at").eq("expert_id", expertId).gte("blocked_at", start).lte("blocked_at", end),
+  ]);
+  throwOnError("getSlotAvailability (appointments)", appointmentsRes.error);
+  throwOnError("getSlotAvailability (blocked)", blockedRes.error);
+
+  const booked = new Set<string>();
+  for (const a of appointmentsRes.data ?? []) {
+    if (a.scheduled_at) booked.add(toHHMM(a.scheduled_at));
+  }
+  const blocked = new Set<string>();
+  for (const b of blockedRes.data ?? []) {
+    blocked.add(toHHMM(b.blocked_at));
+  }
+  return { booked, blocked };
+}
+
+// Union of both sources — what the booking form treats as unavailable to
+// select, without needing to distinguish why.
+export async function getUnavailableSlots(sb: Sb, expertId: string, dateStr: string): Promise<Set<string>> {
+  const { booked, blocked } = await getSlotAvailability(sb, expertId, dateStr);
+  return new Set([...booked, ...blocked]);
+}
+
+// dateStr + slotValue ("HH:MM") -> the same local-time construction
+// BookAppointmentContent.tsx uses for scheduled_at, so a blocked slot and
+// a booked slot land on the exact same instant if they're "the same slot".
+function slotToIso(dateStr: string, slotValue: string): string {
+  return new Date(`${dateStr}T${slotValue}:00`).toISOString();
+}
+
+// RLS (expert_blocked_slots_write) only lets the assigned expert or an
+// admin block/unblock their own slots.
+export async function blockSlot(sb: Sb, expertId: string, dateStr: string, slotValue: string): Promise<void> {
+  const { error } = await sb.from("expert_blocked_slots").insert({ expert_id: expertId, blocked_at: slotToIso(dateStr, slotValue) });
+  throwOnError("blockSlot", error);
+}
+
+export async function unblockSlot(sb: Sb, expertId: string, dateStr: string, slotValue: string): Promise<void> {
+  const { error } = await sb
+    .from("expert_blocked_slots")
+    .delete()
+    .eq("expert_id", expertId)
+    .eq("blocked_at", slotToIso(dateStr, slotValue));
+  throwOnError("unblockSlot", error);
+}
+
 export type IntakeFormInput = {
   age: string;
   pronouns: string;
