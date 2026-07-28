@@ -26,7 +26,7 @@ export function CounsellingHero() {
           certified professionals, private &amp; confidential
         </span>
 
-        <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl leading-[1.05] font-bold tracking-tight sm:text-5xl">
+        <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl leading-[1.05] font-bold tracking-tight sm:text-6xl">
           Professional mental health <span className="font-tagline italic">support.</span>
         </h1>
 

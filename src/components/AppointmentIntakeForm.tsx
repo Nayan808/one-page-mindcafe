@@ -58,7 +58,7 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
       className="mt-6 rounded-xl border border-ink/15 bg-white p-5 text-left"
     >
       <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Before Your Session</p>
-      <h2 className="font-display mt-1 text-lg font-bold text-ink">Tell your counsellor a bit about you</h2>
+      <h2 className="font-display mt-1 text-xl font-bold text-ink">Tell your counsellor a bit about you</h2>
       <p className="mt-1 text-xs text-ink/50">
         This helps your expert prepare. They&apos;ll see your answers on their dashboard before the session.
       </p>

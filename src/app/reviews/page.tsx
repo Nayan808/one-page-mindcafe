@@ -30,7 +30,7 @@ export default function ReviewsPage() {
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Reviews</p>
-        <h1 className="font-display mt-3 text-3xl font-bold text-ink sm:text-4xl">What people say</h1>
+        <h1 className="font-display mt-3 text-4xl font-bold text-ink sm:text-5xl">What people say</h1>
       </div>
 
       <div className="mt-8 flex flex-wrap justify-center gap-2">

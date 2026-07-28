@@ -151,7 +151,7 @@ function CorporateTestimonials() {
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-      <h2 className="font-display text-center text-2xl font-bold text-ink sm:text-3xl">What teams say</h2>
+      <h2 className="font-display text-center text-3xl font-bold text-ink sm:text-4xl">What teams say</h2>
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {reviews.map((review) => (
           <div key={review.id} className="rounded-2xl border border-ink/10 bg-cream p-5 text-left text-sm">
@@ -180,7 +180,7 @@ export default function BusinessPage() {
           <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
             Build Healthier Teams
           </span>
-          <h1 className="font-display mx-auto mt-6 max-w-xl text-4xl font-bold leading-[1.05] sm:text-5xl">
+          <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
             Improve <span className="font-tagline italic">team performance.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
@@ -213,7 +213,7 @@ export default function BusinessPage() {
       <section className="bg-white">
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Who We Work With</p>
-        <h2 className="font-display mt-2 text-center text-2xl font-bold text-ink sm:text-3xl">
+        <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
           Built for every type of <span className="font-tagline italic">organisation</span>.
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -251,7 +251,7 @@ export default function BusinessPage() {
       <section className="bg-white">
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Recognition & Impact</p>
-        <h2 className="font-display mt-2 text-center text-2xl font-bold text-ink sm:text-3xl">
+        <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
           Making an impact, <span className="font-tagline italic">together</span>.
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
@@ -273,7 +273,7 @@ export default function BusinessPage() {
       <section className="bg-white">
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">How It Works</p>
-        <h2 className="font-display mt-2 text-center text-2xl font-bold text-ink sm:text-3xl">
+        <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
           From enquiry to <span className="font-tagline italic">lasting impact</span>.
         </h2>
 
@@ -302,7 +302,7 @@ export default function BusinessPage() {
 
       <section id="whats-included" className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <h2 className="font-display text-center text-2xl font-bold text-ink sm:text-3xl">What&apos;s included</h2>
+        <h2 className="font-display text-center text-3xl font-bold text-ink sm:text-4xl">What&apos;s included</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {OFFERINGS.map((offering) => (
             <div key={offering.title} className="overflow-hidden rounded-2xl border border-ink/15 shadow-sm">
@@ -324,7 +324,7 @@ export default function BusinessPage() {
       <section id="get-in-touch" className="bg-white">
         <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="text-center">
-          <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">
+          <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
             Grow with <span className="font-tagline italic">Mindcafe.</span>
           </h2>
           <p className="mt-3 text-sm text-ink/60">Tell us about your team and we&apos;ll get back within a business day.</p>

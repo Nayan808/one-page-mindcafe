@@ -35,7 +35,7 @@ export function LegalPage({ type }: { type: "privacy" | "terms" | "refund" }) {
         <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-medium text-amber-800">
           DRAFT: pending legal review, not final copy.
         </div>
-        <h1 className="font-display text-3xl font-bold text-ink">{title}</h1>
+        <h1 className="font-display text-4xl font-bold text-ink">{title}</h1>
         <div className="mt-6 space-y-4 text-sm leading-relaxed text-ink/70">
           {body.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>

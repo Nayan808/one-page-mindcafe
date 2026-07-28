@@ -65,7 +65,7 @@ function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
   return (
     <div className="mx-auto max-w-lg space-y-4 px-4 py-16 text-center sm:px-6">
       <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Booking Requested</p>
-      <h1 className="font-display text-3xl font-bold text-ink">You&apos;re on the list</h1>
+      <h1 className="font-display text-4xl font-bold text-ink">You&apos;re on the list</h1>
       <p className="text-sm text-ink/60">
         We&apos;ll confirm your session shortly. This updates automatically, no need to refresh.
       </p>
@@ -235,7 +235,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     <div className="mx-auto max-w-2xl space-y-8 px-4 py-16 sm:px-6">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Counselling</p>
-        <h1 className="font-display mt-3 text-3xl font-bold text-ink sm:text-4xl">Book a session</h1>
+        <h1 className="font-display mt-3 text-4xl font-bold text-ink sm:text-5xl">Book a session</h1>
         <p className="mx-auto mt-3 max-w-md text-sm text-ink/60">
           Tell us what you're looking for. We&apos;ll confirm the details with you directly.
         </p>
@@ -467,7 +467,7 @@ function BookAppointmentInner() {
   if (status === "unauthenticated") {
     return (
       <div className="mx-auto max-w-sm px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Sign in to book a session</h1>
+        <h1 className="font-display text-3xl font-bold text-ink">Sign in to book a session</h1>
         <p className="mt-2 text-sm text-ink/60">Sign in to book counselling with one of our experts.</p>
         <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
           Sign In

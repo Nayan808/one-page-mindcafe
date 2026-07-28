@@ -116,7 +116,7 @@ export function AssessmentQuiz() {
     return (
       <div className="mx-auto max-w-lg px-4 py-16 text-center sm:px-6">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Your Result</p>
-        <h1 className="font-display mt-3 text-3xl font-bold text-ink">
+        <h1 className="font-display mt-3 text-4xl font-bold text-ink">
           {category?.title ?? CATEGORY_LABELS[result] ?? result}
         </h1>
         {category?.body && <p className="mt-4 text-sm leading-relaxed text-ink/70">{category.body}</p>}
@@ -147,7 +147,7 @@ export function AssessmentQuiz() {
         ))}
       </div>
 
-      <h1 className="font-display mt-6 text-center text-2xl font-bold text-ink sm:text-3xl">
+      <h1 className="font-display mt-6 text-center text-3xl font-bold text-ink sm:text-4xl">
         {question.question}
       </h1>
 

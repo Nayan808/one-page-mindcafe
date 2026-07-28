@@ -15,7 +15,7 @@ export function FounderSection() {
     <section className="bg-white">
       <Reveal className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">The Person Behind Mindcafe</p>
-        <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
+        <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
           Meet our <span className="font-tagline italic">founder.</span>
         </h2>
 

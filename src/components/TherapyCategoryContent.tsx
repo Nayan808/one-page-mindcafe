@@ -21,7 +21,7 @@ export function TherapyCategoryContent({ category }: { category: string }) {
   if (!therapyCategory) {
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-xl flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Category not found</h1>
+        <h1 className="font-display text-3xl font-bold text-ink">Category not found</h1>
         <p className="mt-2 text-sm text-ink/60">That therapy category doesn&apos;t exist. Here are the ones we offer.</p>
         <Link href="/counselling" className="pill-btn mt-6">
           Back to Counselling
@@ -35,7 +35,7 @@ export function TherapyCategoryContent({ category }: { category: string }) {
       <section className="border-b border-ink/10 bg-ink text-cream">
         <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">Counselling</p>
-          <h1 className="font-display mt-3 text-3xl font-bold sm:text-4xl">{therapyCategory.title}</h1>
+          <h1 className="font-display mt-3 text-4xl font-bold sm:text-5xl">{therapyCategory.title}</h1>
         </div>
       </section>
 

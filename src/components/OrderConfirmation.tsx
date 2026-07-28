@@ -53,7 +53,7 @@ export function OrderConfirmation({
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
-      <h2 className="font-display text-3xl font-bold">Order {order.order_number}</h2>
+      <h2 className="font-display text-4xl font-bold">Order {order.order_number}</h2>
 
       {isPendingConfirmation && (
         <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-700">

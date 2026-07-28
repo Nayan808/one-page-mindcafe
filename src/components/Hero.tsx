@@ -106,8 +106,10 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="bg-cream">
-      <div className="mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
+    <section ref={timelineRef} className="relative overflow-hidden bg-cream">
+      <Image src="/feelz/hero-bg.png" alt="" fill priority className="object-cover" />
+      <div className="absolute inset-0 bg-cream/35" />
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="div"
           animationNum={0}
@@ -147,7 +149,7 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight text-ink sm:text-6xl xl:text-7xl"
+          className="font-display mx-auto mt-6 max-w-3xl text-5xl leading-[1.05] font-bold tracking-tight text-ink sm:text-7xl xl:text-8xl"
         >
           <span className="relative block h-[1.15em] overflow-hidden text-center">
             <AnimatePresence mode="popLayout">
@@ -200,8 +202,8 @@ export function Hero() {
             onClick={() => scrollTo("zostel-locations")}
             className="inline-flex items-center justify-center gap-2 rounded-full border border-ink/30 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5"
           >
-            <span className="relative h-4 w-4 overflow-hidden rounded-full">
-              <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+            <span className="relative h-5 w-5 shrink-0">
+              <Image src="/press/zostel-star.png" alt="" fill className="object-contain" />
             </span>
             Find at Zostel
           </button>
@@ -230,7 +232,7 @@ export function Hero() {
             <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
             <span className="h-px w-10 bg-ink/20" aria-hidden />
           </div>
-          <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
+          <h2 className="font-display mt-4 text-3xl font-bold uppercase tracking-[0.3em] text-ink sm:text-4xl">
             Our Strips
           </h2>
         </div>

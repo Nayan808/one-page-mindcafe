@@ -24,7 +24,7 @@ function LoginContent() {
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4 py-16 sm:px-6">
-      <h1 className="font-display text-3xl font-bold text-ink">Sign in</h1>
+      <h1 className="font-display text-4xl font-bold text-ink">Sign in</h1>
       <p className="mt-2 text-sm text-ink/60">Sign in to shop Feelz, book counselling, and track your orders.</p>
 
       {oauthError && (

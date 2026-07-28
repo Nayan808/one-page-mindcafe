@@ -37,7 +37,7 @@ export function UseCasesSection() {
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
         <Reveal className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Built for Modern India</p>
-          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+          <h2 className="font-display mt-2 text-5xl font-bold tracking-tight text-ink sm:text-6xl">
             For every moment your brain needs support
           </h2>
         </Reveal>

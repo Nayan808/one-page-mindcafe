@@ -35,6 +35,7 @@ body {
 .font-tagline {
   font-family: var(--font-serif-italic), serif;
   font-style: italic;
+  font-weight: 600;
 }
 
 .font-hero {
@@ -42,19 +43,26 @@ body {
 }
 
 /* Site-wide premium heading treatment: every top-level section/page
-   heading (h1/h2 carrying .font-display) renders in the same editorial
-   serif as the homepage hero instead of the bold geometric sans, for a
-   more luxury/premium feel. Smaller sub-headings, numerals, badges, and
-   the nav wordmark keep .font-display's original sans (they use h3/span/p,
-   never h1/h2, so this rule doesn't reach them). Instrument Serif only
-   ships a single (400) weight, so font-bold is neutralized here too —
-   the utility class stays in each heading's JSX for the size-scale
-   convention, but this rule wins since Tailwind's utilities live in a
-   lower-priority cascade layer than this plain, unlayered CSS. */
+   heading (h1/h2 carrying .font-display) renders in Bodoni Moda (bold,
+   extreme-contrast display serif) instead of the geometric sans, for a
+   confident, high-fashion editorial feel. Smaller sub-headings, numerals,
+   badges, and the nav wordmark keep .font-display's original sans (they
+   use h3/span/p, never h1/h2, so this rule doesn't reach them).
+   Deliberately does NOT set font-size here — each heading already has its
+   own responsive Tailwind size scale (text-2xl sm:text-3xl for compact
+   eyebrow-style headings, text-4xl sm:text-6xl xl:text-7xl for the big
+   hero headline, etc.). A flat font-size override here would replace
+   ALL of those per-breakpoint values with one fixed number, since this
+   unlayered rule wins over Tailwind's utilities regardless of the media
+   query they're scoped to — that's what silently shrank every heading
+   to ~1.35× the base 16px instead of making them bigger. To make a
+   heading visually larger, bump its own text-*xl classes in its JSX
+   instead of adding a font-size here. */
 h1.font-display,
 h2.font-display {
   font-family: var(--font-serif-display), serif;
-  font-weight: 400;
+  font-optical-sizing: auto;
+  font-weight: 800;
 }
 
 .tracking-label {
