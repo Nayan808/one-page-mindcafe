@@ -78,7 +78,7 @@ export default function AwardsPage() {
             Since December 2021
           </span>
           <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
-            Awards &amp; <span className="font-tagline italic">achievements.</span>
+            Awards &amp; <span className="font-tagline italic text-brand">achievements.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
             From a single startup in Bhopal to a <strong className="text-cream">nationally recognised mental
@@ -106,7 +106,7 @@ export default function AwardsPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Featured Recognition</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              Three awards that define our <span className="font-tagline italic">commitment.</span>
+              Three awards that define our <span className="font-tagline italic text-brand">commitment.</span>
             </h2>
           </div>
 
@@ -137,7 +137,7 @@ export default function AwardsPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Impact by Numbers</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              The results speak <span className="font-tagline italic">for themselves.</span>
+              The results speak <span className="font-tagline italic text-brand">for themselves.</span>
             </h2>
           </div>
 
@@ -157,7 +157,7 @@ export default function AwardsPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Other Recognition</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              Recognised by <span className="font-tagline italic">leaders across India.</span>
+              Recognised by <span className="font-tagline italic text-brand">leaders across India.</span>
             </h2>
           </div>
 
@@ -180,7 +180,7 @@ export default function AwardsPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
           <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
-            Be part of the <span className="font-tagline italic">next chapter.</span>
+            Be part of the <span className="font-tagline italic text-brand">next chapter.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-md text-sm text-ink/60">
             The best milestones are the ones we make together. Join Mindcafe in building a mentally healthier India.

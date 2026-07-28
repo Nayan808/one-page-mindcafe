@@ -144,7 +144,7 @@ export default function TrustPage() {
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <h1 className="font-display mx-auto max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
-            Our commitment to <span className="font-tagline italic">safety &amp; transparency.</span>
+            Our commitment to <span className="font-tagline italic text-brand">safety &amp; transparency.</span>
           </h1>
           <p className="mt-4 text-sm text-cream/70 sm:text-base">
             At Mindcafe, we believe mental wellness products should be built on a foundation of safety,
@@ -170,7 +170,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">What Guides Us</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              Three principles that guide <span className="font-tagline italic">everything we do.</span>
+              Three principles that guide <span className="font-tagline italic text-brand">everything we do.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are designed to support everyday mental wellbeing through convenient, on-the-go wellness
@@ -218,7 +218,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Carefully Selected</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              You know exactly what <span className="font-tagline italic">you&apos;re taking.</span>
+              You know exactly what <span className="font-tagline italic text-brand">you&apos;re taking.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz formulations use ingredients well-established in the nutraceutical and wellness industry, many
@@ -242,7 +242,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Manufacturing</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              Consistent quality. <span className="font-tagline italic">every single batch.</span>
+              Consistent quality. <span className="font-tagline italic text-brand">every single batch.</span>
             </h2>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -265,7 +265,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Designed for Everyday Wellness</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              A wellness tool. <span className="font-tagline italic">not a medicine.</span>
+              A wellness tool. <span className="font-tagline italic text-brand">not a medicine.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are developed as wellness support tools, not as pharmaceutical treatments, designed to
@@ -295,7 +295,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Regulatory Compliance</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              Aligned with India&apos;s <span className="font-tagline italic">nutraceutical regulations.</span>
+              Aligned with India&apos;s <span className="font-tagline italic text-brand">nutraceutical regulations.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are developed to align with nutraceutical safety guidelines and regulatory standards
@@ -322,7 +322,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Transparency</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              Every label tells <span className="font-tagline italic">the full story.</span>
+              Every label tells <span className="font-tagline italic text-brand">the full story.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               We believe customers should always know what they are consuming: no ambiguity, no omissions.
@@ -377,7 +377,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Usage</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              Use Feelz <span className="font-tagline italic">safely &amp; effectively.</span>
+              Use Feelz <span className="font-tagline italic text-brand">safely &amp; effectively.</span>
             </h2>
           </div>
 
@@ -421,7 +421,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Continuous Improvement</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              We never stop <span className="font-tagline italic">getting better.</span>
+              We never stop <span className="font-tagline italic text-brand">getting better.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Good enough is not good enough. We listen, we learn, and we evolve, because your trust depends on it.
@@ -445,7 +445,7 @@ export default function TrustPage() {
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Everyday Support, Not a Replacement</p>
           <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-            Feelz is everyday support. <span className="font-tagline italic">not a replacement.</span>
+            Feelz is everyday support. <span className="font-tagline italic text-brand">not a replacement.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink/60">
             Mental wellbeing is complex and deeply personal. Feelz products support everyday lifestyle challenges;

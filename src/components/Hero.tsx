@@ -115,9 +115,12 @@ export function Hero() {
           animationNum={0}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="relative mb-4 h-12 w-12 overflow-hidden rounded-full shadow-lg"
+          className="relative mb-4 flex h-20 w-20 flex-col items-center justify-center gap-1 overflow-hidden rounded-full border border-white/40 bg-white/30 shadow-lg backdrop-blur-md"
         >
-          <Image src="/press/zostel.png" alt="Zostel" fill className="object-cover" />
+          <span className="relative h-8 w-8 shrink-0">
+            <Image src="/press/zostel-star.png" alt="" fill className="object-contain" />
+          </span>
+          <span className="text-[8px] font-semibold uppercase tracking-widest text-ink/70">Zostel</span>
         </TimelineContent>
 
         <TimelineContent
@@ -134,11 +137,7 @@ export function Hero() {
           <span className="inline-flex items-center px-1 text-ink sm:text-sm">
             incubated at Zo World
             <span className="ml-1 inline-flex items-center gap-1 font-semibold">
-              · distributed by
-              <span className="relative h-4 w-4 overflow-hidden rounded-full">
-                <Image src="/press/zostel.png" alt="" fill className="object-cover" />
-              </span>
-              Zostel
+              · distributed by Zostel
             </span>
           </span>
           <ArrowRight className="h-3 w-3 text-ink" aria-hidden />
@@ -167,7 +166,7 @@ export function Hero() {
           </span>
           <span className="block text-center">
             in{" "}
-            <span className="bg-gradient-to-r from-[#2461e0] to-[#17b88b] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand via-brand-blush to-brand-navy bg-clip-text text-transparent">
               sixty seconds
             </span>
             .

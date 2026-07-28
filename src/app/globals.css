@@ -3,6 +3,20 @@
 :root {
   --cream: #f6f1e6;
   --ink: #111110;
+
+  /* Brand palette (client-supplied, matches the mauve in mindcafe-icon.png
+     almost exactly — #96667c sampled vs. #986178 specified). Mauve is the
+     dominant accent (buttons, links, key highlights); navy is the
+     secondary accent, used more sparingly. The neutral cream/ink base is
+     unchanged by design — brand color is layered on as accents, not a
+     replacement for the site's backgrounds/body text, to keep the
+     minimalist feel the client asked for. The three tints (blush, purple,
+     wine) are supporting colors for smaller, occasional accents. */
+  --brand-mauve: #986178;
+  --brand-navy: #2d4160;
+  --brand-blush: #cf96af;
+  --brand-purple: #a66c98;
+  --brand-wine: #4d2a39;
 }
 
 @theme inline {
@@ -10,6 +24,11 @@
   --color-ink: var(--ink);
   --color-background: var(--cream);
   --color-foreground: var(--ink);
+  --color-brand: var(--brand-mauve);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-blush: var(--brand-blush);
+  --color-brand-purple: var(--brand-purple);
+  --color-brand-wine: var(--brand-wine);
   --font-display: var(--font-display);
   --font-serif-italic: var(--font-serif-italic);
   --font-serif-display: var(--font-serif-display);
@@ -70,19 +89,19 @@ h2.font-display {
 }
 
 .input {
-  @apply w-full rounded-xl border border-ink/20 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-ink focus:outline-none;
+  @apply w-full rounded-xl border border-ink/20 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none;
 }
 
 .pill-btn {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90 disabled:opacity-40;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90 disabled:opacity-40;
 }
 
 .pill-btn-outline {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-ink/25 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5 disabled:opacity-40;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-brand/40 bg-transparent px-5 py-2.5 text-sm font-medium text-brand transition hover:bg-brand/5 disabled:opacity-40;
 }
 
 .pill-btn-white {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-cream px-6 py-3 text-sm font-medium text-ink shadow-sm transition hover:opacity-90;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-cream px-6 py-3 text-sm font-medium text-brand shadow-sm transition hover:opacity-90;
 }
 
 .badge-pill {

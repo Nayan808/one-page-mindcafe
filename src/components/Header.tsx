@@ -94,7 +94,9 @@ export function Header() {
   return (
     <header
       className={`sticky top-0 z-30 transition-colors duration-300 ${
-        headerSolid ? "border-b border-ink/10 bg-cream/90 backdrop-blur" : "border-b border-transparent bg-transparent"
+        headerSolid
+          ? "border-b border-white/50 bg-cream/60 shadow-[0_1px_24px_-8px_rgba(77,42,57,0.18)] backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent"
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
@@ -108,15 +110,15 @@ export function Header() {
         </Link>
 
         <nav
-          className={`hidden items-center gap-6 text-[11px] font-medium tracking-label sm:flex ${
-            headerSolid ? "text-ink/60" : "text-white/80"
+          className={`font-display hidden items-center gap-7 text-sm font-semibold tracking-label sm:flex ${
+            headerSolid ? "text-ink/70" : "text-white/90"
           }`}
         >
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className={`uppercase ${headerSolid ? "hover:text-ink" : "hover:text-white"}`}
+              className={`uppercase transition-colors ${headerSolid ? "hover:text-brand" : "hover:text-white"}`}
             >
               {link.label}
             </Link>

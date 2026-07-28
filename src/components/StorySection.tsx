@@ -56,7 +56,7 @@ export function StorySection() {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Our Story</p>
             <h2 className="font-display mt-2 text-4xl font-bold leading-[1.1] text-ink sm:text-5xl">
-              A simple belief that <span className="font-tagline italic">changed everything.</span>
+              A simple belief that <span className="font-tagline italic text-brand">changed everything.</span>
             </h2>
             <blockquote className="font-tagline mt-6 border-l-2 border-ink/20 pl-4 text-lg italic text-ink/80">
               &ldquo;Taking care of your brain shouldn&apos;t feel like a last resort.&rdquo;

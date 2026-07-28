@@ -108,7 +108,7 @@ export function AwardsJourneySection() {
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Our Journey</p>
           <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-            Every milestone, every <span className="font-tagline italic">step forward.</span>
+            Every milestone, every <span className="font-tagline italic text-brand">step forward.</span>
           </h2>
         </div>
 

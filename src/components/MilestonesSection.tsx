@@ -42,7 +42,7 @@ export function MilestonesSection() {
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Our Journey</p>
           <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-            Milestones <span className="font-tagline italic">worth telling.</span>
+            Milestones <span className="font-tagline italic text-brand">worth telling.</span>
           </h2>
         </div>
 

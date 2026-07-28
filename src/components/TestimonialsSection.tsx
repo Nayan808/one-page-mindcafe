@@ -70,7 +70,7 @@ export function TestimonialsSection() {
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Real Stories</p>
             <h2 className="font-display mt-2 text-5xl font-bold tracking-tight text-ink sm:text-6xl">
-              India is <span className="font-tagline italic">healing</span>.
+              India is <span className="font-tagline italic text-brand">healing</span>.
             </h2>
           </div>
           {summary && (

@@ -181,7 +181,7 @@ export default function BusinessPage() {
             Build Healthier Teams
           </span>
           <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
-            Improve <span className="font-tagline italic">team performance.</span>
+            Improve <span className="font-tagline italic text-brand">team performance.</span>
           </h1>
           <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
             For companies, universities, startups, and institutions seeking structured mental wellness solutions
@@ -214,7 +214,7 @@ export default function BusinessPage() {
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Who We Work With</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
-          Built for every type of <span className="font-tagline italic">organisation</span>.
+          Built for every type of <span className="font-tagline italic text-brand">organisation</span>.
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {ORG_TYPES.map((org) => (
@@ -252,7 +252,7 @@ export default function BusinessPage() {
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Recognition & Impact</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
-          Making an impact, <span className="font-tagline italic">together</span>.
+          Making an impact, <span className="font-tagline italic text-brand">together</span>.
         </h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {AWARDS.map((award) => (
@@ -274,7 +274,7 @@ export default function BusinessPage() {
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">How It Works</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
-          From enquiry to <span className="font-tagline italic">lasting impact</span>.
+          From enquiry to <span className="font-tagline italic text-brand">lasting impact</span>.
         </h2>
 
         <div className="relative mt-16">
@@ -325,7 +325,7 @@ export default function BusinessPage() {
         <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="text-center">
           <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
-            Grow with <span className="font-tagline italic">Mindcafe.</span>
+            Grow with <span className="font-tagline italic text-brand">Mindcafe.</span>
           </h2>
           <p className="mt-3 text-sm text-ink/60">Tell us about your team and we&apos;ll get back within a business day.</p>
         </div>

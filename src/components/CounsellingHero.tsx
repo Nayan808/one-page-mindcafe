@@ -27,7 +27,7 @@ export function CounsellingHero() {
         </span>
 
         <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl leading-[1.05] font-bold tracking-tight sm:text-6xl">
-          Professional mental health <span className="font-tagline italic">support.</span>
+          Professional mental health <span className="font-tagline italic text-brand">support.</span>
         </h1>
 
         <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
