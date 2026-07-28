@@ -110,11 +110,11 @@ export function FilterDropdown({
                     setIsOpen(false);
                     setSearch("");
                   }}
-                  className={`flex w-full items-center justify-between px-3 py-2 text-left text-xs hover:bg-ink/5 ${
+                  className={`flex w-full min-w-0 items-center justify-between gap-2 px-3 py-2 text-left text-xs hover:bg-ink/5 ${
                     opt.value === value ? "font-semibold text-ink" : "text-ink/70"
                   }`}
                 >
-                  {opt.label}
+                  <span className="min-w-0 truncate">{opt.label}</span>
                   {opt.value === value && <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />}
                 </button>
               ))

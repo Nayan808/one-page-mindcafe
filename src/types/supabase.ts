@@ -431,6 +431,8 @@ export interface Database {
           languages: string[];
           therapist_note: string | null;
           sort_order: number;
+          working_hours_start: number;
+          working_hours_end: number;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["experts"]["Row"]> & { name: string };
@@ -543,6 +545,35 @@ export interface Database {
           email: string;
         };
         Update: Partial<Database["public"]["Tables"]["contact_messages"]["Row"]>;
+        Relationships: [];
+      };
+      expert_blocked_slots: {
+        Row: {
+          id: string;
+          expert_id: string;
+          blocked_at: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["expert_blocked_slots"]["Row"]> & {
+          expert_id: string;
+          blocked_at: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["expert_blocked_slots"]["Row"]>;
+        Relationships: [];
+      };
+      appointment_notes: {
+        Row: {
+          id: string;
+          appointment_id: string;
+          expert_id: string;
+          notes: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["appointment_notes"]["Row"]> & {
+          appointment_id: string;
+          expert_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["appointment_notes"]["Row"]>;
         Relationships: [];
       };
       faqs: {

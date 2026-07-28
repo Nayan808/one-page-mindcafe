@@ -29,6 +29,7 @@ const NAV = [
   { href: "/admin", label: "dashboard", Icon: BarChart3 },
   { href: "/admin/orders", label: "orders", Icon: ShoppingBag },
   { href: "/admin/appointments", label: "appointments", Icon: Calendar },
+  { href: "/admin/availability", label: "availability", Icon: Calendar },
   { href: "/admin/products", label: "products", Icon: Package },
   { href: "/admin/coupons", label: "coupons", Icon: Gift },
   { href: "/admin/pickup-locations", label: "pickup locations", Icon: MapIcon },

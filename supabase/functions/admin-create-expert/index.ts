@@ -96,14 +96,14 @@ Deno.serve(async (req) => {
   // creation flow already works. Email is not a secure transport for a
   // password sitting in an inbox indefinitely.
   const { text, html } = renderEmail({
-    heading: "Your MindCafe expert account is ready",
+    heading: "Your Mindcafe expert account is ready",
     paragraphs: [
-      `Hi ${body.name}, an account has been set up for you as a MindCafe counsellor.`,
+      `Hi ${body.name}, an account has been set up for you as a Mindcafe counsellor.`,
       `Sign in with ${body.email} and the password your admin shared with you separately.`,
     ],
     cta: { label: "sign in", url: `${SITE_URL}/expert/login` },
   });
-  await sendEmail(body.email, "Your MindCafe expert account is ready", text, html);
+  await sendEmail(body.email, "Your Mindcafe expert account is ready", text, html);
 
   return jsonResponse({ expert, user_id: created.user.id });
 });
