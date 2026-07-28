@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getSiteSetting } from "@/lib/api";
 import { Reveal } from "@/components/Reveal";
 
-const DEFAULT_CHIPS = ["10 strips per box", "1.5g total", "4 moods × 2.5mg"];
+const DEFAULT_CHIPS = ["10 strips per box", "₹29 per strip", "1.5g total", "4 moods × 2.5mg"];
 
 // Reads site_settings['homepage_stats'] so marketing can update these
 // without a deploy, falling back to the hardcoded defaults if that key
