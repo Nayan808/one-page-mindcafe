@@ -17,10 +17,10 @@ export default function FeelzPage() {
   return (
     <>
       <Hero />
+      <StatsBar />
       <ZostelLocationsSection />
       <HowItWorksSection />
       <WhoItsForSection />
-      <StatsBar />
       <div className="bg-white">
         <FaqSection />
         <HeadsUpSection />

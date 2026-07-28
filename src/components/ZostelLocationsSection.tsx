@@ -12,10 +12,20 @@ function scrollToProducts() {
   document.getElementById("mood-picks")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+// Opens the location's exact address in Google Maps rather than just its
+// city — a plain city-name search would land on the wrong Zostel property
+// in cities with more than one.
+function mapsUrl(address: string): string {
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+}
+
 function LocationCard({ location, wide }: { location: PickupLocation; wide?: boolean }) {
   return (
-    <div
-      className={`shrink-0 rounded-2xl border border-ink bg-white p-4 text-left text-ink shadow-lg ${wide ? "w-64" : "w-56"}`}
+    <a
+      href={mapsUrl(location.address)}
+      target="_blank"
+      rel="noreferrer"
+      className={`shrink-0 rounded-2xl border border-ink bg-white p-4 text-left text-ink shadow-lg transition hover:bg-ink/5 ${wide ? "w-64" : "w-56"}`}
     >
       <div className="relative h-8 w-8 overflow-hidden rounded-full border border-ink/10">
         <Image src="/press/zostel.png" alt="" fill className="object-cover" />
@@ -28,7 +38,7 @@ function LocationCard({ location, wide }: { location: PickupLocation; wide?: boo
       <span className="mt-3 inline-block rounded-full border border-ink px-3 py-1 text-[11px] font-medium">
         {location.city}
       </span>
-    </div>
+    </a>
   );
 }
 
