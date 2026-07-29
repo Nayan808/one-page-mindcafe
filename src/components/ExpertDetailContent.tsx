@@ -32,7 +32,7 @@ export function ExpertDetailContent({ expertId }: { expertId: string }) {
   if (!expert) {
     return (
       <div className="mx-auto min-h-[60vh] max-w-md bg-white px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Expert not found</h1>
+        <h1 className="font-display text-3xl font-bold text-ink">Expert not found</h1>
         <p className="mt-2 text-sm text-ink/60">This listing may no longer be active.</p>
         <Link href="/experts" className="pill-btn-outline mt-6 inline-flex">
           Back to Experts
@@ -69,7 +69,7 @@ export function ExpertDetailContent({ expertId }: { expertId: string }) {
             </div>
           )}
 
-          <h1 className="font-display mt-4 text-2xl font-bold text-ink sm:text-3xl">{expert.name}</h1>
+          <h1 className="font-display mt-4 text-3xl font-bold text-ink sm:text-4xl">{expert.name}</h1>
           {expert.certifications.length > 0 && (
             <p className="mt-1 text-sm font-medium uppercase tracking-label text-ink/50">
               {expert.certifications.join(" · ")}

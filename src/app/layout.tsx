@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Instrument_Serif, Inter } from "next/font/google";
+import { Space_Grotesk, Bodoni_Moda, Inter } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
@@ -9,16 +9,29 @@ import { CartDrawer } from "@/components/CartDrawer";
 import { AppLoadingOverlay } from "@/components/AppLoadingOverlay";
 
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["500", "700"] });
-const serifItalic = Instrument_Serif({
+// Bodoni Moda: extreme thin/thick hairline contrast, high-fashion
+// editorial-headline feel (the client's "Kate" reference) — free Google
+// Fonts alternative to that specific paid/custom typeface. One family
+// covers both the bold heading treatment and the italic accent words for
+// a cohesive serif system.
+//
+// Loaded with the full weight range (no single pinned `weight`) so this
+// stays a true variable font in the browser, same as Inter below — Bodoni
+// Moda's "optical size" axis is what makes it render dramatically bolder/
+// higher-contrast at large display sizes and more restrained at small
+// sizes. Pinning a single static weight (as this used to do) silently
+// discards that axis and serves a flatter "text size" cut regardless of
+// how big the heading actually is, which is why it looked thinner/smaller
+// than intended even after the font-size bump. `font-optical-sizing:
+// auto` in globals.css is what actually engages the axis at render time.
+const serifItalic = Bodoni_Moda({
   variable: "--font-serif-italic",
   subsets: ["latin"],
-  weight: "400",
   style: "italic",
 });
-const serifDisplay = Instrument_Serif({
+const serifDisplay = Bodoni_Moda({
   variable: "--font-serif-display",
   subsets: ["latin"],
-  weight: "400",
   style: "normal",
 });
 const body = Inter({ variable: "--font-body", subsets: ["latin"] });

@@ -143,8 +143,8 @@ export default function TrustPage() {
     <div>
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <h1 className="font-display mx-auto max-w-xl text-3xl font-bold leading-[1.15] sm:text-4xl">
-            Our commitment to <span className="font-tagline italic">safety &amp; transparency.</span>
+          <h1 className="font-display mx-auto max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
+            Our commitment to <span className="font-tagline italic text-brand">safety &amp; transparency.</span>
           </h1>
           <p className="mt-4 text-sm text-cream/70 sm:text-base">
             At Mindcafe, we believe mental wellness products should be built on a foundation of safety,
@@ -169,8 +169,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">What Guides Us</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              Three principles that guide <span className="font-tagline italic">everything we do.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              Three principles that guide <span className="font-tagline italic text-brand">everything we do.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are designed to support everyday mental wellbeing through convenient, on-the-go wellness
@@ -197,7 +197,7 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Ingredients: Sample</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">Key Feelz ingredients.</h2>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">Key Feelz ingredients.</h2>
           </div>
           <div className="mt-8 flex flex-wrap justify-center gap-2.5">
             {INGREDIENTS.map((ing) => (
@@ -217,8 +217,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Carefully Selected</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              You know exactly what <span className="font-tagline italic">you&apos;re taking.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              You know exactly what <span className="font-tagline italic text-brand">you&apos;re taking.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz formulations use ingredients well-established in the nutraceutical and wellness industry, many
@@ -241,8 +241,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Manufacturing</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              Consistent quality. <span className="font-tagline italic">every single batch.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              Consistent quality. <span className="font-tagline italic text-brand">every single batch.</span>
             </h2>
           </div>
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -264,8 +264,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Designed for Everyday Wellness</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              A wellness tool. <span className="font-tagline italic">not a medicine.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              A wellness tool. <span className="font-tagline italic text-brand">not a medicine.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are developed as wellness support tools, not as pharmaceutical treatments, designed to
@@ -294,8 +294,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Regulatory Compliance</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              Aligned with India&apos;s <span className="font-tagline italic">nutraceutical regulations.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              Aligned with India&apos;s <span className="font-tagline italic text-brand">nutraceutical regulations.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are developed to align with nutraceutical safety guidelines and regulatory standards
@@ -321,8 +321,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Transparency</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              Every label tells <span className="font-tagline italic">the full story.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              Every label tells <span className="font-tagline italic text-brand">the full story.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               We believe customers should always know what they are consuming: no ambiguity, no omissions.
@@ -376,8 +376,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Usage</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              Use Feelz <span className="font-tagline italic">safely &amp; effectively.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              Use Feelz <span className="font-tagline italic text-brand">safely &amp; effectively.</span>
             </h2>
           </div>
 
@@ -420,8 +420,8 @@ export default function TrustPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Continuous Improvement</p>
-            <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-              We never stop <span className="font-tagline italic">getting better.</span>
+            <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+              We never stop <span className="font-tagline italic text-brand">getting better.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Good enough is not good enough. We listen, we learn, and we evolve, because your trust depends on it.
@@ -444,8 +444,8 @@ export default function TrustPage() {
       <section className="bg-white">
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Everyday Support, Not a Replacement</p>
-          <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">
-            Feelz is everyday support. <span className="font-tagline italic">not a replacement.</span>
+          <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
+            Feelz is everyday support. <span className="font-tagline italic text-brand">not a replacement.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink/60">
             Mental wellbeing is complex and deeply personal. Feelz products support everyday lifestyle challenges;
@@ -472,7 +472,7 @@ export default function TrustPage() {
 
           <div className="text-center">
             <ShieldCheck className="mx-auto h-8 w-8 text-ink" aria-hidden />
-            <h2 className="font-display mt-3 text-2xl font-bold text-ink">Digital trust &amp; data privacy</h2>
+            <h2 className="font-display mt-3 text-3xl font-bold text-ink">Digital trust &amp; data privacy</h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-ink/60">
               The above covers what&apos;s in every Feelz strip. This part covers your account, payments, and data.
             </p>
@@ -496,7 +496,7 @@ export default function TrustPage() {
 
       <section className="bg-white">
         <div className="mx-auto max-w-lg px-4 pb-20 text-center sm:px-6">
-          <h2 className="font-display text-xl font-bold text-ink">Have questions about safety?</h2>
+          <h2 className="font-display text-2xl font-bold text-ink">Have questions about safety?</h2>
           <p className="mt-2 text-sm text-ink/60">
             If you&apos;d like more information about Feelz products, ingredients, or usage guidelines, our team
             would be happy to help.

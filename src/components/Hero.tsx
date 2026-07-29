@@ -106,16 +106,21 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="bg-cream">
-      <div className="mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
+    <section ref={timelineRef} className="relative overflow-hidden bg-cream">
+      <Image src="/feelz/hero-bg.png" alt="" fill priority className="object-cover" />
+      <div className="absolute inset-0 bg-cream/35" />
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="div"
           animationNum={0}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="relative mb-4 h-12 w-12 overflow-hidden rounded-full shadow-lg"
+          className="relative mb-4 flex h-20 w-20 flex-col items-center justify-center gap-1 overflow-hidden rounded-full border border-white/40 bg-white/30 shadow-lg backdrop-blur-md"
         >
-          <Image src="/press/zostel.png" alt="Zostel" fill className="object-cover" />
+          <span className="relative h-8 w-8 shrink-0">
+            <Image src="/press/zostel-star.png" alt="" fill className="object-contain" />
+          </span>
+          <span className="text-[8px] font-semibold uppercase tracking-widest text-ink/70">Zostel</span>
         </TimelineContent>
 
         <TimelineContent
@@ -132,11 +137,7 @@ export function Hero() {
           <span className="inline-flex items-center px-1 text-ink sm:text-sm">
             incubated at Zo World
             <span className="ml-1 inline-flex items-center gap-1 font-semibold">
-              · distributed by
-              <span className="relative h-4 w-4 overflow-hidden rounded-full">
-                <Image src="/press/zostel.png" alt="" fill className="object-cover" />
-              </span>
-              Zostel
+              · distributed by Zostel
             </span>
           </span>
           <ArrowRight className="h-3 w-3 text-ink" aria-hidden />
@@ -147,7 +148,7 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mx-auto mt-6 max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight text-ink sm:text-6xl xl:text-7xl"
+          className="font-display mx-auto mt-6 max-w-3xl text-5xl leading-[1.05] font-bold tracking-tight text-ink sm:text-7xl xl:text-8xl"
         >
           <span className="relative block h-[1.15em] overflow-hidden text-center">
             <AnimatePresence mode="popLayout">
@@ -165,7 +166,7 @@ export function Hero() {
           </span>
           <span className="block text-center">
             in{" "}
-            <span className="bg-gradient-to-r from-[#2461e0] to-[#17b88b] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-brand via-brand-blush to-brand-navy bg-clip-text text-transparent">
               sixty seconds
             </span>
             .
@@ -200,8 +201,8 @@ export function Hero() {
             onClick={() => scrollTo("zostel-locations")}
             className="inline-flex items-center justify-center gap-2 rounded-full border border-ink/30 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5"
           >
-            <span className="relative h-4 w-4 overflow-hidden rounded-full">
-              <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+            <span className="relative h-5 w-5 shrink-0">
+              <Image src="/press/zostel-star.png" alt="" fill className="object-contain" />
             </span>
             Find at Zostel
           </button>
@@ -230,7 +231,7 @@ export function Hero() {
             <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
             <span className="h-px w-10 bg-ink/20" aria-hidden />
           </div>
-          <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
+          <h2 className="font-display mt-4 text-3xl font-bold uppercase tracking-[0.3em] text-ink sm:text-4xl">
             Our Strips
           </h2>
         </div>

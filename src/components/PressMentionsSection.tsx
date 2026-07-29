@@ -19,12 +19,14 @@ const PRESS = [
   { name: "CNBC-TV18", src: "/press/cnbc-tv18.svg" },
   { name: "Cosmopolitan", src: "/press/cosmopolitan.svg" },
   { name: "Dainik Bhaskar", src: "/press/dainik-bhaskar.svg" },
-  { name: "Deccan Herald", src: "/press/deccan-herald.png" },
+  { name: "Deccan Herald", src: "/press/deccan-herald-wide.png" },
   { name: "NDTV", src: "/press/ndtv.svg" },
   { name: "Rajasthan Patrika", src: "/press/patrika.svg" },
   { name: "The Times of India", src: "/press/times-of-india.svg" },
-  { name: "The Pioneer", src: "/press/pioneer.jpg" },
-  { name: "Zostel", src: "/press/zostel.png" },
+  // Original full badge (not the cropped wordmark-only version) — just
+  // sized a bit bigger than the shared default so it reads clearly.
+  { name: "The Pioneer", src: "/press/pioneer.jpg", imgHeight: "h-16" },
+  { name: "Zostel", src: "/press/zostel-press.png", imgHeight: "h-16" },
 ];
 
 export function PressMentionsSection() {
@@ -51,7 +53,7 @@ export function PressMentionsSection() {
               }}
               className="flex h-20 items-center justify-center rounded-2xl border border-ink/25 px-4 grayscale transition-all duration-300 hover:grayscale-0 hover:shadow-md"
             >
-              <div className="relative h-9 w-full">
+              <div className={`relative w-full ${item.imgHeight ?? "h-9"}`}>
                 <Image src={item.src} alt={item.name} fill sizes="180px" className="object-contain" />
               </div>
             </motion.div>

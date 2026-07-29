@@ -38,7 +38,7 @@ export function CounsellingTeaserSection() {
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Counselling</p>
-          <h2 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
+          <h2 className="font-display mt-2 text-5xl font-bold tracking-tight text-ink sm:text-6xl">
             Talk to someone who gets it
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm text-ink/60">

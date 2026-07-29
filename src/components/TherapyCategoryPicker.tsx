@@ -34,7 +34,7 @@ export function TherapyCategoryPicker() {
       <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Choose a Category</p>
-        <h2 className="font-display mt-2 text-2xl font-bold text-ink sm:text-3xl">What brings you in?</h2>
+        <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">What brings you in?</h2>
       </div>
 
       <div className="mt-10 grid gap-4 sm:grid-cols-2">

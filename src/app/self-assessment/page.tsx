@@ -110,7 +110,7 @@ export default function SelfAssessmentPage() {
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">Self-Assessment Tests</p>
-          <h1 className="font-display mx-auto mt-4 max-w-xl text-3xl font-bold leading-[1.15] sm:text-4xl">
+          <h1 className="font-display mx-auto mt-4 max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
             Know your mind better.
           </h1>
           <p className="mt-4 text-sm text-cream/70 sm:text-base">

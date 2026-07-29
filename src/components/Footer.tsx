@@ -184,28 +184,29 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Good to Know</p>
-          <ul className="mt-2 space-y-1 text-sm text-ink/70">
-            <li>A wellness supplement, not a medicine</li>
-            <li>For healthy adults 18+, not recommended during pregnancy or breastfeeding</li>
-            <li>FSSAI compliant · Proudly made in India</li>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Trust &amp; Quality</p>
+          <ul className="mt-2 space-y-3 text-sm text-ink/70">
+            <li className="flex items-center justify-center gap-2 sm:justify-start">
+              <Image
+                src="/certifications/fssai-logo.png"
+                alt=""
+                width={64}
+                height={36}
+                className="h-6 w-auto shrink-0 object-contain"
+              />
+              FSSAI compliant
+            </li>
+            <li className="flex items-center justify-center gap-2 sm:justify-start">
+              <Image
+                src="/certifications/made-in-india-badge.png"
+                alt=""
+                width={48}
+                height={48}
+                className="h-6 w-auto shrink-0 object-contain"
+              />
+              Proudly made in India
+            </li>
           </ul>
-          <div className="mt-3 flex items-center justify-center gap-4 sm:justify-start">
-            <Image
-              src="/certifications/fssai-logo.png"
-              alt="FSSAI compliant"
-              width={64}
-              height={36}
-              className="h-7 w-auto object-contain"
-            />
-            <Image
-              src="/certifications/made-in-india-badge.png"
-              alt="Made in India"
-              width={48}
-              height={48}
-              className="h-10 w-auto object-contain"
-            />
-          </div>
         </div>
 
         <div>

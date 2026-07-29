@@ -50,7 +50,7 @@ function ProfileSection() {
 
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
-      <h2 className="font-display text-lg font-bold text-ink">Profile</h2>
+      <h2 className="font-display text-xl font-bold text-ink">Profile</h2>
       <form onSubmit={handleSubmit(onSubmit)} className="mt-4 grid gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm text-ink/70">Full Name</label>
@@ -104,7 +104,7 @@ function AddressesSection() {
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
       <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-bold text-ink">Saved addresses</h2>
+        <h2 className="font-display text-xl font-bold text-ink">Saved addresses</h2>
         {!showAddForm && !editingId && (
           <button type="button" onClick={() => setShowAddForm(true)} className="text-sm font-medium text-ink underline">
             + Add New
@@ -199,7 +199,7 @@ function OrderHistorySection() {
 
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
-      <h2 className="font-display text-lg font-bold text-ink">Order history</h2>
+      <h2 className="font-display text-xl font-bold text-ink">Order history</h2>
 
       {selectedOrderId ? (
         <div className="mt-4">
@@ -255,7 +255,7 @@ function AppointmentsSection() {
 
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
-      <h2 className="font-display text-lg font-bold text-ink">Counselling appointments</h2>
+      <h2 className="font-display text-xl font-bold text-ink">Counselling appointments</h2>
 
       {isLoading ? (
         <p className="mt-4 text-sm text-ink/60">Loading your appointments…</p>
@@ -305,7 +305,7 @@ export default function AccountPage() {
   if (status === "unauthenticated") {
     return (
       <div className="mx-auto max-w-sm px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold text-ink">Sign in to view your account</h1>
+        <h1 className="font-display text-3xl font-bold text-ink">Sign in to view your account</h1>
         <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
           Sign In
         </button>
@@ -319,7 +319,7 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-12 sm:px-6">
-      <h1 className="font-display text-3xl font-bold text-ink">Your account</h1>
+      <h1 className="font-display text-4xl font-bold text-ink">Your account</h1>
       <ProfileSection />
       <AddressesSection />
       <OrderHistorySection />

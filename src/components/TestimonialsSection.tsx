@@ -69,8 +69,8 @@ export function TestimonialsSection() {
         <Reveal className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Real Stories</p>
-            <h2 className="font-display mt-2 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
-              India is <span className="font-tagline italic">healing</span>.
+            <h2 className="font-display mt-2 text-5xl font-bold tracking-tight text-ink sm:text-6xl">
+              India is <span className="font-tagline italic text-brand">healing</span>.
             </h2>
           </div>
           {summary && (

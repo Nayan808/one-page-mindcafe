@@ -13,7 +13,7 @@ export default function AboutPage() {
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">About Mindcafe</p>
-          <h1 className="font-display mx-auto mt-4 max-w-xl text-3xl font-bold leading-[1.15] sm:text-4xl">
+          <h1 className="font-display mx-auto mt-4 max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
             A world where seeking support is as natural as offering a hand.
           </h1>
           <p className="mt-4 text-sm text-cream/70 sm:text-base">
@@ -31,8 +31,8 @@ export default function AboutPage() {
 
       <section className="bg-ink text-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <h2 className="font-display text-3xl font-bold leading-[1.1] sm:text-4xl">
-            Ready to be part of the <span className="font-tagline italic">Mindcafe story?</span>
+          <h2 className="font-display text-4xl font-bold leading-[1.1] sm:text-5xl">
+            Ready to be part of the <span className="font-tagline italic text-brand">Mindcafe story?</span>
           </h2>
           <p className="mt-4 text-sm text-cream/70 sm:text-base">
             Whether you need personal support or want to bring wellness to your organisation, Mindcafe is here for

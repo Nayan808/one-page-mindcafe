@@ -26,7 +26,7 @@ export default function FaqPage() {
     <div>
       <div className="mx-auto max-w-2xl px-4 pt-16 text-center sm:px-6">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Help</p>
-        <h1 className="font-display mt-3 text-3xl font-bold text-ink sm:text-4xl">Frequently asked questions</h1>
+        <h1 className="font-display mt-3 text-4xl font-bold text-ink sm:text-5xl">Frequently asked questions</h1>
       </div>
 
       {faqsQuery.isLoading ? (

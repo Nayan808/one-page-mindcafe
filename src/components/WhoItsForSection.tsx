@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { Reveal } from "@/components/Reveal";
 
 type MoodKey = "focus" | "extrovert" | "joy" | "rest";
 
@@ -69,7 +70,7 @@ export function WhoItsForSection() {
           <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
           <span className="h-px w-10 bg-ink/20" aria-hidden />
         </div>
-        <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
+        <h2 className="font-display mt-4 text-3xl font-bold uppercase tracking-[0.3em] text-ink sm:text-4xl">
           Who Is It For
         </h2>
       </div>
@@ -78,57 +79,58 @@ export function WhoItsForSection() {
         {PERSONAS.map((persona, index) => {
           const primaryMood = persona.moods[0];
           return (
-            <div
-              key={persona.title}
-              className={`relative flex flex-col overflow-hidden rounded-[1.75rem] border border-ink bg-white p-6 text-ink shadow-lg sm:p-7 ${persona.wide ? "lg:col-span-2" : ""}`}
-            >
+            <Reveal key={persona.title} delayMs={index * 70} className={persona.wide ? "lg:col-span-2" : ""}>
               <div
-                className={`pointer-events-none absolute -right-4 -top-6 h-32 w-28 shrink-0 overflow-hidden rounded-xl border-2 border-ink shadow-2xl sm:-right-3 sm:h-40 sm:w-32 ${persona.tilt}`}
-                aria-hidden
+                className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-ink/15 bg-white p-6 text-ink shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-xl sm:p-7"
               >
-                <Image
-                  src={MOOD_IMAGE[primaryMood]}
-                  alt=""
-                  fill
-                  sizes="160px"
-                  className="object-cover"
-                />
-              </div>
+                <div
+                  className={`pointer-events-none absolute -right-3 -top-5 h-24 w-20 shrink-0 overflow-hidden rounded-xl border-2 border-white shadow-lg transition-transform duration-300 group-hover:scale-105 sm:h-28 sm:w-24 ${persona.tilt}`}
+                  aria-hidden
+                >
+                  <Image
+                    src={MOOD_IMAGE[primaryMood]}
+                    alt=""
+                    fill
+                    sizes="120px"
+                    className="object-cover"
+                  />
+                </div>
 
-              <div className="relative max-w-[70%] sm:max-w-[65%]">
-                <span className="text-[11px] font-semibold uppercase tracking-label opacity-80">
-                  Who it&apos;s for · 0{index + 1}
-                </span>
+                <div className="relative max-w-[68%] sm:max-w-[62%]">
+                  <span className="text-[11px] font-semibold uppercase tracking-label text-brand/80">
+                    Who It&apos;s For · 0{index + 1}
+                  </span>
 
-                <h3 className="font-display mt-3 text-3xl font-bold leading-none sm:text-4xl">
-                  {persona.title}
-                </h3>
-                <p className="font-tagline mt-1.5 text-base italic opacity-90">{persona.tagline}</p>
+                  <h3 className="font-display mt-3 text-2xl font-bold leading-tight sm:text-3xl">
+                    {persona.title}
+                  </h3>
+                  <p className="font-tagline mt-1.5 text-base italic opacity-90">{persona.tagline}</p>
 
-                <p className={`mt-4 text-sm leading-relaxed opacity-90 ${persona.wide ? "sm:max-w-md" : ""}`}>
-                  {persona.description}
-                </p>
+                  <p className={`mt-4 text-sm leading-relaxed opacity-90 ${persona.wide ? "sm:max-w-md" : ""}`}>
+                    {persona.description}
+                  </p>
 
-                <div className="mt-5 flex flex-wrap items-center gap-1.5">
-                  {persona.moods.map((mood) => (
-                    <span
-                      key={mood}
-                      className="rounded-full border border-ink px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label"
-                    >
-                      {mood}
-                    </span>
-                  ))}
-                  {persona.zostel && (
-                    <span className="flex items-center gap-1.5 rounded-full border border-ink px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label">
-                      <span className="relative h-4 w-4 overflow-hidden rounded-full">
-                        <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+                  <div className="mt-5 flex flex-wrap items-center gap-1.5">
+                    {persona.moods.map((mood) => (
+                      <span
+                        key={mood}
+                        className="rounded-full border border-brand/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label text-brand"
+                      >
+                        {mood}
                       </span>
-                      Zostel
-                    </span>
-                  )}
+                    ))}
+                    {persona.zostel && (
+                      <span className="flex items-center gap-1.5 rounded-full border border-brand/30 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label text-brand">
+                        <span className="relative h-4 w-4 overflow-hidden rounded-full">
+                          <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+                        </span>
+                        Zostel
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
+            </Reveal>
           );
         })}
       </div>
