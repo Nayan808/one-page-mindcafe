@@ -31,6 +31,26 @@ function InstagramIcon({ className }: { className?: string }) {
   );
 }
 
+// Same rationale as InstagramIcon above — the Feather Icons "facebook"
+// mark, stroke-for-stroke consistent with the rest of this set, standing
+// in for the plain Globe placeholder now that there's a real page to link.
+function FacebookIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden
+    >
+      <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+    </svg>
+  );
+}
+
 function NewsletterForm() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
@@ -237,14 +257,21 @@ export function Footer() {
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Follow</p>
           {/* lucide-react has no brand icons in this version — generic
-              Globe stands in for LinkedIn/Facebook; Instagram gets its own
-              real glyph via InstagramIcon above. */}
+              Globe stands in for LinkedIn (no real page yet); Facebook and
+              Instagram get their own real glyphs via FacebookIcon/
+              InstagramIcon above. */}
           <div className="mt-2 flex items-center justify-center gap-3 sm:justify-start">
             <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="text-ink/60 hover:text-ink">
               <Globe className="h-4 w-4" aria-hidden />
             </a>
-            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" className="text-ink/60 hover:text-ink">
-              <Globe className="h-4 w-4" aria-hidden />
+            <a
+              href="https://www.facebook.com/share/18Xa19VUck/?mibextid=wwXIfr"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Facebook"
+              className="text-ink/60 hover:text-ink"
+            >
+              <FacebookIcon className="h-4 w-4" />
             </a>
             <a
               href="https://www.instagram.com/mindcafeindia/"
@@ -255,16 +282,6 @@ export function Footer() {
             >
               <InstagramIcon className="h-4 w-4" />
               mindcafeindia
-            </a>
-            <a
-              href="https://www.instagram.com/sportcafeindia/"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram: sportcafeindia"
-              className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink"
-            >
-              <InstagramIcon className="h-4 w-4" />
-              sportcafeindia
             </a>
           </div>
           <span className="badge-pill mt-4 inline-block">ISO/IEC 27001</span>
