@@ -453,6 +453,33 @@ export async function updateInventoryQuantityAdmin(sb: Sb, id: string, quantity:
   throwOnError("updateInventoryQuantityAdmin", error);
 }
 
+// A location (a new pickup point, or one that was never fully stocked —
+// see the Zostel Mumbai gap this was built to fix) can end up with fewer
+// inventory rows than the product catalog. There was previously no way to
+// fix that from this page at all: QuantityCell only edits rows that
+// already exist. New rows start at 0 (out of stock) rather than guessing a
+// real count — an admin fills in the actual number afterward via the same
+// per-row editor.
+export async function addMissingInventoryRowsAdmin(sb: Sb, locationId: string | null): Promise<number> {
+  const { data: variants, error: variantsError } = await sb.from("product_variants").select("id");
+  throwOnError("addMissingInventoryRowsAdmin (variants)", variantsError);
+
+  let existingQuery = sb.from("inventory").select("variant_id");
+  existingQuery = locationId === null ? existingQuery.is("location_id", null) : existingQuery.eq("location_id", locationId);
+  const { data: existing, error: existingError } = await existingQuery;
+  throwOnError("addMissingInventoryRowsAdmin (existing)", existingError);
+
+  const existingIds = new Set((existing ?? []).map((row) => row.variant_id));
+  const missing = (variants ?? []).filter((variant) => !existingIds.has(variant.id));
+  if (missing.length === 0) return 0;
+
+  const { error: insertError } = await sb
+    .from("inventory")
+    .insert(missing.map((variant) => ({ variant_id: variant.id, location_id: locationId, quantity_available: 0 })));
+  throwOnError("addMissingInventoryRowsAdmin (insert)", insertError);
+  return missing.length;
+}
+
 // --- Serviceable pincodes -------------------------------------------------
 
 export async function getPincodesAdmin(sb: Sb) {

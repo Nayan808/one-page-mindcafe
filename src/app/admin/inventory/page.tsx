@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getInventoryAdmin, getPickupLocationsAdmin, updateInventoryQuantityAdmin } from "@/lib/admin-api";
+import {
+  addMissingInventoryRowsAdmin,
+  getInventoryAdmin,
+  getPickupLocationsAdmin,
+  getProductsAdmin,
+  updateInventoryQuantityAdmin,
+} from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
 import type { InventoryWithVariant } from "@/types/domain";
@@ -72,6 +78,7 @@ function QuantityCell({ row }: { row: InventoryWithVariant }) {
 }
 
 export default function AdminInventoryPage() {
+  const queryClient = useQueryClient();
   const [locationId, setLocationId] = useState<string | null>(null);
 
   const locationsQuery = useQuery({ queryKey: ["admin", "pickup-locations"], queryFn: () => getPickupLocationsAdmin(createClient()) });
@@ -79,9 +86,20 @@ export default function AdminInventoryPage() {
     queryKey: ["admin", "inventory", locationId ?? "online"],
     queryFn: () => getInventoryAdmin(createClient(), locationId),
   });
+  // Only needed to know the full product-variant count, so a *partially*
+  // stocked location (e.g. 2 of 4 products) can be detected too, not just
+  // a location with zero rows.
+  const productsQuery = useQuery({ queryKey: ["admin", "products"], queryFn: () => getProductsAdmin(createClient()) });
 
   const locations = locationsQuery.data ?? [];
   const rows = inventoryQuery.data ?? [];
+  const totalVariantCount = (productsQuery.data ?? []).reduce((sum, product) => sum + product.product_variants.length, 0);
+  const missingCount = Math.max(0, totalVariantCount - rows.length);
+
+  const addMissing = useMutation({
+    mutationFn: () => addMissingInventoryRowsAdmin(createClient(), locationId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "inventory", locationId ?? "online"] }),
+  });
 
   const locationOptions: FilterOption[] = [
     { value: ONLINE_VALUE, label: "online / delivery" },
@@ -95,13 +113,25 @@ export default function AdminInventoryPage() {
         description="Stock is tracked per location — an online sale and a Zostel walk-in sale never draw from the same pool."
       />
 
-      <div className="mb-4">
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         <FilterDropdown
           options={locationOptions}
           value={locationId ?? ONLINE_VALUE}
           onChange={(v) => setLocationId(v === ONLINE_VALUE ? null : v)}
           searchPlaceholder="Search locations…"
         />
+        {missingCount > 0 && !inventoryQuery.isLoading && !productsQuery.isLoading && (
+          <button
+            type="button"
+            onClick={() => addMissing.mutate()}
+            disabled={addMissing.isPending}
+            className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
+          >
+            {addMissing.isPending
+              ? "adding…"
+              : `add ${missingCount} missing product${missingCount === 1 ? "" : "s"} (starts at 0)`}
+          </button>
+        )}
       </div>
 
       <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
