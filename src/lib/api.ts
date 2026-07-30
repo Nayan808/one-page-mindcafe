@@ -807,17 +807,32 @@ export type CheckoutInput = {
   guest?: { name: string; phone: string; email?: string };
 };
 
-export type CheckoutResponse = {
-  order_id: string;
-  razorpay_order_id: string;
-  amount: number;
-  currency: string;
-  key_id: string;
-  subtotal: number;
-  discount_amount: number;
-  delivery_fee: number;
-  total: number;
-};
+// A coupon can fully cover the order (total lands at exactly 0) — Razorpay's
+// Orders API rejects a 0-amount order outright, so create-order skips
+// Razorpay entirely for that case and confirms the order immediately
+// instead (see the Edge Function). `free: true` is the caller's signal to
+// skip openRazorpayCheckout and treat the order as placed right away.
+export type CheckoutResponse =
+  | {
+      order_id: string;
+      free: true;
+      subtotal: number;
+      discount_amount: number;
+      delivery_fee: number;
+      total: number;
+    }
+  | {
+      order_id: string;
+      free?: false;
+      razorpay_order_id: string;
+      amount: number;
+      currency: string;
+      key_id: string;
+      subtotal: number;
+      discount_amount: number;
+      delivery_fee: number;
+      total: number;
+    };
 
 // Invokes the create-order Edge Function: it looks up real prices,
 // validates the coupon, reserves stock, creates the order, and creates the

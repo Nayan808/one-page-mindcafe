@@ -69,6 +69,11 @@ export function ScanOrderPayment({
         guest: undefined,
       });
 
+      if (result.free) {
+        onOrderPlaced(result.order_id);
+        return;
+      }
+
       await openRazorpayCheckout({
         keyId: result.key_id,
         amount: result.amount,

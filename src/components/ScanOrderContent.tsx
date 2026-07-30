@@ -94,7 +94,7 @@ function LocationStep({ onSelect }: { onSelect: (id: string) => void }) {
 }
 
 function ProductsStep({ onViewCart }: { onViewCart: () => void }) {
-  const { items, addItem, isReady, cartId } = useCartContext();
+  const { items, addItem, updateQuantity, removeItem, isReady, cartId } = useCartContext();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [addedId, setAddedId] = useState<string | null>(null);
   const [errorId, setErrorId] = useState<string | null>(null);
@@ -179,14 +179,31 @@ function ProductsStep({ onViewCart }: { onViewCart: () => void }) {
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <span className="text-sm font-semibold text-ink">{formatInr(price)}</span>
                     {cartItem ? (
-                      <button
-                        type="button"
-                        onClick={onViewCart}
-                        className="inline-flex items-center gap-1 rounded-full bg-ink/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-label text-ink"
-                      >
-                        <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                        {cartItem.quantity}
-                      </button>
+                      <div className="flex items-center rounded-full bg-ink/10">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            cartItem.quantity <= 1
+                              ? removeItem.mutate(cartItem.id)
+                              : updateQuantity.mutate({ cartItemId: cartItem.id, quantity: cartItem.quantity - 1 })
+                          }
+                          className="px-2.5 py-1.5 text-sm font-bold text-ink"
+                          aria-label={`Decrease ${product.name} quantity`}
+                        >
+                          −
+                        </button>
+                        <span className="min-w-[1.25rem] text-center text-xs font-semibold text-ink">
+                          {cartItem.quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => updateQuantity.mutate({ cartItemId: cartItem.id, quantity: cartItem.quantity + 1 })}
+                          className="px-2.5 py-1.5 text-sm font-bold text-ink"
+                          aria-label={`Increase ${product.name} quantity`}
+                        >
+                          +
+                        </button>
+                      </div>
                     ) : (
                       <button
                         type="button"
@@ -217,7 +234,7 @@ function ProductsStep({ onViewCart }: { onViewCart: () => void }) {
 }
 
 function CartStep({ onBack, onCheckout }: { onBack: () => void; onCheckout: () => void }) {
-  const { items, subtotal } = useCartContext();
+  const { items, subtotal, updateQuantity, removeItem } = useCartContext();
 
   return (
     <div>
@@ -230,14 +247,43 @@ function CartStep({ onBack, onCheckout }: { onBack: () => void; onCheckout: () =
           {items.map((item) => {
             const price = item.product_variants.price_override ?? item.product_variants.products.price;
             return (
-              <li
-                key={item.id}
-                className="flex items-center justify-between rounded-xl border border-ink/15 bg-cream p-3 text-sm"
-              >
-                <span className="font-medium text-ink">
-                  {item.product_variants.products.name} × {item.quantity}
-                </span>
-                <span className="text-ink/60">{formatInr(price * item.quantity)}</span>
+              <li key={item.id} className="rounded-xl border border-ink/15 bg-cream p-3 text-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-ink">{item.product_variants.products.name}</span>
+                  <span className="text-ink/60">{formatInr(price * item.quantity)}</span>
+                </div>
+                <div className="mt-2 flex items-center justify-between">
+                  <div className="flex items-center rounded-full border border-ink/15 bg-white">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        item.quantity <= 1
+                          ? removeItem.mutate(item.id)
+                          : updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity - 1 })
+                      }
+                      className="px-3 py-1.5 text-sm font-bold text-ink"
+                      aria-label={`Decrease ${item.product_variants.products.name} quantity`}
+                    >
+                      −
+                    </button>
+                    <span className="min-w-[1.5rem] text-center text-sm font-semibold text-ink">{item.quantity}</span>
+                    <button
+                      type="button"
+                      onClick={() => updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity + 1 })}
+                      className="px-3 py-1.5 text-sm font-bold text-ink"
+                      aria-label={`Increase ${item.product_variants.products.name} quantity`}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem.mutate(item.id)}
+                    className="text-xs font-medium text-ink/50 underline hover:text-ink"
+                  >
+                    remove
+                  </button>
+                </div>
               </li>
             );
           })}

@@ -249,6 +249,37 @@ Deno.serve(async (req) => {
   // Cart's job is done once its contents are snapshotted into the order.
   await sb.from("cart_items").delete().eq("cart_id", cart_id);
 
+  // --- A coupon can bring the order down to ₹0, or (a percent-off coupon
+  // on a low enough price) down to a few paise — Razorpay's Orders API
+  // rejects anything under its 100-paise (₹1) minimum either way, which
+  // otherwise surfaces to the customer as "failed to create razorpay
+  // order" despite nothing actually being wrong. Below that floor, there's
+  // nothing Checkout.js can meaningfully charge — confirm the order
+  // immediately via the same real confirmation path a successful payment
+  // webhook uses (confirm_order_and_decrement_stock), so it still
+  // decrements real inventory and fires the same order-confirmed
+  // notification as any paid one. ---
+  const RAZORPAY_MIN_AMOUNT_PAISE = 100;
+  if (Math.round(total * 100) < RAZORPAY_MIN_AMOUNT_PAISE) {
+    const { error: confirmError } = await sb.rpc("confirm_order_and_decrement_stock", {
+      p_order_id: order.id,
+      p_payment_ref: "free-fully-discounted",
+    });
+    if (confirmError) {
+      console.error("create-order: failed to auto-confirm free order", confirmError);
+      return jsonResponse({ error: "Failed to confirm order" }, 500);
+    }
+
+    return jsonResponse({
+      order_id: order.id,
+      free: true,
+      subtotal,
+      discount_amount: discountAmount,
+      delivery_fee: deliveryFee,
+      total,
+    });
+  }
+
   // --- Razorpay order, same two-step flow create-razorpay-order used:
   // amount is fixed server-side before Checkout.js ever opens. ---
   const amountPaise = Math.round(total * 100);

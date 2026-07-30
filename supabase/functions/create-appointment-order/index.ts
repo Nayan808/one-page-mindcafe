@@ -118,7 +118,11 @@ Deno.serve(async (req) => {
     await sb.rpc("increment_coupon_usage", { p_code: appliedCouponCode });
   }
 
-  if (total <= 0) {
+  // Same floor as create-order: Razorpay rejects anything under its
+  // 100-paise (₹1) minimum, not just exactly ₹0 — a percent-off coupon on
+  // a low enough price could otherwise land here and still fail.
+  const RAZORPAY_MIN_AMOUNT_PAISE = 100;
+  if (Math.round(total * 100) < RAZORPAY_MIN_AMOUNT_PAISE) {
     const { error: confirmError } = await sb.rpc("confirm_appointment_payment", {
       p_appointment_id: appointment.id,
       p_payment_ref: `coupon:${appliedCouponCode}`,
