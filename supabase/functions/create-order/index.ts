@@ -35,6 +35,7 @@ type RequestBody = {
   fulfillment: DeliveryFulfillment | TakeawayFulfillment;
   coupon_code?: string;
   guest?: { name: string; phone: string; email?: string };
+  notes?: string;
 };
 
 Deno.serve(async (req) => {
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
 
-  const { cart_id, items, fulfillment, coupon_code, guest } = body ?? ({} as RequestBody);
+  const { cart_id, items, fulfillment, coupon_code, guest, notes } = body ?? ({} as RequestBody);
 
   if (!cart_id || !Array.isArray(items) || items.length === 0) {
     return jsonResponse({ error: "cart_id and a non-empty items array are required" }, 400);
@@ -223,6 +224,7 @@ Deno.serve(async (req) => {
       guest_name: user ? null : guest!.name,
       guest_phone: user ? null : guest!.phone,
       guest_email: user ? null : (guest!.email ?? null),
+      notes: notes?.trim() || null,
       ...(guestAddress ?? {}),
     })
     .select("id")

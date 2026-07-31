@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { createClient } from "@/lib/supabase/client";
@@ -10,10 +11,12 @@ import { formatInr } from "@/lib/utils";
 
 // Locked-down sibling of FulfillmentAndPayment for the scan-and-order
 // flow: always takeaway at the Zostel already picked earlier in the
-// wizard, always logged in (the wizard only ever renders this once `user`
-// exists), so there's no delivery mode and no guest name/phone/email form
-// to show. Goes through the same real checkout()/create-order Edge
-// Function as every other order — nothing here is a parallel/mocked path.
+// wizard. Deliberately no login/OTP requirement here — just a 10-digit
+// phone number for a guest checkout, same guest path checkout() already
+// supports for the main site's takeaway orders. A signed-in user skips
+// the phone field and pays on their account as usual. Goes through the
+// same real checkout()/create-order Edge Function as every other order —
+// nothing here is a parallel/mocked path.
 export function ScanOrderPayment({
   locationId,
   onBack,
@@ -25,8 +28,15 @@ export function ScanOrderPayment({
 }) {
   const { user, profile } = useAuth();
   const { cartId, items, subtotal, updateQuantity, removeItem } = useCartContext();
+  const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const phoneDigits = phone.replace(/\D/g, "");
+  const isPhoneValid = phoneDigits.length === 10;
+  const hasIdentity = Boolean(user) || isPhoneValid;
+
+  const [notes, setNotes] = useState("");
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
@@ -55,7 +65,7 @@ export function ScanOrderPayment({
   }
 
   async function handlePlaceOrder() {
-    if (!cartId || items.length === 0) return;
+    if (!cartId || items.length === 0 || !hasIdentity) return;
     setIsSubmitting(true);
     setError(null);
     const sb = createClient();
@@ -66,7 +76,8 @@ export function ScanOrderPayment({
         items: items.map((item) => ({ variantId: item.variant_id, quantity: item.quantity })),
         fulfillment: { type: "takeaway", locationId },
         couponCode: couponCode.trim() || undefined,
-        guest: undefined,
+        guest: user ? undefined : { name: "Zostel Guest", phone: phoneDigits },
+        notes: notes.trim() || undefined,
       });
 
       if (result.free) {
@@ -83,7 +94,7 @@ export function ScanOrderPayment({
         prefill: {
           name: profile?.full_name ?? undefined,
           email: user?.email ?? undefined,
-          contact: profile?.phone ?? undefined,
+          contact: profile?.phone ?? (isPhoneValid ? phoneDigits : undefined),
         },
         onSuccess: () => onOrderPlaced(result.order_id),
         onDismiss: () => {
@@ -140,15 +151,45 @@ export function ScanOrderPayment({
                 <button
                   type="button"
                   onClick={() => removeItem.mutate(item.id)}
-                  className="text-xs font-medium text-ink/50 underline hover:text-ink"
+                  aria-label={`Remove ${item.product_variants.products.name}`}
+                  className="text-red-600 hover:text-red-700"
                 >
-                  remove
+                  <Trash2 className="h-4 w-4" aria-hidden />
                 </button>
               </div>
             </li>
           );
         })}
       </ul>
+
+      {!user && (
+        <div>
+          <label className="mb-1 block text-sm text-ink/70">Phone number</label>
+          <input
+            type="tel"
+            inputMode="numeric"
+            autoComplete="tel"
+            value={phone}
+            onChange={(event) => setPhone(event.target.value.replace(/\D/g, "").slice(0, 10))}
+            placeholder="10-digit mobile number"
+            className="input"
+          />
+          {phone.length > 0 && !isPhoneValid && (
+            <p className="mt-1 text-xs text-red-600">Enter a valid 10-digit phone number.</p>
+          )}
+        </div>
+      )}
+
+      <div>
+        <label className="mb-1 block text-sm text-ink/70">Notes (optional)</label>
+        <textarea
+          value={notes}
+          onChange={(event) => setNotes(event.target.value)}
+          placeholder="Anything the Zostel front desk should know…"
+          rows={2}
+          className="input"
+        />
+      </div>
 
       <div>
         <label className="mb-1 block text-sm text-ink/70">Coupon code (optional)</label>
@@ -207,7 +248,7 @@ export function ScanOrderPayment({
         <button
           type="button"
           onClick={handlePlaceOrder}
-          disabled={!cartId || items.length === 0 || isSubmitting}
+          disabled={!cartId || items.length === 0 || !hasIdentity || isSubmitting}
           className="pill-btn flex-1"
         >
           {isSubmitting ? "Processing…" : "Pay Now"}

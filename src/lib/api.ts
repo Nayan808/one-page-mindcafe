@@ -805,6 +805,7 @@ export type CheckoutInput = {
   fulfillment: CheckoutFulfillment;
   couponCode?: string;
   guest?: { name: string; phone: string; email?: string };
+  notes?: string;
 };
 
 // A coupon can fully cover the order (total lands at exactly 0) — Razorpay's
@@ -849,6 +850,7 @@ export async function checkout(sb: Sb, input: CheckoutInput): Promise<CheckoutRe
           : { type: "takeaway", location_id: input.fulfillment.locationId, pickup_slot: input.fulfillment.pickupSlot },
       coupon_code: input.couponCode || undefined,
       guest: input.guest,
+      notes: input.notes || undefined,
     },
   });
   if (error) {

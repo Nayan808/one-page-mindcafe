@@ -50,6 +50,11 @@ export function OrderConfirmation({
   const hasTracking = order.fulfillment_type === "delivery" && (order.awb_code || order.tracking_url);
   const isPickup = order.fulfillment_type === "takeaway";
   const isCollected = order.status === "picked_up";
+  // Only true when there's actually somewhere to send it — a signed-in
+  // user always has their account email, but a scan-and-order guest
+  // checkout never collects one (phone only), so this line would be a
+  // false promise there.
+  const hasEmailOnFile = Boolean(order.user_id) || Boolean(order.guest_email);
 
   return (
     <div className="mx-auto max-w-lg space-y-4">
@@ -73,7 +78,16 @@ export function OrderConfirmation({
                 <img src={qrDataUrl} alt={`QR code for pickup code ${order.pickup_code}`} className="mx-auto mt-3 h-44 w-44" />
               )}
               <p className="font-display mt-3 text-3xl font-bold tracking-[0.3em]">{order.pickup_code}</p>
-              <p className="mt-1 text-xs text-ink/50">Also sent to you by email.</p>
+              {qrDataUrl && (
+                <a
+                  href={qrDataUrl}
+                  download={`mindcafe-pickup-${order.pickup_code}.png`}
+                  className="pill-btn mt-3 inline-flex"
+                >
+                  Download QR
+                </a>
+              )}
+              {hasEmailOnFile && <p className="mt-2 text-xs text-ink/50">Also sent to you by email.</p>}
             </>
           )}
         </div>

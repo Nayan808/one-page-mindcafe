@@ -9,14 +9,12 @@ import { createClient } from "@/lib/supabase/client";
 import { getActivePickupLocations, getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthModal } from "@/contexts/AuthModalContext";
 import { OrderConfirmation } from "@/components/OrderConfirmation";
 import { ScanOrderPayment } from "@/components/ScanOrderPayment";
 import { formatInr } from "@/lib/utils";
 import type { ProductWithVariants } from "@/types/domain";
 
-type Step = "location" | "products" | "cart" | "payment";
+type Step = "location" | "products" | "payment";
 
 const PICKUP_LOCATIONS_QUERY_KEY = ["pickup-locations", "scan-order"];
 
@@ -93,7 +91,7 @@ function LocationStep({ onSelect }: { onSelect: (id: string) => void }) {
   );
 }
 
-function ProductsStep({ onViewCart }: { onViewCart: () => void }) {
+function ProductsStep({ onProceedToPay }: { onProceedToPay: () => void }) {
   const { items, addItem, updateQuantity, removeItem, isReady, cartId } = useCartContext();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [addedId, setAddedId] = useState<string | null>(null);
@@ -105,8 +103,8 @@ function ProductsStep({ onViewCart }: { onViewCart: () => void }) {
   });
 
   // Deliberately no `if (!user)` gate here, unlike Hero.tsx's product
-  // cards — this flow is guest-friendly by design, login is only required
-  // once the wizard reaches the payment step.
+  // cards — this whole flow is guest checkout, no login/OTP anywhere; the
+  // payment step just asks for a phone number instead (ScanOrderPayment).
   async function handleAdd(product: ProductWithVariants) {
     const variant = product.product_variants[0];
     if (!variant || !isReady || !cartId) return;
@@ -140,11 +138,11 @@ function ProductsStep({ onViewCart }: { onViewCart: () => void }) {
         {itemCount > 0 && (
           <button
             type="button"
-            onClick={onViewCart}
+            onClick={onProceedToPay}
             className="pill-btn shrink-0 gap-1.5 !py-2 text-xs"
           >
             <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-            cart · {itemCount}
+            proceed to pay · {itemCount}
           </button>
         )}
       </div>
@@ -229,80 +227,13 @@ function ProductsStep({ onViewCart }: { onViewCart: () => void }) {
           })}
         </div>
       )}
-    </div>
-  );
-}
 
-function CartStep({ onBack, onCheckout }: { onBack: () => void; onCheckout: () => void }) {
-  const { items, subtotal, updateQuantity, removeItem } = useCartContext();
-
-  return (
-    <div>
-      <h1 className="font-display text-xl font-bold text-ink sm:text-2xl">Your cart</h1>
-
-      {items.length === 0 ? (
-        <p className="mt-6 text-sm text-ink/60">Your cart is empty.</p>
-      ) : (
-        <ul className="mt-6 space-y-2">
-          {items.map((item) => {
-            const price = item.product_variants.price_override ?? item.product_variants.products.price;
-            return (
-              <li key={item.id} className="rounded-xl border border-ink/15 bg-cream p-3 text-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-ink">{item.product_variants.products.name}</span>
-                  <span className="text-ink/60">{formatInr(price * item.quantity)}</span>
-                </div>
-                <div className="mt-2 flex items-center justify-between">
-                  <div className="flex items-center rounded-full border border-ink/15 bg-white">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        item.quantity <= 1
-                          ? removeItem.mutate(item.id)
-                          : updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity - 1 })
-                      }
-                      className="px-3 py-1.5 text-sm font-bold text-ink"
-                      aria-label={`Decrease ${item.product_variants.products.name} quantity`}
-                    >
-                      −
-                    </button>
-                    <span className="min-w-[1.5rem] text-center text-sm font-semibold text-ink">{item.quantity}</span>
-                    <button
-                      type="button"
-                      onClick={() => updateQuantity.mutate({ cartItemId: item.id, quantity: item.quantity + 1 })}
-                      className="px-3 py-1.5 text-sm font-bold text-ink"
-                      aria-label={`Increase ${item.product_variants.products.name} quantity`}
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeItem.mutate(item.id)}
-                    className="text-xs font-medium text-ink/50 underline hover:text-ink"
-                  >
-                    remove
-                  </button>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
+      {itemCount > 0 && (
+        <button type="button" onClick={onProceedToPay} className="pill-btn mt-6 w-full gap-1.5">
+          <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
+          proceed to pay · {itemCount}
+        </button>
       )}
-
-      <div className="mt-4 flex items-center justify-between border-t border-ink/10 pt-3 text-sm font-medium">
-        <span>Subtotal</span>
-        <span>{formatInr(subtotal)}</span>
-      </div>
-
-      <div className="mt-6 flex gap-2">
-        <button type="button" onClick={onBack} className="pill-btn-outline flex-1">
-          add more
-        </button>
-        <button type="button" onClick={onCheckout} disabled={items.length === 0} className="pill-btn flex-1 disabled:opacity-40">
-          proceed to pay
-        </button>
-      </div>
     </div>
   );
 }
@@ -314,9 +245,6 @@ function ScanOrderInner() {
   const [locationId, setLocationId] = useState<string | null>(prefillLocation);
   const [step, setStep] = useState<Step>(prefillLocation ? "products" : "location");
   const [orderId, setOrderId] = useState<string | null>(null);
-
-  const { user } = useAuth();
-  const { openAuthModal } = useAuthModal();
 
   // Validates a prefilled ?location= once the real list has loaded — an
   // outdated/inactive/mistyped location falls back to the manual picker
@@ -345,11 +273,7 @@ function ScanOrderInner() {
         />
       )}
 
-      {step === "products" && <ProductsStep onViewCart={() => setStep("cart")} />}
-
-      {step === "cart" && (
-        <CartStep onBack={() => setStep("products")} onCheckout={() => setStep("payment")} />
-      )}
+      {step === "products" && <ProductsStep onProceedToPay={() => setStep("payment")} />}
 
       {step === "payment" &&
         (orderId ? (
@@ -361,16 +285,8 @@ function ScanOrderInner() {
             }}
             backLabel="Start a new order"
           />
-        ) : !user ? (
-          <div className="text-center">
-            <h1 className="font-display text-xl font-bold text-ink sm:text-2xl">Log in to pay</h1>
-            <p className="mt-2 text-sm text-ink/60">Your cart is saved — sign in to complete payment.</p>
-            <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
-              Log In
-            </button>
-          </div>
         ) : locationId ? (
-          <ScanOrderPayment locationId={locationId} onBack={() => setStep("cart")} onOrderPlaced={setOrderId} />
+          <ScanOrderPayment locationId={locationId} onBack={() => setStep("products")} onOrderPlaced={setOrderId} />
         ) : (
           <p className="text-center text-sm text-ink/60">Pick a Zostel location first.</p>
         ))}
