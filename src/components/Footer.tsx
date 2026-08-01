@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { Globe, Mail, Phone } from "lucide-react";
+import { Mail, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { subscribeToNewsletter } from "@/lib/api";
 import { useAuthModal } from "@/contexts/AuthModalContext";
@@ -256,16 +256,12 @@ export function Footer() {
 
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Follow</p>
-          {/* lucide-react has no brand icons in this version — generic
-              Globe stands in for LinkedIn (no real page yet); Facebook and
+          {/* lucide-react has no brand icons in this version — Facebook and
               Instagram get their own real glyphs via FacebookIcon/
               InstagramIcon above. */}
           <div className="mt-2 flex items-center justify-center gap-3 sm:justify-start">
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer" aria-label="LinkedIn" className="text-ink/60 hover:text-ink">
-              <Globe className="h-4 w-4" aria-hidden />
-            </a>
             <a
-              href="https://www.facebook.com/share/18Xa19VUck/?mibextid=wwXIfr"
+              href="https://share.google/cLT3bm4eAVcgIg7DG"
               target="_blank"
               rel="noreferrer"
               aria-label="Facebook"

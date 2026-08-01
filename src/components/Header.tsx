@@ -16,6 +16,33 @@ function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
+// Per-letter roll-up: each character gets its own clipped box holding two
+// stacked copies, staggered slightly by index so the word rolls letter by
+// letter on hover instead of sliding as one rigid block.
+function RollingText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split("").map((char, index) => (
+        <span key={index} className="relative inline-block h-[1em] overflow-hidden align-top">
+          <span
+            className="block transition-transform duration-300 ease-out group-hover:-translate-y-full"
+            style={{ transitionDelay: `${index * 18}ms` }}
+          >
+            {char}
+          </span>
+          <span
+            className="absolute inset-0 block translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0"
+            style={{ transitionDelay: `${index * 18}ms` }}
+            aria-hidden
+          >
+            {char}
+          </span>
+        </span>
+      ))}
+    </>
+  );
+}
+
 const NAV_LINKS = [
   { href: "/feelz", label: "Feelz" },
   { href: "/counselling", label: "counselling" },
@@ -118,9 +145,9 @@ export function Header() {
             <Link
               key={link.href}
               href={link.href}
-              className={`uppercase transition-colors ${headerSolid ? "hover:text-brand" : "hover:text-white"}`}
+              className={`group uppercase leading-none ${headerSolid ? "hover:text-brand" : "hover:text-white"}`}
             >
-              {link.label}
+              <RollingText text={link.label} />
             </Link>
           ))}
         </nav>
