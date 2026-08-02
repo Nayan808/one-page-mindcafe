@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Trash2 } from "lucide-react";
 import { useCartContext } from "@/contexts/CartContext";
 import { FulfillmentAndPayment } from "@/components/FulfillmentAndPayment";
 import { OrderConfirmation } from "@/components/OrderConfirmation";
@@ -74,9 +75,10 @@ function CheckoutContent() {
                     <button
                       type="button"
                       onClick={() => removeItem.mutate(item.id)}
-                      className="text-xs font-medium text-ink/50 underline hover:text-ink"
+                      aria-label={`Remove ${item.product_variants.products.name}`}
+                      className="text-red-600 hover:text-red-700"
                     >
-                      remove
+                      <Trash2 className="h-4 w-4" aria-hidden />
                     </button>
                   </div>
                 </li>

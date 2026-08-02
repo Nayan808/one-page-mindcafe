@@ -60,9 +60,16 @@ export function FeelzTeaserSection() {
                   <Link href="/feelz" className="flex flex-1 flex-col px-3 py-3.5 text-center">
                     <p className="font-display text-sm font-bold text-ink">{product.name}</p>
                     <p className="font-tagline mt-0.5 text-xs italic text-ink/60">{style.tagline}</p>
-                    <ul className="mt-2 list-disc list-inside space-y-1 text-left text-xs font-medium leading-snug text-ink">
+                    <ul className="mt-2 space-y-1.5 text-left text-xs font-medium leading-snug text-ink">
                       {style.useCases.slice(0, 3).map((useCase) => (
-                        <li key={useCase}>{useCase}</li>
+                        <li key={useCase} className="flex items-start gap-1.5">
+                          <span
+                            className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: style.badgeBg }}
+                            aria-hidden
+                          />
+                          <span>{useCase}</span>
+                        </li>
                       ))}
                     </ul>
                   </Link>
@@ -79,7 +86,13 @@ export function FeelzTeaserSection() {
         </div>
       </div>
 
-      <Modal isOpen={!!lightboxProduct} onClose={() => setLightboxProduct(null)} title={lightboxProduct?.name ?? ""} panelClassName="max-w-lg">
+      <Modal
+        isOpen={!!lightboxProduct}
+        onClose={() => setLightboxProduct(null)}
+        title={lightboxProduct?.name ?? ""}
+        panelClassName="max-w-lg"
+        bgClassName="bg-white"
+      >
         {lightboxProduct?.image_url && (
           <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
             <Image src={lightboxProduct.image_url} alt={lightboxProduct.name} fill sizes="32rem" className="object-contain" />

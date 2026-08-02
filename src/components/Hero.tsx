@@ -283,6 +283,13 @@ export function Hero() {
                       {mood.label}
                     </h3>
                     <p className="font-tagline mt-1 text-xs italic text-ink/60 sm:text-sm">{style.tagline}</p>
+                    <button
+                      type="button"
+                      onClick={() => setDetailKey(mood.key)}
+                      className="mt-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/50 underline underline-offset-2 transition hover:text-ink"
+                    >
+                      view details
+                    </button>
                   </div>
 
                   <div>

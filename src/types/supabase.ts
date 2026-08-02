@@ -620,6 +620,10 @@ export interface Database {
         Args: { p_order_id: string };
         Returns: string;
       };
+      confirmed_sessions_count: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

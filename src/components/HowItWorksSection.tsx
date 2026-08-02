@@ -89,7 +89,13 @@ export function HowItWorksSection() {
       </div>
       </div>
 
-      <Modal isOpen={!!detailStep} onClose={() => setDetailIndex(null)} title={detailStep?.title ?? ""} panelClassName="max-w-md">
+      <Modal
+        isOpen={!!detailStep}
+        onClose={() => setDetailIndex(null)}
+        title={detailStep?.title ?? ""}
+        panelClassName="max-w-md"
+        bgClassName="bg-white"
+      >
         {detailStep && (
           <>
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl">

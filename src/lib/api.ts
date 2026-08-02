@@ -247,6 +247,28 @@ export async function subscribeToNewsletter(sb: Sb, email: string): Promise<{ al
   return { alreadySubscribed: false };
 }
 
+// Homepage trust-stats row: real counts, not invented copy. Sessions goes
+// through confirmed_sessions_count() (a security definer RPC — the
+// appointments_select RLS policy is owner/expert/admin-only, so a plain
+// client-side count would return 0 for an anonymous visitor); experts and
+// pickup_locations are both publicly selectable already, so a direct
+// count query works for those.
+export async function getHomepageStats(sb: Sb): Promise<{ sessionsBooked: number; expertsCount: number; zostelLocationsCount: number }> {
+  const [sessionsResult, expertsResult, locationsResult] = await Promise.all([
+    sb.rpc("confirmed_sessions_count"),
+    sb.from("experts").select("*", { count: "exact", head: true }).eq("is_active", true),
+    sb.from("pickup_locations").select("*", { count: "exact", head: true }).eq("is_active", true),
+  ]);
+  throwOnError("getHomepageStats (sessions)", sessionsResult.error);
+  throwOnError("getHomepageStats (experts)", expertsResult.error);
+  throwOnError("getHomepageStats (locations)", locationsResult.error);
+  return {
+    sessionsBooked: sessionsResult.data ?? 0,
+    expertsCount: expertsResult.count ?? 0,
+    zostelLocationsCount: locationsResult.count ?? 0,
+  };
+}
+
 export async function getRecentReviews(sb: Sb, limit = 4): Promise<Review[]> {
   const { data, error } = await sb.from("reviews").select("*").order("created_at", { ascending: false }).limit(limit);
   throwOnError("getRecentReviews", error);
