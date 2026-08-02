@@ -270,14 +270,14 @@ export function Footer() {
               <FacebookIcon className="h-4 w-4" />
             </a>
             <a
-              href="https://www.instagram.com/mindcafeindia/"
+              href="https://www.instagram.com/feelzbymindcafe/"
               target="_blank"
               rel="noreferrer"
-              aria-label="Instagram: mindcafeindia"
+              aria-label="Instagram: feelzbymindcafe"
               className="flex items-center gap-1 text-xs text-ink/60 hover:text-ink"
             >
               <InstagramIcon className="h-4 w-4" />
-              mindcafeindia
+              feelzbymindcafe
             </a>
           </div>
           <span className="badge-pill mt-4 inline-block">ISO/IEC 27001</span>

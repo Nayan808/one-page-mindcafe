@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { MilestonesSection } from "@/components/MilestonesSection";
 import { FounderSection } from "@/components/FounderSection";
 import { StorySection } from "@/components/StorySection";
@@ -10,8 +11,10 @@ import { StorySection } from "@/components/StorySection";
 export default function AboutPage() {
   return (
     <div>
-      <section className="bg-ink text-cream">
-        <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
+      <section className="relative overflow-hidden bg-ink text-cream">
+        <Image src="/about/hero-bg.png" alt="" fill priority className="object-cover" />
+        <div className="absolute inset-0 bg-ink/75" />
+        <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">About Mindcafe</p>
           <h1 className="font-display mx-auto mt-4 max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
             A world where seeking support is as natural as offering a hand.

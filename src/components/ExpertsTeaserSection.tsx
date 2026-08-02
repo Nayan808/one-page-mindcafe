@@ -34,6 +34,7 @@ export function ExpertsTeaserSection() {
   const isSearching = q.length > 0;
   const visibleExperts = isSearching || showAll ? filtered : filtered.slice(0, 4);
   const canExpand = !isSearching && !showAll && filtered.length > 4;
+  const canCollapse = !isSearching && showAll && filtered.length > 4;
 
   if (!expertsQuery.isLoading && experts.length === 0) return null;
 
@@ -74,6 +75,14 @@ export function ExpertsTeaserSection() {
         <div className="mt-8 text-center">
           <button type="button" onClick={() => setShowAll(true)} className="pill-btn-outline">
             See All Experts
+          </button>
+        </div>
+      ) : null}
+
+      {canCollapse ? (
+        <div className="mt-8 text-center">
+          <button type="button" onClick={() => setShowAll(false)} className="pill-btn-outline">
+            Show Less
           </button>
         </div>
       ) : null}
