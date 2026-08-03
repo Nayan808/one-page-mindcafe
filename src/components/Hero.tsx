@@ -34,7 +34,7 @@ function useSlideCycle(words: string[], intervalMs = 1800) {
   return words[index];
 }
 
-const HERO_CYCLE_WORDS = ["tear it.", "place it.", "feel it."];
+const HERO_CYCLE_WORDS = ["Tear it.", "Place it.", "Feel it."];
 
 const MOOD_GRID = [
   { key: "extrovert", label: "Extrovert", src: "/products/extrovert.png" },
