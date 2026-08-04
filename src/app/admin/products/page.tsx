@@ -23,8 +23,24 @@ import type { ProductWithVariants, ProductVariant } from "@/types/domain";
 type ProductForm = { name: string; slug: string; description: string; price: string; image_url: string; is_active: boolean };
 const EMPTY_PRODUCT: ProductForm = { name: "", slug: "", description: "", price: "", image_url: "", is_active: true };
 
-type VariantForm = { variant_label: string; price_override: string; sku: string };
-const EMPTY_VARIANT: VariantForm = { variant_label: "", price_override: "", sku: "" };
+type VariantForm = {
+  variant_label: string;
+  price_override: string;
+  sku: string;
+  weight_grams: string;
+  length_cm: string;
+  breadth_cm: string;
+  height_cm: string;
+};
+const EMPTY_VARIANT: VariantForm = {
+  variant_label: "",
+  price_override: "",
+  sku: "",
+  weight_grams: "",
+  length_cm: "",
+  breadth_cm: "",
+  height_cm: "",
+};
 
 export default function AdminProductsPage() {
   const confirmDialog = useConfirmDialog();
@@ -107,6 +123,10 @@ export default function AdminProductsPage() {
         variant_label: variantForm.variant_label,
         price_override: variantForm.price_override ? Number(variantForm.price_override) : null,
         sku: variantForm.sku || null,
+        weight_grams: variantForm.weight_grams ? Number(variantForm.weight_grams) : null,
+        length_cm: variantForm.length_cm ? Number(variantForm.length_cm) : null,
+        breadth_cm: variantForm.breadth_cm ? Number(variantForm.breadth_cm) : null,
+        height_cm: variantForm.height_cm ? Number(variantForm.height_cm) : null,
       };
       const sb = createClient();
       if (editingVariant) return updateVariantAdmin(sb, editingVariant.id, input);
@@ -220,6 +240,37 @@ export default function AdminProductsPage() {
                     className="input"
                   />
                   <input value={variantForm.sku} onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })} placeholder="SKU (optional)" className="input" />
+                  <p className="text-xs font-semibold uppercase tracking-label text-ink/50">Shipping (for Shiprocket)</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      type="number"
+                      value={variantForm.weight_grams}
+                      onChange={(e) => setVariantForm({ ...variantForm, weight_grams: e.target.value })}
+                      placeholder="Weight (grams)"
+                      className="input"
+                    />
+                    <input
+                      type="number"
+                      value={variantForm.length_cm}
+                      onChange={(e) => setVariantForm({ ...variantForm, length_cm: e.target.value })}
+                      placeholder="Length (cm)"
+                      className="input"
+                    />
+                    <input
+                      type="number"
+                      value={variantForm.breadth_cm}
+                      onChange={(e) => setVariantForm({ ...variantForm, breadth_cm: e.target.value })}
+                      placeholder="Breadth (cm)"
+                      className="input"
+                    />
+                    <input
+                      type="number"
+                      value={variantForm.height_cm}
+                      onChange={(e) => setVariantForm({ ...variantForm, height_cm: e.target.value })}
+                      placeholder="Height (cm)"
+                      className="input"
+                    />
+                  </div>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => saveVariant.mutate()} className="pill-btn !py-1.5 text-xs">
                       save
@@ -234,13 +285,22 @@ export default function AdminProductsPage() {
                   <span>
                     {variant.variant_label}
                     {variant.price_override ? ` — ${formatInr(variant.price_override)}` : ""}
+                    {variant.weight_grams ? ` — ${variant.weight_grams}g` : ""}
                   </span>
                   <div className="flex gap-3">
                     <button
                       type="button"
                       onClick={() => {
                         setEditingVariant(variant);
-                        setVariantForm({ variant_label: variant.variant_label, price_override: variant.price_override ? String(variant.price_override) : "", sku: variant.sku ?? "" });
+                        setVariantForm({
+                          variant_label: variant.variant_label,
+                          price_override: variant.price_override ? String(variant.price_override) : "",
+                          sku: variant.sku ?? "",
+                          weight_grams: variant.weight_grams ? String(variant.weight_grams) : "",
+                          length_cm: variant.length_cm ? String(variant.length_cm) : "",
+                          breadth_cm: variant.breadth_cm ? String(variant.breadth_cm) : "",
+                          height_cm: variant.height_cm ? String(variant.height_cm) : "",
+                        });
                       }}
                       className="text-xs font-medium text-ink underline"
                     >
@@ -262,6 +322,37 @@ export default function AdminProductsPage() {
                 <input value={variantForm.variant_label} onChange={(e) => setVariantForm({ ...variantForm, variant_label: e.target.value })} placeholder="Label (e.g. 10-pack)" className="input" />
                 <input value={variantForm.price_override} onChange={(e) => setVariantForm({ ...variantForm, price_override: e.target.value })} placeholder="Price override (optional)" className="input" />
                 <input value={variantForm.sku} onChange={(e) => setVariantForm({ ...variantForm, sku: e.target.value })} placeholder="SKU (optional)" className="input" />
+                <p className="text-xs font-semibold uppercase tracking-label text-ink/50">Shipping (for Shiprocket)</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="number"
+                    value={variantForm.weight_grams}
+                    onChange={(e) => setVariantForm({ ...variantForm, weight_grams: e.target.value })}
+                    placeholder="Weight (grams)"
+                    className="input"
+                  />
+                  <input
+                    type="number"
+                    value={variantForm.length_cm}
+                    onChange={(e) => setVariantForm({ ...variantForm, length_cm: e.target.value })}
+                    placeholder="Length (cm)"
+                    className="input"
+                  />
+                  <input
+                    type="number"
+                    value={variantForm.breadth_cm}
+                    onChange={(e) => setVariantForm({ ...variantForm, breadth_cm: e.target.value })}
+                    placeholder="Breadth (cm)"
+                    className="input"
+                  />
+                  <input
+                    type="number"
+                    value={variantForm.height_cm}
+                    onChange={(e) => setVariantForm({ ...variantForm, height_cm: e.target.value })}
+                    placeholder="Height (cm)"
+                    className="input"
+                  />
+                </div>
                 <button type="button" onClick={() => saveVariant.mutate()} disabled={!variantForm.variant_label} className="pill-btn w-full !py-1.5 text-xs">
                   add variant
                 </button>

@@ -12,17 +12,20 @@ function scrollToProducts() {
   document.getElementById("mood-picks")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-// Opens the location's exact address in Google Maps rather than just its
-// city — a plain city-name search would land on the wrong Zostel property
-// in cities with more than one.
-function mapsUrl(address: string): string {
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+// Prefers the client-verified maps_url (a Google Place ID link — exact,
+// no ambiguity) over a plain address text-search, which can occasionally
+// land on the wrong result in cities with more than one similarly-named
+// place. Falls back to an address search only for a location that hasn't
+// had a verified link added yet (see supabase/data-imports/
+// pickup_location_maps_url_2026-08-04.sql).
+function mapsUrl(location: PickupLocation): string {
+  return location.maps_url ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`;
 }
 
 function LocationCard({ location, wide }: { location: PickupLocation; wide?: boolean }) {
   return (
     <a
-      href={mapsUrl(location.address)}
+      href={mapsUrl(location)}
       target="_blank"
       rel="noreferrer"
       className={`shrink-0 rounded-2xl border border-ink bg-white p-4 text-left text-ink shadow-lg transition hover:bg-ink/5 ${wide ? "w-64" : "w-56"}`}

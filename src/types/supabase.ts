@@ -71,6 +71,10 @@ export interface Database {
           variant_label: string;
           price_override: number | null;
           sku: string | null;
+          weight_grams: number | null;
+          length_cm: number | null;
+          breadth_cm: number | null;
+          height_cm: number | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["product_variants"]["Row"]> & {
@@ -98,6 +102,7 @@ export interface Database {
           lng: number | null;
           is_active: boolean;
           staff_pin: string;
+          maps_url: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["pickup_locations"]["Row"]> & {

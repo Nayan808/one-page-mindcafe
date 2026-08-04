@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
   const { data: order, error } = await sb
     .from("orders")
     .select(
-      "id, order_number, subtotal, created_at, addresses:address_id(full_name, phone, line1, line2, city, state, pincode), order_items(quantity, unit_price, product_variants(variant_label, products(name)))",
+      "id, order_number, subtotal, created_at, addresses:address_id(full_name, phone, line1, line2, city, state, pincode), order_items(quantity, unit_price, product_variants(variant_label, weight_grams, length_cm, breadth_cm, height_cm, products(name)))",
     )
     .eq("id", record.id)
     .single();
@@ -75,8 +75,43 @@ Deno.serve(async (req) => {
   const orderItems = order.order_items as unknown as Array<{
     quantity: number;
     unit_price: number;
-    product_variants: { variant_label: string; products: { name: string } };
+    product_variants: {
+      variant_label: string;
+      weight_grams: number | null;
+      length_cm: number | null;
+      breadth_cm: number | null;
+      height_cm: number | null;
+      products: { name: string };
+    };
   }>;
+
+  // Real package weight/dimensions from product_variants (see
+  // 20260804054141_product_variant_shipping_dimensions.sql), needed for
+  // accurate Shiprocket courier/rate selection. Weight sums across every
+  // unit in the order; dimensions use the largest single item's box as a
+  // practical stand-in for the combined package (these are small, roughly
+  // uniform strip boxes, so this doesn't need to be exact — Shiprocket
+  // just needs a reasonable non-placeholder estimate). Falls back to the
+  // old hardcoded placeholder per-item whenever a variant hasn't had its
+  // shipping fields filled in yet (via /admin/products), so an
+  // unconfigured product never blocks shipment creation outright — just
+  // flagged loudly so it gets fixed.
+  const FALLBACK_WEIGHT_GRAMS = 500;
+  const FALLBACK_DIMENSION_CM = 10;
+  let totalWeightGrams = 0;
+  let maxLengthCm = 0;
+  let maxBreadthCm = 0;
+  let maxHeightCm = 0;
+  for (const item of orderItems) {
+    const v = item.product_variants;
+    if (!v.weight_grams || !v.length_cm || !v.breadth_cm || !v.height_cm) {
+      console.warn(`create-shiprocket-shipment: ${v.products.name} (${v.variant_label}) has no shipping dimensions set — using placeholder`);
+    }
+    totalWeightGrams += (v.weight_grams ?? FALLBACK_WEIGHT_GRAMS) * item.quantity;
+    maxLengthCm = Math.max(maxLengthCm, v.length_cm ?? FALLBACK_DIMENSION_CM);
+    maxBreadthCm = Math.max(maxBreadthCm, v.breadth_cm ?? FALLBACK_DIMENSION_CM);
+    maxHeightCm = Math.max(maxHeightCm, v.height_cm ?? FALLBACK_DIMENSION_CM);
+  }
 
   const token = await getShiprocketToken();
 
@@ -88,11 +123,6 @@ Deno.serve(async (req) => {
   const billingFirstName = spaceIndex === -1 ? address.full_name : address.full_name.slice(0, spaceIndex);
   const billingLastName = spaceIndex === -1 ? "" : address.full_name.slice(spaceIndex + 1);
 
-  // NOTE: length/breadth/height/weight are placeholders — this schema
-  // doesn't carry physical product attributes yet. Add e.g. weight_kg /
-  // dimensions_cm to product_variants and compute real totals here before
-  // going live; Shiprocket requires accurate values for rate/courier
-  // selection.
   const shiprocketRes = await fetch("https://apiv2.shiprocket.in/v1/external/orders/create/adhoc", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -121,10 +151,10 @@ Deno.serve(async (req) => {
       })),
       payment_method: "Prepaid",
       sub_total: order.subtotal,
-      length: 10,
-      breadth: 10,
-      height: 10,
-      weight: 0.5,
+      length: maxLengthCm,
+      breadth: maxBreadthCm,
+      height: maxHeightCm,
+      weight: totalWeightGrams / 1000,
     }),
   });
 
