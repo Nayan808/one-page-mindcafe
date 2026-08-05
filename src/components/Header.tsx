@@ -22,23 +22,35 @@ function scrollToTop() {
 function RollingText({ text }: { text: string }) {
   return (
     <>
-      {text.split("").map((char, index) => (
-        <span key={index} className="relative inline-block h-[1em] overflow-hidden align-top">
-          <span
-            className="block transition-transform duration-300 ease-out group-hover:-translate-y-full"
-            style={{ transitionDelay: `${index * 18}ms` }}
-          >
-            {char}
+      {text.split("").map((char, index) =>
+        // A space is invisible either way, so there's nothing to roll —
+        // wrapping it in the same isolated inline-block as a letter
+        // collapses it to zero width in most browsers (a lone whitespace
+        // text node has no rendered width once it's not part of normal
+        // inline flow). A plain non-breaking space renders at its real
+        // width instead.
+        char === " " ? (
+          <span key={index} className="inline-block">
+            &nbsp;
           </span>
-          <span
-            className="absolute inset-0 block translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0"
-            style={{ transitionDelay: `${index * 18}ms` }}
-            aria-hidden
-          >
-            {char}
+        ) : (
+          <span key={index} className="relative inline-block h-[1em] overflow-hidden align-top">
+            <span
+              className="block transition-transform duration-300 ease-out group-hover:-translate-y-full"
+              style={{ transitionDelay: `${index * 18}ms` }}
+            >
+              {char}
+            </span>
+            <span
+              className="absolute inset-0 block translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0"
+              style={{ transitionDelay: `${index * 18}ms` }}
+              aria-hidden
+            >
+              {char}
+            </span>
           </span>
-        </span>
-      ))}
+        ),
+      )}
     </>
   );
 }

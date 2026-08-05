@@ -43,7 +43,10 @@ export type InventoryWithVariant = Inventory & {
 export type CartItemWithVariant = CartItem & {
   product_variants: ProductVariant & { products: Pick<Product, "id" | "name" | "image_url" | "price"> };
 };
-export type OrderWithItems = Order & { order_items: OrderItem[] };
+export type OrderWithItems = Order & {
+  order_items: OrderItem[];
+  pickup_locations: Pick<PickupLocation, "name"> | null;
+};
 export type OrderItemWithVariant = OrderItem & {
   product_variants: Pick<ProductVariant, "variant_label"> & { products: Pick<Product, "name"> };
 };

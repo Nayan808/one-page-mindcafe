@@ -795,7 +795,11 @@ export async function validateCoupon(sb: Sb, code: string, subtotal: number): Pr
 // --- Orders -------------------------------------------------------------
 
 export async function getOrder(sb: Sb, orderId: string): Promise<OrderWithItems | null> {
-  const { data, error } = await sb.from("orders").select("*, order_items(*)").eq("id", orderId).maybeSingle();
+  const { data, error } = await sb
+    .from("orders")
+    .select("*, order_items(*), pickup_locations:location_id(name)")
+    .eq("id", orderId)
+    .maybeSingle();
   throwOnError("getOrder", error);
   return data as unknown as OrderWithItems | null;
 }

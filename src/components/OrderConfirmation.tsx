@@ -98,9 +98,11 @@ export function OrderConfirmation({
           <span>Status</span>
           <span className="font-medium capitalize">{STATUS_LABELS[order.status] ?? order.status}</span>
         </div>
-        <div className="flex justify-between">
-          <span>Fulfillment</span>
-          <span className="capitalize">{order.fulfillment_type === "takeaway" ? "Takeaway (Zostel)" : "Delivery"}</span>
+        <div className="flex justify-between gap-3">
+          <span className="shrink-0">Fulfillment</span>
+          <span className="text-right capitalize">
+            {order.fulfillment_type === "takeaway" ? `Takeaway (${order.pickup_locations?.name ?? "Zostel"})` : "Delivery"}
+          </span>
         </div>
         <div className="flex justify-between">
           <span>Payment</span>
