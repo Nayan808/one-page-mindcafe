@@ -75,6 +75,7 @@ export interface Database {
           length_cm: number | null;
           breadth_cm: number | null;
           height_cm: number | null;
+          reorder_threshold: number | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["product_variants"]["Row"]> & {
@@ -579,6 +580,26 @@ export interface Database {
           expert_id: string;
         };
         Update: Partial<Database["public"]["Tables"]["appointment_notes"]["Row"]>;
+        Relationships: [];
+      };
+      inventory_transactions: {
+        Row: {
+          id: string;
+          transaction_date: string;
+          transaction_type: "received" | "shipped" | "online_sale";
+          variant_id: string;
+          quantity_in: number | null;
+          quantity_out: number | null;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["inventory_transactions"]["Row"]> & {
+          transaction_date: string;
+          transaction_type: "received" | "shipped" | "online_sale";
+          variant_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["inventory_transactions"]["Row"]>;
         Relationships: [];
       };
       faqs: {

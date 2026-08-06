@@ -18,6 +18,7 @@ import type {
   ExpertApplication,
   Faq,
   FeelzPreorder,
+  InventoryTransaction,
   InventoryWithVariant,
   Milestone,
   NewsletterSubscriber,
@@ -451,6 +452,127 @@ export async function getInventoryAdmin(sb: Sb, locationId: string | null): Prom
 export async function updateInventoryQuantityAdmin(sb: Sb, id: string, quantity: number): Promise<void> {
   const { error } = await sb.from("inventory").update({ quantity_available: quantity }).eq("id", id);
   throwOnError("updateInventoryQuantityAdmin", error);
+}
+
+export type VariantInventorySummary = {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  price: number;
+  reorderThreshold: number | null;
+  totalRemaining: number;
+};
+
+// Cross-location totals per variant, for the inventory summary dashboard —
+// unlike getInventoryAdmin (one location's rows), this pulls every
+// inventory row (every pickup location plus the online/delivery pool) and
+// sums quantity_available per variant client-side. The row count here is
+// tiny (variants × locations, a few dozen at most), so aggregating in the
+// browser is simpler than adding a dedicated SQL view for it.
+export async function getInventorySummaryAdmin(sb: Sb): Promise<VariantInventorySummary[]> {
+  const { data, error } = await sb
+    .from("inventory")
+    .select("quantity_available, product_variants(id, variant_label, price_override, reorder_threshold, products(name, price))");
+  throwOnError("getInventorySummaryAdmin", error);
+
+  const rows = (data ?? []) as unknown as Array<{
+    quantity_available: number;
+    product_variants: {
+      id: string;
+      variant_label: string;
+      price_override: number | null;
+      reorder_threshold: number | null;
+      products: { name: string; price: number };
+    };
+  }>;
+
+  const byVariant = new Map<string, VariantInventorySummary>();
+  for (const row of rows) {
+    const v = row.product_variants;
+    const existing = byVariant.get(v.id);
+    if (existing) {
+      existing.totalRemaining += row.quantity_available;
+    } else {
+      byVariant.set(v.id, {
+        variantId: v.id,
+        productName: v.products.name,
+        variantLabel: v.variant_label,
+        price: v.price_override ?? v.products.price,
+        reorderThreshold: v.reorder_threshold,
+        totalRemaining: row.quantity_available,
+      });
+    }
+  }
+
+  return [...byVariant.values()].sort((a, b) => a.productName.localeCompare(b.productName));
+}
+
+export type InventoryTransactionWithVariant = InventoryTransaction & {
+  product_variants: { variant_label: string; products: { name: string } };
+};
+
+// Manual reconciliation ledger (see 20260806113057_inventory_transactions
+// migration) — an audit trail an admin fills in from the manufacturer's
+// receipt paperwork and Zostel shipment records, deliberately NOT wired to
+// mutate inventory.quantity_available (see the migration's comment for
+// why). Most recent first.
+export async function getInventoryTransactionsAdmin(sb: Sb): Promise<InventoryTransactionWithVariant[]> {
+  const { data, error } = await sb
+    .from("inventory_transactions")
+    .select("*, product_variants(variant_label, products(name))")
+    .order("transaction_date", { ascending: false })
+    .order("created_at", { ascending: false });
+  throwOnError("getInventoryTransactionsAdmin", error);
+  return (data as unknown as InventoryTransactionWithVariant[]) ?? [];
+}
+
+export async function createInventoryTransactionAdmin(
+  sb: Sb,
+  input: {
+    transactionDate: string;
+    transactionType: "received" | "shipped" | "online_sale";
+    variantId: string;
+    quantity: number;
+    notes?: string;
+  },
+): Promise<void> {
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  const { error } = await sb.from("inventory_transactions").insert({
+    transaction_date: input.transactionDate,
+    transaction_type: input.transactionType,
+    variant_id: input.variantId,
+    quantity_in: input.transactionType === "received" ? input.quantity : null,
+    quantity_out: input.transactionType === "received" ? null : input.quantity,
+    notes: input.notes || null,
+    created_by: user?.id ?? null,
+  });
+  throwOnError("createInventoryTransactionAdmin", error);
+}
+
+export async function deleteInventoryTransactionAdmin(sb: Sb, id: string): Promise<void> {
+  const { error } = await sb.from("inventory_transactions").delete().eq("id", id);
+  throwOnError("deleteInventoryTransactionAdmin", error);
+}
+
+// The real number of units sold online, straight from paid orders — not
+// the manually-typed "online_sale" ledger entries above. Shown alongside
+// the ledger so a mismatch is an actual, grounded variance, not a
+// reconciliation between two manually-entered figures.
+export async function getRealOnlineSalesByVariantAdmin(sb: Sb): Promise<Map<string, number>> {
+  const { data, error } = await sb
+    .from("order_items")
+    .select("variant_id, quantity, orders!inner(payment_status)")
+    .eq("orders.payment_status", "paid");
+  throwOnError("getRealOnlineSalesByVariantAdmin", error);
+
+  const rows = (data ?? []) as unknown as Array<{ variant_id: string; quantity: number }>;
+  const byVariant = new Map<string, number>();
+  for (const row of rows) {
+    byVariant.set(row.variant_id, (byVariant.get(row.variant_id) ?? 0) + row.quantity);
+  }
+  return byVariant;
 }
 
 // A location (a new pickup point, or one that was never fully stocked —

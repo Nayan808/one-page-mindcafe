@@ -6,6 +6,22 @@ import { createClient } from "@/lib/supabase/client";
 import { QrScanner } from "@/components/staff/QrScanner";
 import { formatInr } from "@/lib/utils";
 
+type StaffInventoryProduct = {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  price: number;
+  unitsRemaining: number;
+  unitsSold: number;
+  revenue: number;
+};
+
+type StaffInventoryData = {
+  location: { id: string; name: string; city: string } | null;
+  products: StaffInventoryProduct[];
+  totals: { unitsRemaining: number; unitsSold: number; revenue: number };
+};
+
 type StaffOrder = {
   id: string;
   order_number: string;
@@ -51,7 +67,12 @@ export default function StaffDashboard() {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isCollecting, setIsCollecting] = useState(false);
 
-  async function call(action: "lookup" | "collect" | "list_pending", extra: Record<string, string> = {}, pw = password) {
+  const [activeTab, setActiveTab] = useState<"orders" | "inventory">("orders");
+  const [inventory, setInventory] = useState<StaffInventoryData | null>(null);
+  const [isLoadingInventory, setIsLoadingInventory] = useState(false);
+  const [inventoryError, setInventoryError] = useState<string | null>(null);
+
+  async function call(action: "lookup" | "collect" | "list_pending" | "inventory", extra: Record<string, string> = {}, pw = password) {
     const sb = createClient();
     const { data, error } = await sb.functions.invoke("staff-pickup", { body: { action, password: pw, pin: pw, ...extra } });
     if (error) {
@@ -72,6 +93,21 @@ export default function StaffDashboard() {
     }
   }
 
+  // View-only, on purpose — this dashboard never edits stock. Editing
+  // lives in /admin/inventory, for real admins only.
+  async function loadInventory(pw = password) {
+    setIsLoadingInventory(true);
+    setInventoryError(null);
+    try {
+      const data = await call("inventory", {}, pw);
+      setInventory(data);
+    } catch (err) {
+      setInventoryError(err instanceof Error ? err.message : "Failed to load inventory");
+    } finally {
+      setIsLoadingInventory(false);
+    }
+  }
+
   useEffect(() => {
     const saved = sessionStorage.getItem(SESSION_KEY);
     if (!saved) return;
@@ -85,6 +121,16 @@ export default function StaffDashboard() {
       .catch(() => sessionStorage.removeItem(SESSION_KEY));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Lazily fetched — only pulled the first time the tab is actually
+  // opened, not on every unlock, since most visits are just "scan and
+  // collect" and never touch it.
+  useEffect(() => {
+    if (authed && activeTab === "inventory" && !inventory && !isLoadingInventory) {
+      void loadInventory();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed, activeTab]);
 
   async function handleUnlock() {
     setIsCheckingPassword(true);
@@ -181,6 +227,8 @@ export default function StaffDashboard() {
             setAuthed(false);
             setPassword("");
             setScopedLocation(null);
+            setInventory(null);
+            setActiveTab("orders");
           }}
           className="pill-btn-outline gap-1.5 !py-2 text-xs"
         >
@@ -189,6 +237,40 @@ export default function StaffDashboard() {
         </button>
       </header>
 
+      <div className="grid grid-cols-3 gap-2.5">
+        <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
+          <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsSold : "—"}</p>
+          <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units sold</p>
+        </div>
+        <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
+          <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsRemaining : "—"}</p>
+          <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units remaining</p>
+        </div>
+        <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
+          <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.revenue) : "—"}</p>
+          <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">revenue</p>
+        </div>
+      </div>
+
+      <div className="flex gap-1 border-b border-ink/10">
+        <button
+          type="button"
+          onClick={() => setActiveTab("orders")}
+          className={`px-1 pb-2.5 text-sm font-semibold ${activeTab === "orders" ? "border-b-2 border-ink text-ink" : "text-ink/50"}`}
+        >
+          orders
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("inventory")}
+          className={`ml-5 px-1 pb-2.5 text-sm font-semibold ${activeTab === "inventory" ? "border-b-2 border-ink text-ink" : "text-ink/50"}`}
+        >
+          inventory
+        </button>
+      </div>
+
+      {activeTab === "orders" && (
+        <>
       <section className="space-y-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-sm">
         <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">look up an order</h2>
         <QrScanner onDecode={(text) => { setCode(text); void handleLookup(text); }} />
@@ -282,6 +364,64 @@ export default function StaffDashboard() {
           </ul>
         )}
       </section>
+        </>
+      )}
+
+      {activeTab === "inventory" && (
+        <section className="space-y-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">
+              inventory {inventory?.location ? `— ${inventory.location.name}` : ""}
+            </h2>
+            <button
+              type="button"
+              onClick={() => void loadInventory()}
+              disabled={isLoadingInventory}
+              className="pill-btn-outline gap-1.5 !py-2 text-xs"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoadingInventory ? "animate-spin" : ""}`} aria-hidden />
+              refresh
+            </button>
+          </div>
+          <p className="text-xs text-ink/50">View only — real stock, updated live. Editing happens in admin.</p>
+
+          {inventoryError && <p className="text-sm text-red-600">{inventoryError}</p>}
+
+          {isLoadingInventory && !inventory ? (
+            <p className="py-6 text-center text-sm text-ink/50">Loading…</p>
+          ) : !inventory || inventory.products.length === 0 ? (
+            <p className="flex flex-col items-center gap-2 py-6 text-center text-sm text-ink/50">
+              <Package className="h-6 w-6 opacity-40" aria-hidden />
+              No stock recorded yet.
+            </p>
+          ) : (
+            <ul className="grid grid-cols-2 gap-2.5">
+              {inventory.products.map((p) => (
+                <li key={p.variantId} className="rounded-xl border border-ink/15 bg-cream/60 p-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-display font-bold text-ink">{p.productName}</span>
+                    <span className="font-mono text-xs text-ink/50">{formatInr(p.price)}</span>
+                  </div>
+                  <div className="mt-2 flex justify-between gap-2 text-xs">
+                    <div>
+                      <p className="text-ink/50">sold</p>
+                      <p className="font-semibold text-ink">{p.unitsSold}</p>
+                    </div>
+                    <div>
+                      <p className="text-ink/50">remaining</p>
+                      <p className="font-semibold text-ink">{p.unitsRemaining}</p>
+                    </div>
+                    <div>
+                      <p className="text-ink/50">revenue</p>
+                      <p className="font-semibold text-ink">{formatInr(p.revenue)}</p>
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
     </div>
   );
 }

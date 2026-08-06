@@ -17,7 +17,8 @@ import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 type RequestBody =
   | { action: "lookup"; password?: string; pin?: string; code: string }
   | { action: "collect"; password?: string; pin?: string; order_id: string }
-  | { action: "list_pending"; password?: string; pin?: string };
+  | { action: "list_pending"; password?: string; pin?: string }
+  | { action: "inventory"; password?: string; pin?: string };
 
 const ORDER_SELECT =
   "id, order_number, status, payment_status, pickup_code, pickup_code_collected_at, created_at, " +
@@ -110,6 +111,91 @@ Deno.serve(async (req) => {
     }
 
     return jsonResponse({ orders: (orders ?? []).map((o) => ({ ...o, customer_name: customerLabel(o) })), location });
+  }
+
+  if (body.action === "inventory") {
+    // View-only, deliberately — nothing in this dashboard writes to
+    // inventory or product_variants. A PIN holder only ever sees their
+    // own location's numbers; the master password sees every location
+    // summed together, same shape either way.
+    let stockQuery = sb
+      .from("inventory")
+      .select("quantity_available, variant_id, product_variants(variant_label, price_override, products(name, price))");
+    if (locationId !== null) stockQuery = stockQuery.eq("location_id", locationId);
+    const { data: stockRows, error: stockError } = await stockQuery;
+    if (stockError) return jsonResponse({ error: "Failed to load inventory" }, 500);
+
+    // Sold + revenue come from real completed takeaway orders, not a
+    // manually maintained counter — a Zostel's own paid, picked-up orders
+    // for the PIN-scoped case, every takeaway order for the master case.
+    let ordersQuery = sb
+      .from("orders")
+      .select("id, order_items(quantity, unit_price, variant_id)")
+      .eq("fulfillment_type", "takeaway")
+      .eq("payment_status", "paid");
+    if (locationId !== null) ordersQuery = ordersQuery.eq("location_id", locationId);
+    const { data: soldOrders, error: soldError } = await ordersQuery;
+    if (soldError) return jsonResponse({ error: "Failed to load sales" }, 500);
+
+    const soldByVariant = new Map<string, { unitsSold: number; revenue: number }>();
+    for (const order of soldOrders ?? []) {
+      for (const item of (order as unknown as { order_items: { quantity: number; unit_price: number; variant_id: string }[] }).order_items) {
+        const existing = soldByVariant.get(item.variant_id) ?? { unitsSold: 0, revenue: 0 };
+        existing.unitsSold += item.quantity;
+        existing.revenue += item.quantity * Number(item.unit_price);
+        soldByVariant.set(item.variant_id, existing);
+      }
+    }
+
+    const byVariant = new Map<
+      string,
+      { productName: string; variantLabel: string; price: number; unitsRemaining: number }
+    >();
+    for (const row of (stockRows ?? []) as unknown as Array<{
+      quantity_available: number;
+      variant_id: string;
+      product_variants: { variant_label: string; price_override: number | null; products: { name: string; price: number } };
+    }>) {
+      const existing = byVariant.get(row.variant_id);
+      if (existing) {
+        existing.unitsRemaining += row.quantity_available;
+      } else {
+        byVariant.set(row.variant_id, {
+          productName: row.product_variants.products.name,
+          variantLabel: row.product_variants.variant_label,
+          price: row.product_variants.price_override ?? row.product_variants.products.price,
+          unitsRemaining: row.quantity_available,
+        });
+      }
+    }
+
+    const products = [...byVariant.entries()]
+      .map(([variantId, v]) => ({
+        variantId,
+        productName: v.productName,
+        variantLabel: v.variantLabel,
+        price: v.price,
+        unitsRemaining: v.unitsRemaining,
+        unitsSold: soldByVariant.get(variantId)?.unitsSold ?? 0,
+        revenue: soldByVariant.get(variantId)?.revenue ?? 0,
+      }))
+      .sort((a, b) => a.productName.localeCompare(b.productName));
+
+    let location: { id: string; name: string; city: string } | null = null;
+    if (locationId !== null) {
+      const { data } = await sb.from("pickup_locations").select("id, name, city").eq("id", locationId).maybeSingle();
+      location = data ?? null;
+    }
+
+    return jsonResponse({
+      location,
+      products,
+      totals: {
+        unitsRemaining: products.reduce((sum, p) => sum + p.unitsRemaining, 0),
+        unitsSold: products.reduce((sum, p) => sum + p.unitsSold, 0),
+        revenue: products.reduce((sum, p) => sum + p.revenue, 0),
+      },
+    });
   }
 
   return jsonResponse({ error: "Unknown action" }, 400);
