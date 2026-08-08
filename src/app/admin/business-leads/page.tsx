@@ -7,6 +7,7 @@ import { getBusinessLeadsAdmin, updateBusinessLeadAdmin } from "@/lib/admin-api"
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { formatDate } from "@/lib/utils";
 import type { BusinessLead } from "@/types/domain";
 
 const STATUSES: BusinessLead["status"][] = ["new", "contacted", "closed"];
@@ -66,7 +67,7 @@ export default function AdminBusinessLeadsPage() {
         </select>
       ),
     },
-    { key: "date", label: "received", render: (l) => <span className="text-ink/60">{new Date(l.created_at).toLocaleDateString()}</span> },
+    { key: "date", label: "received", render: (l) => <span className="text-ink/60">{formatDate(l.created_at)}</span> },
   ];
 
   return (

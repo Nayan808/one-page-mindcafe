@@ -18,7 +18,7 @@ type RequestBody =
   | { action: "lookup"; password?: string; pin?: string; code: string }
   | { action: "collect"; password?: string; pin?: string; order_id: string }
   | { action: "list_pending"; password?: string; pin?: string }
-  | { action: "inventory"; password?: string; pin?: string };
+  | { action: "inventory"; password?: string; pin?: string; since?: string };
 
 const ORDER_SELECT =
   "id, order_number, status, payment_status, pickup_code, pickup_code_collected_at, created_at, " +
@@ -128,14 +128,24 @@ Deno.serve(async (req) => {
     // Sold + revenue come from real completed takeaway orders, not a
     // manually maintained counter — a Zostel's own paid, picked-up orders
     // for the PIN-scoped case, every takeaway order for the master case.
+    // `since` (an ISO timestamp the client computes from the range it has
+    // selected — 24h / today / 3 days / week) filters this to that
+    // window; omitted entirely means "all time".
     let ordersQuery = sb
       .from("orders")
       .select("id, order_items(quantity, unit_price, variant_id)")
       .eq("fulfillment_type", "takeaway")
       .eq("payment_status", "paid");
     if (locationId !== null) ordersQuery = ordersQuery.eq("location_id", locationId);
+    if (body.since) ordersQuery = ordersQuery.gte("created_at", body.since);
     const { data: soldOrders, error: soldError } = await ordersQuery;
     if (soldError) return jsonResponse({ error: "Failed to load sales" }, 500);
+
+    // Zostel's cut of every sale made at their property — a flat 10% of
+    // revenue, same rate applied everywhere (not stored anywhere yet;
+    // this is the one place it's used, so it isn't worth a settings row
+    // until a second use shows up).
+    const COMMISSION_RATE = 0.1;
 
     const soldByVariant = new Map<string, { unitsSold: number; revenue: number }>();
     for (const order of soldOrders ?? []) {
@@ -170,15 +180,19 @@ Deno.serve(async (req) => {
     }
 
     const products = [...byVariant.entries()]
-      .map(([variantId, v]) => ({
-        variantId,
-        productName: v.productName,
-        variantLabel: v.variantLabel,
-        price: v.price,
-        unitsRemaining: v.unitsRemaining,
-        unitsSold: soldByVariant.get(variantId)?.unitsSold ?? 0,
-        revenue: soldByVariant.get(variantId)?.revenue ?? 0,
-      }))
+      .map(([variantId, v]) => {
+        const revenue = soldByVariant.get(variantId)?.revenue ?? 0;
+        return {
+          variantId,
+          productName: v.productName,
+          variantLabel: v.variantLabel,
+          price: v.price,
+          unitsRemaining: v.unitsRemaining,
+          unitsSold: soldByVariant.get(variantId)?.unitsSold ?? 0,
+          revenue,
+          commission: revenue * COMMISSION_RATE,
+        };
+      })
       .sort((a, b) => a.productName.localeCompare(b.productName));
 
     let location: { id: string; name: string; city: string } | null = null;
@@ -187,13 +201,17 @@ Deno.serve(async (req) => {
       location = data ?? null;
     }
 
+    const totalRevenue = products.reduce((sum, p) => sum + p.revenue, 0);
+
     return jsonResponse({
       location,
       products,
       totals: {
         unitsRemaining: products.reduce((sum, p) => sum + p.unitsRemaining, 0),
         unitsSold: products.reduce((sum, p) => sum + p.unitsSold, 0),
-        revenue: products.reduce((sum, p) => sum + p.revenue, 0),
+        revenue: totalRevenue,
+        commissionRate: COMMISSION_RATE,
+        commission: totalRevenue * COMMISSION_RATE,
       },
     });
   }

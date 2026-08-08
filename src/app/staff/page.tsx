@@ -14,13 +14,42 @@ type StaffInventoryProduct = {
   unitsRemaining: number;
   unitsSold: number;
   revenue: number;
+  commission: number;
 };
 
 type StaffInventoryData = {
   location: { id: string; name: string; city: string } | null;
   products: StaffInventoryProduct[];
-  totals: { unitsRemaining: number; unitsSold: number; revenue: number };
+  totals: { unitsRemaining: number; unitsSold: number; revenue: number; commissionRate: number; commission: number };
 };
+
+type DateRange = "24h" | "today" | "3d" | "7d" | "all";
+const RANGE_LABELS: Record<DateRange, string> = {
+  "24h": "24 hours",
+  today: "today",
+  "3d": "last 3 days",
+  "7d": "last week",
+  all: "overall",
+};
+
+// Computed client-side (local device time — the staff member is
+// physically at the property) rather than the server guessing a
+// timezone. null means "all time", i.e. no filter at all.
+function sinceForRange(range: DateRange): string | null {
+  const now = new Date();
+  switch (range) {
+    case "24h":
+      return new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
+    case "today":
+      return new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    case "3d":
+      return new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString();
+    case "7d":
+      return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    case "all":
+      return null;
+  }
+}
 
 type StaffOrder = {
   id: string;
@@ -71,6 +100,7 @@ export default function StaffDashboard() {
   const [inventory, setInventory] = useState<StaffInventoryData | null>(null);
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
+  const [range, setRange] = useState<DateRange>("today");
 
   async function call(action: "lookup" | "collect" | "list_pending" | "inventory", extra: Record<string, string> = {}, pw = password) {
     const sb = createClient();
@@ -94,12 +124,15 @@ export default function StaffDashboard() {
   }
 
   // View-only, on purpose — this dashboard never edits stock. Editing
-  // lives in /admin/inventory, for real admins only.
-  async function loadInventory(pw = password) {
+  // lives in /admin/inventory, for real admins only. Units remaining is
+  // always a live snapshot (there's no "remaining as of 3 days ago");
+  // only sold/revenue/commission are affected by the range.
+  async function loadInventory(pw = password, r = range) {
     setIsLoadingInventory(true);
     setInventoryError(null);
     try {
-      const data = await call("inventory", {}, pw);
+      const since = sinceForRange(r);
+      const data = await call("inventory", since ? { since } : {}, pw);
       setInventory(data);
     } catch (err) {
       setInventoryError(err instanceof Error ? err.message : "Failed to load inventory");
@@ -131,6 +164,11 @@ export default function StaffDashboard() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed, activeTab]);
+
+  function handleRangeChange(next: DateRange) {
+    setRange(next);
+    void loadInventory(password, next);
+  }
 
   async function handleUnlock() {
     setIsCheckingPassword(true);
@@ -237,19 +275,28 @@ export default function StaffDashboard() {
         </button>
       </header>
 
-      <div className="grid grid-cols-3 gap-2.5">
-        <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
-          <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsSold : "—"}</p>
-          <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units sold</p>
+      <div>
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+          <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
+            <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsSold : "—"}</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units sold</p>
+          </div>
+          <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
+            <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsRemaining : "—"}</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units remaining</p>
+          </div>
+          <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
+            <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.revenue) : "—"}</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">revenue</p>
+          </div>
+          <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
+            <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.commission) : "—"}</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">
+              commission ({inventory ? `${Math.round(inventory.totals.commissionRate * 100)}%` : "10%"})
+            </p>
+          </div>
         </div>
-        <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
-          <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsRemaining : "—"}</p>
-          <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units remaining</p>
-        </div>
-        <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
-          <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.revenue) : "—"}</p>
-          <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">revenue</p>
-        </div>
+        {inventory && <p className="mt-1.5 text-center text-[11px] text-ink/40">sold, revenue &amp; commission — {RANGE_LABELS[range]} · remaining is live</p>}
       </div>
 
       <div className="flex gap-1 border-b border-ink/10">
@@ -385,6 +432,22 @@ export default function StaffDashboard() {
           </div>
           <p className="text-xs text-ink/50">View only — real stock, updated live. Editing happens in admin.</p>
 
+          <div className="flex flex-wrap gap-1.5">
+            {(Object.keys(RANGE_LABELS) as DateRange[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => handleRangeChange(r)}
+                disabled={isLoadingInventory}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
+                  range === r ? "bg-ink text-cream" : "border border-ink/15 text-ink/60 hover:border-ink/30"
+                }`}
+              >
+                {RANGE_LABELS[r]}
+              </button>
+            ))}
+          </div>
+
           {inventoryError && <p className="text-sm text-red-600">{inventoryError}</p>}
 
           {isLoadingInventory && !inventory ? (
@@ -402,7 +465,7 @@ export default function StaffDashboard() {
                     <span className="font-display font-bold text-ink">{p.productName}</span>
                     <span className="font-mono text-xs text-ink/50">{formatInr(p.price)}</span>
                   </div>
-                  <div className="mt-2 flex justify-between gap-2 text-xs">
+                  <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs">
                     <div>
                       <p className="text-ink/50">sold</p>
                       <p className="font-semibold text-ink">{p.unitsSold}</p>
@@ -414,6 +477,10 @@ export default function StaffDashboard() {
                     <div>
                       <p className="text-ink/50">revenue</p>
                       <p className="font-semibold text-ink">{formatInr(p.revenue)}</p>
+                    </div>
+                    <div>
+                      <p className="text-ink/50">commission</p>
+                      <p className="font-semibold text-ink">{formatInr(p.commission)}</p>
                     </div>
                   </div>
                 </li>

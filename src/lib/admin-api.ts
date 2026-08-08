@@ -20,6 +20,7 @@ import type {
   FeelzPreorder,
   InventoryTransaction,
   InventoryWithVariant,
+  InventoryWithVariantAndLocation,
   Milestone,
   NewsletterSubscriber,
   OrderWithItems,
@@ -454,61 +455,86 @@ export async function updateInventoryQuantityAdmin(sb: Sb, id: string, quantity:
   throwOnError("updateInventoryQuantityAdmin", error);
 }
 
-export type VariantInventorySummary = {
+// Every active Zostel property's inventory in one list, instead of
+// stepping through the location dropdown one property at a time — same
+// editable rows as getInventoryAdmin, just not scoped to a single
+// location_id (and excludes the online/delivery pool, which has its own
+// "online / delivery" option in the existing dropdown).
+export async function getAllZostelInventoryAdmin(sb: Sb): Promise<InventoryWithVariantAndLocation[]> {
+  // !inner + a filter on the embedded resource excludes inactive
+  // locations (e.g. the currently-deactivated Jaipur/HQ rows) at the
+  // query level, rather than fetching them and throwing them away
+  // client-side.
+  const { data, error } = await sb
+    .from("inventory")
+    .select("*, product_variants(*, products(name)), pickup_locations:location_id!inner(name, city, is_active)")
+    .eq("pickup_locations.is_active", true);
+  throwOnError("getAllZostelInventoryAdmin", error);
+  const rows = (data as unknown as InventoryWithVariantAndLocation[]) ?? [];
+  return rows.sort((a, b) => {
+      const locationCompare = a.pickup_locations!.name.localeCompare(b.pickup_locations!.name);
+      if (locationCompare !== 0) return locationCompare;
+      const nameCompare = a.product_variants.products.name.localeCompare(b.product_variants.products.name);
+      return nameCompare !== 0 ? nameCompare : a.product_variants.variant_label.localeCompare(b.product_variants.variant_label);
+    });
+}
+
+export type FullInventoryRow = {
+  quantityAvailable: number;
   variantId: string;
   productName: string;
   variantLabel: string;
   price: number;
   reorderThreshold: number | null;
-  totalRemaining: number;
+  /** null = the online/central pool, not a physical Zostel. */
+  locationId: string | null;
+  locationName: string | null;
 };
 
-// Cross-location totals per variant, for the inventory summary dashboard —
-// unlike getInventoryAdmin (one location's rows), this pulls every
-// inventory row (every pickup location plus the online/delivery pool) and
-// sums quantity_available per variant client-side. The row count here is
-// tiny (variants × locations, a few dozen at most), so aggregating in the
-// browser is simpler than adding a dedicated SQL view for it.
-export async function getInventorySummaryAdmin(sb: Sb): Promise<VariantInventorySummary[]> {
+// Every inventory row across every location, including the online pool —
+// fetched once and aggregated differently client-side depending on which
+// scope the inventory summary card's selector is on (all locations, all
+// Zostel only, online only, or one specific Zostel), rather than a
+// separate round trip per scope. Row count is tiny (variants × locations,
+// a few dozen at most), so this is simpler than a query per scope.
+export async function getFullInventoryAdmin(sb: Sb): Promise<FullInventoryRow[]> {
   const { data, error } = await sb
     .from("inventory")
-    .select("quantity_available, product_variants(id, variant_label, price_override, reorder_threshold, products(name, price))");
-  throwOnError("getInventorySummaryAdmin", error);
+    .select(
+      "quantity_available, location_id, variant_id, product_variants(variant_label, price_override, reorder_threshold, products(name, price)), pickup_locations:location_id(name, is_active)",
+    );
+  throwOnError("getFullInventoryAdmin", error);
 
   const rows = (data ?? []) as unknown as Array<{
     quantity_available: number;
+    location_id: string | null;
+    variant_id: string;
     product_variants: {
-      id: string;
       variant_label: string;
       price_override: number | null;
       reorder_threshold: number | null;
       products: { name: string; price: number };
     };
+    pickup_locations: { name: string; is_active: boolean } | null;
   }>;
 
-  const byVariant = new Map<string, VariantInventorySummary>();
-  for (const row of rows) {
-    const v = row.product_variants;
-    const existing = byVariant.get(v.id);
-    if (existing) {
-      existing.totalRemaining += row.quantity_available;
-    } else {
-      byVariant.set(v.id, {
-        variantId: v.id,
-        productName: v.products.name,
-        variantLabel: v.variant_label,
-        price: v.price_override ?? v.products.price,
-        reorderThreshold: v.reorder_threshold,
-        totalRemaining: row.quantity_available,
-      });
-    }
-  }
-
-  return [...byVariant.values()].sort((a, b) => a.productName.localeCompare(b.productName));
+  return rows
+    .filter((row) => row.location_id === null || row.pickup_locations?.is_active === true)
+    .map((row) => ({
+      quantityAvailable: row.quantity_available,
+      variantId: row.variant_id,
+      productName: row.product_variants.products.name,
+      variantLabel: row.product_variants.variant_label,
+      price: row.product_variants.price_override ?? row.product_variants.products.price,
+      reorderThreshold: row.product_variants.reorder_threshold,
+      locationId: row.location_id,
+      locationName: row.pickup_locations?.name ?? null,
+    }));
 }
 
 export type InventoryTransactionWithVariant = InventoryTransaction & {
   product_variants: { variant_label: string; products: { name: string } };
+  pickup_locations: { name: string } | null;
 };
 
 // Manual reconciliation ledger (see 20260806113057_inventory_transactions
@@ -519,7 +545,7 @@ export type InventoryTransactionWithVariant = InventoryTransaction & {
 export async function getInventoryTransactionsAdmin(sb: Sb): Promise<InventoryTransactionWithVariant[]> {
   const { data, error } = await sb
     .from("inventory_transactions")
-    .select("*, product_variants(variant_label, products(name))")
+    .select("*, product_variants(variant_label, products(name)), pickup_locations:location_id(name)")
     .order("transaction_date", { ascending: false })
     .order("created_at", { ascending: false });
   throwOnError("getInventoryTransactionsAdmin", error);
@@ -532,6 +558,7 @@ export async function createInventoryTransactionAdmin(
     transactionDate: string;
     transactionType: "received" | "shipped" | "online_sale";
     variantId: string;
+    locationId: string | null;
     quantity: number;
     notes?: string;
   },
@@ -543,6 +570,7 @@ export async function createInventoryTransactionAdmin(
     transaction_date: input.transactionDate,
     transaction_type: input.transactionType,
     variant_id: input.variantId,
+    location_id: input.locationId,
     quantity_in: input.transactionType === "received" ? input.quantity : null,
     quantity_out: input.transactionType === "received" ? null : input.quantity,
     notes: input.notes || null,

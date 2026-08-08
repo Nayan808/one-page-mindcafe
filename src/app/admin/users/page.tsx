@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { formatDate } from "@/lib/utils";
 
 const ROLES = ["customer", "expert", "employer", "admin", "super_admin"];
 
@@ -55,7 +56,7 @@ export default function AdminUsersPage() {
   const columns: AdminColumn<AdminUserRow>[] = [
     { key: "email", label: "email", render: (u) => <span className="font-medium text-ink">{u.email ?? "—"}</span> },
     { key: "name", label: "name", render: (u) => <span className="text-ink/60">{u.full_name ?? "—"}</span> },
-    { key: "created", label: "joined", render: (u) => <span className="text-ink/60">{new Date(u.created_at).toLocaleDateString()}</span> },
+    { key: "created", label: "joined", render: (u) => <span className="text-ink/60">{formatDate(u.created_at)}</span> },
     {
       key: "role",
       label: "role",

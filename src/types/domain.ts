@@ -41,6 +41,9 @@ export type ProductWithVariants = Product & { product_variants: ProductVariant[]
 export type InventoryWithVariant = Inventory & {
   product_variants: ProductVariant & { products: Pick<Product, "name"> };
 };
+export type InventoryWithVariantAndLocation = InventoryWithVariant & {
+  pickup_locations: Pick<PickupLocation, "name" | "city"> | null;
+};
 export type CartItemWithVariant = CartItem & {
   product_variants: ProductVariant & { products: Pick<Product, "id" | "name" | "image_url" | "price"> };
 };

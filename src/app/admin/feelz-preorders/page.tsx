@@ -7,6 +7,7 @@ import { getFeelzPreordersAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { formatDate } from "@/lib/utils";
 import type { FeelzPreorder } from "@/types/domain";
 
 // Read-only, unlike business leads / expert applications — a preorder has
@@ -35,7 +36,7 @@ export default function AdminFeelzPreordersPage() {
     { key: "email", label: "email", render: (p) => (p.email ? <a href={`mailto:${p.email}`} className="text-ink underline">{p.email}</a> : <span className="text-ink/40">—</span>) },
     { key: "mobile", label: "mobile", render: (p) => <span className="text-ink/60">{p.mobile ?? "—"}</span> },
     { key: "city", label: "city", render: (p) => <span className="text-ink/60">{p.city ?? "—"}</span> },
-    { key: "date", label: "received", render: (p) => <span className="text-ink/60">{new Date(p.created_at).toLocaleDateString()}</span> },
+    { key: "date", label: "received", render: (p) => <span className="text-ink/60">{formatDate(p.created_at)}</span> },
   ];
 
   return (

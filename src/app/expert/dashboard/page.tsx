@@ -17,7 +17,7 @@ import {
   uploadExpertPhoto,
 } from "@/lib/api";
 import type { Appointment, AppointmentWithCustomer, Expert } from "@/types/domain";
-import { formatInr } from "@/lib/utils";
+import { formatDateTime, formatInr } from "@/lib/utils";
 import { AvailabilityManager } from "@/components/AvailabilityManager";
 
 const STATUS_LABELS: Record<string, string> = {
@@ -351,7 +351,7 @@ export default function ExpertDashboardPage() {
         </div>
 
         <p className="mt-2 text-ink/60">
-          {appointment.scheduled_at ? new Date(appointment.scheduled_at).toLocaleString() : "Time to be confirmed"}
+          {appointment.scheduled_at ? formatDateTime(appointment.scheduled_at) : "Time to be confirmed"}
         </p>
         {appointment.notes && <p className="mt-1 text-ink/50">&ldquo;{appointment.notes}&rdquo;</p>}
         {appointment.total !== null && (

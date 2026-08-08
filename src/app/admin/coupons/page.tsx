@@ -9,7 +9,7 @@ import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
-import { formatInr } from "@/lib/utils";
+import { formatDate, formatInr } from "@/lib/utils";
 import type { Coupon } from "@/types/domain";
 
 type Form = {
@@ -114,7 +114,7 @@ export default function AdminCouponsPage() {
     { key: "discount", label: "discount", render: (c) => <span>{c.discount_type === "percent" ? `${c.discount_value}%` : formatInr(c.discount_value)}</span> },
     { key: "applies_to", label: "applies to", render: (c) => <span className="text-ink/60">{c.applies_to}</span> },
     { key: "used", label: "used", render: (c) => <span>{c.times_used}{c.usage_limit ? ` / ${c.usage_limit}` : ""}</span> },
-    { key: "expires", label: "expires", render: (c) => <span className="text-ink/60">{c.expires_at ? new Date(c.expires_at).toLocaleDateString() : "never"}</span> },
+    { key: "expires", label: "expires", render: (c) => <span className="text-ink/60">{c.expires_at ? formatDate(c.expires_at) : "never"}</span> },
     { key: "active", label: "active", render: (c) => <span>{c.is_active ? "yes" : "no"}</span> },
   ];
 

@@ -588,6 +588,7 @@ export interface Database {
           transaction_date: string;
           transaction_type: "received" | "shipped" | "online_sale";
           variant_id: string;
+          location_id: string | null;
           quantity_in: number | null;
           quantity_out: number | null;
           notes: string | null;

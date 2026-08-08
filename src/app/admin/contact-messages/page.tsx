@@ -7,6 +7,7 @@ import { getContactMessagesAdmin, updateContactMessageAdmin } from "@/lib/admin-
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { formatDate } from "@/lib/utils";
 import type { ContactMessage } from "@/types/domain";
 
 const STATUSES: ContactMessage["status"][] = ["new", "contacted", "closed"];
@@ -65,7 +66,7 @@ export default function AdminContactMessagesPage() {
         </select>
       ),
     },
-    { key: "date", label: "received", render: (m) => <span className="text-ink/60">{new Date(m.created_at).toLocaleDateString()}</span> },
+    { key: "date", label: "received", render: (m) => <span className="text-ink/60">{formatDate(m.created_at)}</span> },
   ];
 
   return (

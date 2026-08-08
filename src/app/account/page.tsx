@@ -12,7 +12,7 @@ import { createClient } from "@/lib/supabase/client";
 import { updateProfile } from "@/lib/api";
 import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
 import { OrderConfirmation, STATUS_LABELS } from "@/components/OrderConfirmation";
-import { formatInr } from "@/lib/utils";
+import { formatDate, formatDateTime, formatInr } from "@/lib/utils";
 
 const profileSchema = z.object({
   full_name: z.string().min(1, "Required"),
@@ -230,7 +230,7 @@ function OrderHistorySection() {
                   {order.order_items.map((item) => `${item.quantity} × ${item.product_variants.products.name}`).join(", ")}
                 </p>
                 <div className="mt-1 flex items-center justify-between text-ink/60">
-                  <span>{new Date(order.created_at).toLocaleDateString()}</span>
+                  <span>{formatDate(order.created_at)}</span>
                   <span className="font-medium text-ink">{formatInr(order.total)}</span>
                 </div>
               </button>
@@ -283,7 +283,7 @@ function AppointmentsSection() {
               {appointment.experts && <p className="mt-1 text-ink/60">with {appointment.experts.name}</p>}
               <p className="mt-1 text-ink/50">
                 {appointment.scheduled_at
-                  ? new Date(appointment.scheduled_at).toLocaleString()
+                  ? formatDateTime(appointment.scheduled_at)
                   : "Time to be confirmed"}
               </p>
             </li>

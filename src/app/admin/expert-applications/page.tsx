@@ -7,6 +7,7 @@ import { getExpertApplicationsAdmin, updateExpertApplicationAdmin } from "@/lib/
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
+import { formatDate } from "@/lib/utils";
 import type { ExpertApplication } from "@/types/domain";
 
 const STATUSES: ExpertApplication["status"][] = ["new", "contacted", "closed"];
@@ -65,7 +66,7 @@ export default function AdminExpertApplicationsPage() {
         </select>
       ),
     },
-    { key: "date", label: "received", render: (a) => <span className="text-ink/60">{new Date(a.created_at).toLocaleDateString()}</span> },
+    { key: "date", label: "received", render: (a) => <span className="text-ink/60">{formatDate(a.created_at)}</span> },
   ];
 
   return (

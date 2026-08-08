@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 
-export type FilterOption = { value: string; label: string };
+export type FilterOption = { value: string; label: string; warning?: boolean };
 
 // Replaces a growing row of filter pills (order status, pickup location,
 // ...) with a single dropdown once there are enough options that the pill
@@ -64,7 +64,8 @@ export function FilterDropdown({
 
   const term = search.trim().toLowerCase();
   const filtered = term ? options.filter((o) => o.label.toLowerCase().includes(term)) : options;
-  const selectedLabel = options.find((o) => o.value === value)?.label ?? placeholder ?? options[0]?.label ?? "";
+  const selectedOption = options.find((o) => o.value === value);
+  const selectedLabel = selectedOption?.label ?? placeholder ?? options[0]?.label ?? "";
 
   return (
     <div ref={containerRef} className="relative inline-block">
@@ -76,6 +77,9 @@ export function FilterDropdown({
           triggerClassName ?? "flex items-center gap-1.5 rounded-full border border-ink bg-ink px-3.5 py-1.5 text-xs font-medium text-cream"
         }
       >
+        {selectedOption?.warning && (
+          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" aria-label="Low stock" />
+        )}
         <span className={triggerClassName ? "truncate" : ""}>{selectedLabel}</span>
         <ChevronDown className={`h-3.5 w-3.5 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden />
       </button>
@@ -114,7 +118,10 @@ export function FilterDropdown({
                     opt.value === value ? "font-semibold text-ink" : "text-ink/70"
                   }`}
                 >
-                  <span className="min-w-0 truncate">{opt.label}</span>
+                  <span className="flex min-w-0 items-center gap-1.5">
+                    {opt.warning && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-500" aria-label="Low stock" />}
+                    <span className="min-w-0 truncate">{opt.label}</span>
+                  </span>
                   {opt.value === value && <Check className="h-3.5 w-3.5 shrink-0" aria-hidden />}
                 </button>
               ))

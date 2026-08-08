@@ -12,7 +12,7 @@ import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDrop
 import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
-import { formatInr } from "@/lib/utils";
+import { formatDateTime, formatInr } from "@/lib/utils";
 import type { AppointmentWithDetails } from "@/types/domain";
 
 const STATUSES = ["pending", "confirmed", "completed", "cancelled"];
@@ -130,7 +130,7 @@ export default function AdminAppointmentsPage() {
         </select>
       ),
     },
-    { key: "when", label: "requested time", render: (a) => <span className="text-ink/60">{a.scheduled_at ? new Date(a.scheduled_at).toLocaleString() : "—"}</span> },
+    { key: "when", label: "requested time", render: (a) => <span className="text-ink/60">{a.scheduled_at ? formatDateTime(a.scheduled_at) : "—"}</span> },
     {
       key: "payment",
       label: "payment",
@@ -339,7 +339,7 @@ export default function AdminAppointmentsPage() {
             )}
 
             <div className="border-t border-ink/10 pt-3 text-xs text-ink/50">
-              <p>booked {new Date(detailsAppointment.created_at).toLocaleString()}</p>
+              <p>booked {formatDateTime(detailsAppointment.created_at)}</p>
             </div>
           </div>
         )}
