@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
-import { Trash2 } from "lucide-react";
+import { Pencil, Trash2, X as XIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
   addMissingInventoryRowsAdmin,
@@ -15,8 +15,10 @@ import {
   getPickupLocationsAdmin,
   getProductsAdmin,
   updateInventoryQuantityAdmin,
+  updateInventoryTransactionAdmin,
   updateVariantAdmin,
   type FullInventoryRow,
+  type InventoryTransactionWithVariant,
 } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
@@ -74,6 +76,18 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
   const [notes, setNotes] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Inline row editing — a second, identically-shaped form kept separate
+  // from the "add transaction" one above so opening a row to edit never
+  // clobbers whatever's half-typed into the add form.
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState("");
+  const [editType, setEditType] = useState<"received" | "shipped" | "online_sale">("received");
+  const [editVariantId, setEditVariantId] = useState("");
+  const [editPlace, setEditPlace] = useState("");
+  const [editQuantity, setEditQuantity] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [editError, setEditError] = useState<string | null>(null);
+
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "inventory-transactions"] });
   };
@@ -101,6 +115,35 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
     mutationFn: (id: string) => deleteInventoryTransactionAdmin(createClient(), id),
     onSuccess: invalidate,
   });
+
+  const updateTransaction = useMutation({
+    mutationFn: (id: string) =>
+      updateInventoryTransactionAdmin(createClient(), id, {
+        transactionDate: editDate,
+        transactionType: editType,
+        variantId: editVariantId,
+        locationId: editPlace || null,
+        quantity: Number(editQuantity),
+        notes: editNotes.trim() || undefined,
+      }),
+    onSuccess: () => {
+      setEditError(null);
+      setEditingId(null);
+      invalidate();
+    },
+    onError: (err) => setEditError(err instanceof Error ? err.message : "Failed to save transaction"),
+  });
+
+  function startEdit(t: InventoryTransactionWithVariant) {
+    setEditingId(t.id);
+    setEditDate(t.transaction_date);
+    setEditType(t.transaction_type);
+    setEditVariantId(t.variant_id);
+    setEditPlace(t.location_id ?? "");
+    setEditQuantity(String(t.quantity_in ?? t.quantity_out ?? ""));
+    setEditNotes(t.notes ?? "");
+    setEditError(null);
+  }
 
   return (
     <div className="mb-6 overflow-hidden rounded-2xl border border-ink/10 bg-white">
@@ -209,32 +252,109 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
                 </td>
               </tr>
             ) : (
-              (transactionsQuery.data ?? []).map((t) => (
-                <tr key={t.id} className="border-b border-ink/5 last:border-0 hover:bg-cream/60">
-                  <td className="px-4 py-2.5 text-ink/70">{t.transaction_date}</td>
-                  <td className="px-4 py-2.5 text-ink/70">{TRANSACTION_TYPE_LABELS[t.transaction_type]}</td>
-                  <td className="px-4 py-2.5 text-ink/70">{t.pickup_locations?.name ?? "Online"}</td>
-                  <td className="px-4 py-2.5 font-medium text-ink">
-                    {t.product_variants.products.name}
-                    {t.product_variants.variant_label !== t.product_variants.products.name && (
-                      <span className="text-ink/50"> — {t.product_variants.variant_label}</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-2.5 text-emerald-700">{t.quantity_in ?? ""}</td>
-                  <td className="px-4 py-2.5 text-red-700">{t.quantity_out ?? ""}</td>
-                  <td className="px-4 py-2.5 text-ink/60">{t.notes ?? ""}</td>
-                  <td className="px-4 py-2.5">
-                    <button
-                      type="button"
-                      onClick={() => deleteTransaction.mutate(t.id)}
-                      aria-label="Delete transaction"
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" aria-hidden />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              (transactionsQuery.data ?? []).map((t) =>
+                t.id === editingId ? (
+                  <tr key={t.id} className="border-b border-ink/5 bg-cream/40 last:border-0">
+                    <td className="px-2 py-2">
+                      <input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="input !py-1.5 text-xs" />
+                    </td>
+                    <td className="px-2 py-2">
+                      <select value={editType} onChange={(e) => setEditType(e.target.value as typeof editType)} className="input !py-1.5 text-xs">
+                        <option value="received">Received</option>
+                        <option value="shipped">Shipped</option>
+                        <option value="online_sale">Online sale</option>
+                      </select>
+                    </td>
+                    <td className="px-2 py-2">
+                      <select value={editPlace} onChange={(e) => setEditPlace(e.target.value)} className="input !py-1.5 text-xs">
+                        <option value="">Online</option>
+                        {activeLocations.map((loc) => (
+                          <option key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-2 py-2">
+                      <select value={editVariantId} onChange={(e) => setEditVariantId(e.target.value)} className="input !py-1.5 text-xs">
+                        {variantOptions.map((v) => (
+                          <option key={v.id} value={v.id}>
+                            {v.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-2 py-2" colSpan={2}>
+                      <input
+                        type="number"
+                        min="1"
+                        value={editQuantity}
+                        onChange={(e) => setEditQuantity(e.target.value)}
+                        className="input !py-1.5 text-xs"
+                      />
+                    </td>
+                    <td className="px-2 py-2">
+                      <input value={editNotes} onChange={(e) => setEditNotes(e.target.value)} className="input !py-1.5 text-xs" />
+                    </td>
+                    <td className="whitespace-nowrap px-2 py-2">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => updateTransaction.mutate(t.id)}
+                          disabled={!editDate || !editVariantId || !editQuantity || Number(editQuantity) <= 0 || updateTransaction.isPending}
+                          className="pill-btn !py-1 text-[11px] disabled:opacity-40"
+                        >
+                          {updateTransaction.isPending ? "saving…" : "save"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditingId(null)}
+                          aria-label="Cancel edit"
+                          className="text-ink/50 hover:text-ink"
+                        >
+                          <XIcon className="h-4 w-4" aria-hidden />
+                        </button>
+                      </div>
+                      {editError && <p className="mt-1 text-[11px] text-red-600">{editError}</p>}
+                    </td>
+                  </tr>
+                ) : (
+                  <tr key={t.id} className="border-b border-ink/5 last:border-0 hover:bg-cream/60">
+                    <td className="px-4 py-2.5 text-ink/70">{t.transaction_date}</td>
+                    <td className="px-4 py-2.5 text-ink/70">{TRANSACTION_TYPE_LABELS[t.transaction_type]}</td>
+                    <td className="px-4 py-2.5 text-ink/70">{t.pickup_locations?.name ?? "Online"}</td>
+                    <td className="px-4 py-2.5 font-medium text-ink">
+                      {t.product_variants.products.name}
+                      {t.product_variants.variant_label !== t.product_variants.products.name && (
+                        <span className="text-ink/50"> — {t.product_variants.variant_label}</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-2.5 text-emerald-700">{t.quantity_in ?? ""}</td>
+                    <td className="px-4 py-2.5 text-red-700">{t.quantity_out ?? ""}</td>
+                    <td className="px-4 py-2.5 text-ink/60">{t.notes ?? ""}</td>
+                    <td className="px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => startEdit(t)}
+                          aria-label="Edit transaction"
+                          className="text-ink/50 hover:text-ink"
+                        >
+                          <Pencil className="h-4 w-4" aria-hidden />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteTransaction.mutate(t.id)}
+                          aria-label="Delete transaction"
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" aria-hidden />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ),
+              )
             )}
           </tbody>
         </table>
@@ -498,7 +618,7 @@ export default function AdminInventoryPage() {
               units left on some product.
             </p>
           </div>
-          <FilterDropdown options={scopeOptions} value={summaryScope} onChange={setSummaryScope} searchPlaceholder="Search scope…" />
+          <FilterDropdown options={scopeOptions} value={summaryScope} onChange={setSummaryScope} searchPlaceholder="Search…" />
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">

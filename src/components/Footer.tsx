@@ -101,22 +101,22 @@ export function Footer() {
           </p>
           <ul className="mt-3 space-y-1 text-sm text-ink/70">
             <li>
-              <Link href="/feelz" className="hover:text-ink hover:underline">
+              <Link href="/feelz#focus" className="hover:text-ink hover:underline">
                 focus
               </Link>
             </li>
             <li>
-              <Link href="/feelz" className="hover:text-ink hover:underline">
+              <Link href="/feelz#extrovert" className="hover:text-ink hover:underline">
                 extrovert
               </Link>
             </li>
             <li>
-              <Link href="/feelz" className="hover:text-ink hover:underline">
+              <Link href="/feelz#joy" className="hover:text-ink hover:underline">
                 joy
               </Link>
             </li>
             <li>
-              <Link href="/feelz" className="hover:text-ink hover:underline">
+              <Link href="/feelz#rest" className="hover:text-ink hover:underline">
                 rest
               </Link>
             </li>

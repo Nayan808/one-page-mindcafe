@@ -12,7 +12,7 @@ import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDrop
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatDate, formatInr } from "@/lib/utils";
-import type { OrderWithItems } from "@/types/domain";
+import type { OrderWithItemDetailsAndLocation } from "@/types/domain";
 
 const STATUSES = [
   "placed",
@@ -41,6 +41,7 @@ export default function AdminOrdersPage() {
   const [status, setStatus] = useState("");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
   const ordersQueryKey = ["admin", "orders", page, status, debouncedSearch] as const;
@@ -70,14 +71,14 @@ export default function AdminOrdersPage() {
   // full 20-row page refetch to come back before the UI shows the change.
   const updateStatus = useMutation({
     mutationFn: (args: { id: string; status: string }) =>
-      updateOrderStatusAdmin(createClient(), args.id, args.status as OrderWithItems["status"]),
+      updateOrderStatusAdmin(createClient(), args.id, args.status as OrderWithItemDetailsAndLocation["status"]),
     onMutate: async (args) => {
       await queryClient.cancelQueries({ queryKey: ordersQueryKey });
-      const previous = queryClient.getQueryData<{ orders: OrderWithItems[]; total: number }>(ordersQueryKey);
-      queryClient.setQueryData<{ orders: OrderWithItems[]; total: number }>(ordersQueryKey, (old) =>
+      const previous = queryClient.getQueryData<{ orders: OrderWithItemDetailsAndLocation[]; total: number }>(ordersQueryKey);
+      queryClient.setQueryData<{ orders: OrderWithItemDetailsAndLocation[]; total: number }>(ordersQueryKey, (old) =>
         old && {
           ...old,
-          orders: old.orders.map((o) => (o.id === args.id ? { ...o, status: args.status as OrderWithItems["status"] } : o)),
+          orders: old.orders.map((o) => (o.id === args.id ? { ...o, status: args.status as OrderWithItemDetailsAndLocation["status"] } : o)),
         },
       );
       return { previous };
@@ -96,14 +97,78 @@ export default function AdminOrdersPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }),
   });
 
+  // Bulk versions of the same two single-row actions above — fire the
+  // per-order calls in parallel, then invalidate once at the end rather
+  // than once per row, so a 10-order bulk action doesn't refetch the page
+  // 10 times in a row.
+  const bulkMarkPickedUp = useMutation({
+    mutationFn: (ids: string[]) => {
+      const sb = createClient();
+      return Promise.all(ids.map((id) => updateOrderStatusAdmin(sb, id, "picked_up")));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      setSelectedIds(new Set());
+    },
+  });
+
+  const bulkDelete = useMutation({
+    mutationFn: (ids: string[]) => {
+      const sb = createClient();
+      return Promise.all(ids.map((id) => deleteOrderAdmin(sb, id)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      setSelectedIds(new Set());
+    },
+  });
+
   const orders = ordersQuery.data?.orders ?? [];
   const total = ordersQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  const columns: AdminColumn<OrderWithItems>[] = [
+  function toggleRow(id: string) {
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function toggleAll() {
+    setSelectedIds((current) => (current.size === orders.length ? new Set() : new Set(orders.map((o) => o.id))));
+  }
+
+  const columns: AdminColumn<OrderWithItemDetailsAndLocation>[] = [
     { key: "order_number", label: "order", render: (o) => <span className="font-medium text-ink">{o.order_number}</span> },
     { key: "type", label: "fulfillment", render: (o) => <span className="capitalize">{o.fulfillment_type}</span> },
-    { key: "items", label: "items", render: (o) => <span>{o.order_items.length}</span> },
+    {
+      key: "items",
+      label: "type / variant",
+      render: (o) => (
+        <div className="space-y-0.5">
+          {o.order_items.map((item) => (
+            <p key={item.id} className="whitespace-nowrap text-xs">
+              {item.product_variants.products.name} · {item.product_variants.variant_label} × {item.quantity}
+            </p>
+          ))}
+        </div>
+      ),
+    },
+    {
+      key: "location",
+      label: "location",
+      render: (o) =>
+        o.pickup_locations ? (
+          <span>
+            {o.pickup_locations.name}
+            {o.pickup_locations.city ? `, ${o.pickup_locations.city}` : ""}
+          </span>
+        ) : (
+          <span className="text-ink/30">—</span>
+        ),
+    },
     { key: "total", label: "total", render: (o) => <span>{formatInr(o.total)}</span> },
     { key: "payment", label: "payment", render: (o) => <span className="capitalize">{o.payment_status}</span> },
     {
@@ -172,12 +237,52 @@ export default function AdminOrdersPage() {
         />
       </div>
 
+      {selectedIds.size > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-ink/15 bg-cream/60 px-4 py-2.5 text-sm">
+          <span className="font-medium text-ink">{selectedIds.size} selected</span>
+          <button
+            type="button"
+            onClick={() => bulkMarkPickedUp.mutate(Array.from(selectedIds))}
+            disabled={bulkMarkPickedUp.isPending}
+            className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
+          >
+            {bulkMarkPickedUp.isPending ? "updating…" : "mark picked up"}
+          </button>
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={async () => {
+                if (
+                  await confirmDialog({
+                    title: "delete orders",
+                    message: `Delete ${selectedIds.size} selected order${selectedIds.size === 1 ? "" : "s"} permanently? This can't be undone.`,
+                    danger: true,
+                  })
+                ) {
+                  bulkDelete.mutate(Array.from(selectedIds));
+                }
+              }}
+              disabled={bulkDelete.isPending}
+              className="text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-40"
+            >
+              {bulkDelete.isPending ? "deleting…" : "delete selected"}
+            </button>
+          )}
+          <button type="button" onClick={() => setSelectedIds(new Set())} className="ml-auto text-xs text-ink/50 hover:text-ink">
+            clear
+          </button>
+        </div>
+      )}
+
       <AdminTable
         columns={columns}
         rows={orders}
         getRowId={(o) => o.id}
         isLoading={ordersQuery.isLoading}
         emptyLabel="No orders."
+        selectedIds={selectedIds}
+        onToggleRow={toggleRow}
+        onToggleAll={toggleAll}
         onDelete={
           isSuperAdmin
             ? async (o) => {
