@@ -18,7 +18,8 @@ type RequestBody =
   | { action: "lookup"; password?: string; pin?: string; code: string }
   | { action: "collect"; password?: string; pin?: string; order_id: string }
   | { action: "list_pending"; password?: string; pin?: string }
-  | { action: "inventory"; password?: string; pin?: string; since?: string };
+  | { action: "inventory"; password?: string; pin?: string; since?: string }
+  | { action: "history"; password?: string; pin?: string; since?: string; search?: string };
 
 const ORDER_SELECT =
   "id, order_number, status, payment_status, pickup_code, pickup_code_collected_at, created_at, " +
@@ -213,6 +214,44 @@ Deno.serve(async (req) => {
         commissionRate: COMMISSION_RATE,
         commission: totalRevenue * COMMISSION_RATE,
       },
+    });
+  }
+
+  if (body.action === "history") {
+    // Order-level sold history — same underlying data as "inventory"
+    // above (paid takeaway orders, same `since` range filter, same
+    // location scoping), just returned per-order instead of summed into
+    // per-product totals. `search` matches order number or customer name,
+    // client-side-typed same as the "look up an order" box elsewhere on
+    // this dashboard.
+    let query = sb
+      .from("orders")
+      .select(
+        "id, order_number, guest_name, created_at, pickup_code_collected_at, " +
+          "order_items(quantity, unit_price, product_variants(variant_label, products(name)))",
+      )
+      .eq("fulfillment_type", "takeaway")
+      .eq("payment_status", "paid");
+    if (locationId !== null) query = query.eq("location_id", locationId);
+    if (body.since) query = query.gte("created_at", body.since);
+
+    const search = body.search?.trim();
+    if (search) {
+      query = query.or(`order_number.ilike.%${search}%,guest_name.ilike.%${search}%`);
+    }
+
+    const { data: orders, error } = await query.order("created_at", { ascending: false }).limit(200);
+    if (error) return jsonResponse({ error: "Failed to load order history" }, 500);
+
+    let location: { id: string; name: string; city: string } | null = null;
+    if (locationId !== null) {
+      const { data } = await sb.from("pickup_locations").select("id, name, city").eq("id", locationId).maybeSingle();
+      location = data ?? null;
+    }
+
+    return jsonResponse({
+      location,
+      orders: (orders ?? []).map((o) => ({ ...o, customer_name: customerLabel({ guest_name: o.guest_name }) })),
     });
   }
 

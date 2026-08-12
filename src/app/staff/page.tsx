@@ -23,6 +23,23 @@ type StaffInventoryData = {
   totals: { unitsRemaining: number; unitsSold: number; revenue: number; commissionRate: number; commission: number };
 };
 
+type StaffHistoryOrder = {
+  id: string;
+  order_number: string;
+  customer_name: string;
+  created_at: string;
+  order_items: {
+    quantity: number;
+    unit_price: number;
+    product_variants: { variant_label: string; products: { name: string } };
+  }[];
+};
+
+type StaffHistoryData = {
+  location: { id: string; name: string; city: string } | null;
+  orders: StaffHistoryOrder[];
+};
+
 type DateRange = "24h" | "today" | "3d" | "7d" | "all";
 const RANGE_LABELS: Record<DateRange, string> = {
   "24h": "24 hours",
@@ -96,13 +113,19 @@ export default function StaffDashboard() {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [isCollecting, setIsCollecting] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<"orders" | "inventory">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "inventory" | "history">("orders");
   const [inventory, setInventory] = useState<StaffInventoryData | null>(null);
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const [range, setRange] = useState<DateRange>("today");
 
-  async function call(action: "lookup" | "collect" | "list_pending" | "inventory", extra: Record<string, string> = {}, pw = password) {
+  const [history, setHistory] = useState<StaffHistoryData | null>(null);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [historyError, setHistoryError] = useState<string | null>(null);
+  const [historyRange, setHistoryRange] = useState<DateRange>("today");
+  const [historySearch, setHistorySearch] = useState("");
+
+  async function call(action: "lookup" | "collect" | "list_pending" | "inventory" | "history", extra: Record<string, string> = {}, pw = password) {
     const sb = createClient();
     const { data, error } = await sb.functions.invoke("staff-pickup", { body: { action, password: pw, pin: pw, ...extra } });
     if (error) {
@@ -141,6 +164,28 @@ export default function StaffDashboard() {
     }
   }
 
+  // Order-level sold history — same date-range idea as inventory, plus a
+  // text filter for order number / customer name. Re-fetches on every
+  // range or search change rather than filtering client-side, since the
+  // Edge Function already caps this at 200 rows and the search itself
+  // runs server-side against the same query.
+  async function loadHistory(pw = password, r = historyRange, search = historySearch) {
+    setIsLoadingHistory(true);
+    setHistoryError(null);
+    try {
+      const since = sinceForRange(r);
+      const extra: Record<string, string> = {};
+      if (since) extra.since = since;
+      if (search.trim()) extra.search = search.trim();
+      const data = await call("history", extra, pw);
+      setHistory(data);
+    } catch (err) {
+      setHistoryError(err instanceof Error ? err.message : "Failed to load order history");
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  }
+
   useEffect(() => {
     const saved = sessionStorage.getItem(SESSION_KEY);
     if (!saved) return;
@@ -162,12 +207,29 @@ export default function StaffDashboard() {
     if (authed && activeTab === "inventory" && !inventory && !isLoadingInventory) {
       void loadInventory();
     }
+    if (authed && activeTab === "history" && !history && !isLoadingHistory) {
+      void loadHistory();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed, activeTab]);
+
+  // Debounced so typing in the search box doesn't fire a request per
+  // keystroke — same 400ms feel as the admin search inputs elsewhere.
+  useEffect(() => {
+    if (activeTab !== "history" || !authed) return;
+    const timer = setTimeout(() => void loadHistory(password, historyRange, historySearch), 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historySearch]);
 
   function handleRangeChange(next: DateRange) {
     setRange(next);
     void loadInventory(password, next);
+  }
+
+  function handleHistoryRangeChange(next: DateRange) {
+    setHistoryRange(next);
+    void loadHistory(password, next, historySearch);
   }
 
   async function handleUnlock() {
@@ -313,6 +375,13 @@ export default function StaffDashboard() {
           className={`ml-5 px-1 pb-2.5 text-sm font-semibold ${activeTab === "inventory" ? "border-b-2 border-ink text-ink" : "text-ink/50"}`}
         >
           inventory
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("history")}
+          className={`ml-5 px-1 pb-2.5 text-sm font-semibold ${activeTab === "history" ? "border-b-2 border-ink text-ink" : "text-ink/50"}`}
+        >
+          history
         </button>
       </div>
 
@@ -483,6 +552,79 @@ export default function StaffDashboard() {
                       <p className="font-semibold text-ink">{formatInr(p.commission)}</p>
                     </div>
                   </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
+      {activeTab === "history" && (
+        <section className="space-y-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">
+              sold history {history?.location ? `— ${history.location.name}` : ""}
+            </h2>
+            <button
+              type="button"
+              onClick={() => void loadHistory()}
+              disabled={isLoadingHistory}
+              className="pill-btn-outline gap-1.5 !py-2 text-xs"
+            >
+              <RefreshCw className={`h-3.5 w-3.5 ${isLoadingHistory ? "animate-spin" : ""}`} aria-hidden />
+              refresh
+            </button>
+          </div>
+          <p className="text-xs text-ink/50">Every paid, picked-up order — order number, customer, items, and date.</p>
+
+          <input
+            value={historySearch}
+            onChange={(event) => setHistorySearch(event.target.value)}
+            placeholder="Search by order number or name…"
+            className="input"
+          />
+
+          <div className="flex flex-wrap gap-1.5">
+            {(Object.keys(RANGE_LABELS) as DateRange[]).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => handleHistoryRangeChange(r)}
+                disabled={isLoadingHistory}
+                className={`rounded-full px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${
+                  historyRange === r ? "bg-ink text-cream" : "border border-ink/15 text-ink/60 hover:border-ink/30"
+                }`}
+              >
+                {RANGE_LABELS[r]}
+              </button>
+            ))}
+          </div>
+
+          {historyError && <p className="text-sm text-red-600">{historyError}</p>}
+
+          {isLoadingHistory && !history ? (
+            <p className="py-6 text-center text-sm text-ink/50">Loading…</p>
+          ) : !history || history.orders.length === 0 ? (
+            <p className="flex flex-col items-center gap-2 py-6 text-center text-sm text-ink/50">
+              <Package className="h-6 w-6 opacity-40" aria-hidden />
+              No sold orders in this window.
+            </p>
+          ) : (
+            <ul className="space-y-2">
+              {history.orders.map((order) => (
+                <li key={order.id} className="rounded-xl border border-ink/15 bg-cream/60 p-3 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-ink">{order.order_number}</span>
+                    <span className="text-xs text-ink/50">{new Date(order.created_at).toLocaleString()}</span>
+                  </div>
+                  <p className="text-ink/60">{order.customer_name}</p>
+                  <ul className="mt-1.5 space-y-0.5 text-xs text-ink/70">
+                    {order.order_items.map((item, i) => (
+                      <li key={i}>
+                        {item.quantity} × {item.product_variants.products.name} ({item.product_variants.variant_label})
+                      </li>
+                    ))}
+                  </ul>
                 </li>
               ))}
             </ul>
