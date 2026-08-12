@@ -1,3 +1,13 @@
 {
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+
+  // Edge Functions are Deno, not Node — they're excluded from tsconfig.json
+  // so `tsc`/`next build` correctly ignore them, but that also means VS Code
+  // falls back to an inferred Node project when one is open and reports
+  // phantom errors ("Cannot find name 'Deno'", implicit-any on handler args).
+  // Handing just that directory to the Deno LSP fixes those; `deno.enable:
+  // false` keeps the Next.js app itself on the normal TypeScript server.
+  // Requires the Deno extension (denoland.vscode-deno).
+  "deno.enable": false,
+  "deno.enablePaths": ["supabase/functions"]
 }

@@ -23,7 +23,7 @@ type RequestBody =
 
 const ORDER_SELECT =
   "id, order_number, status, payment_status, pickup_code, pickup_code_collected_at, created_at, " +
-  "guest_name, guest_phone, location_id, pickup_slot, total, " +
+  "guest_name, guest_phone, location_id, pickup_slot, total, notes, " +
   "order_items(quantity, unit_price, product_variants(variant_label, products(name))), " +
   "pickup_locations:location_id(name, city)";
 
@@ -227,7 +227,7 @@ Deno.serve(async (req) => {
     let query = sb
       .from("orders")
       .select(
-        "id, order_number, guest_name, created_at, pickup_code_collected_at, " +
+        "id, order_number, guest_name, created_at, pickup_code_collected_at, notes, " +
           "order_items(quantity, unit_price, product_variants(variant_label, products(name)))",
       )
       .eq("fulfillment_type", "takeaway")
