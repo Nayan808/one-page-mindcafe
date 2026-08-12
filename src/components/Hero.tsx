@@ -251,10 +251,11 @@ export function Hero() {
               <TimelineContent
                 as="div"
                 key={mood.key}
+                id={mood.key}
                 animationNum={index + 6}
                 timelineRef={timelineRef}
                 customVariants={revealVariants}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_1px_2px_rgba(17,17,16,0.04),0_16px_32px_-16px_rgba(17,17,16,0.25)] transition-shadow duration-300 hover:shadow-[0_1px_2px_rgba(17,17,16,0.06),0_20px_40px_-16px_rgba(17,17,16,0.3)]"
+                className="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_1px_2px_rgba(17,17,16,0.04),0_16px_32px_-16px_rgba(17,17,16,0.25)] transition-shadow duration-300 hover:shadow-[0_1px_2px_rgba(17,17,16,0.06),0_20px_40px_-16px_rgba(17,17,16,0.3)]"
               >
                 <button
                   type="button"

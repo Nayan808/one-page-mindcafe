@@ -55,3 +55,9 @@ export type OrderItemWithVariant = OrderItem & {
   product_variants: Pick<ProductVariant, "variant_label"> & { products: Pick<Product, "name"> };
 };
 export type OrderWithItemDetails = Order & { order_items: OrderItemWithVariant[] };
+// Admin orders list — same item/variant/product join as the customer
+// "your orders" view, plus the pickup location (null for delivery orders,
+// or a location whose row got deleted after the order was placed).
+export type OrderWithItemDetailsAndLocation = OrderWithItemDetails & {
+  pickup_locations: Pick<PickupLocation, "name" | "city"> | null;
+};

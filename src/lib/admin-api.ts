@@ -23,7 +23,7 @@ import type {
   InventoryWithVariantAndLocation,
   Milestone,
   NewsletterSubscriber,
-  OrderWithItems,
+  OrderWithItemDetailsAndLocation,
   PickupLocation,
   ProductVariant,
   ProductWithVariants,
@@ -221,10 +221,12 @@ function sanitizeSearchTerm(term: string): string {
 export async function getOrdersAdmin(
   sb: Sb,
   options: { page: number; pageSize: number; status?: string; search?: string },
-): Promise<{ orders: OrderWithItems[]; total: number }> {
+): Promise<{ orders: OrderWithItemDetailsAndLocation[]; total: number }> {
   const from = options.page * options.pageSize;
   const to = from + options.pageSize - 1;
-  let query = sb.from("orders").select("*, order_items(*)", { count: "exact" });
+  let query = sb
+    .from("orders")
+    .select("*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city)", { count: "exact" });
   if (options.status) {
     query = query.eq("status", options.status as Database["public"]["Tables"]["orders"]["Row"]["status"]);
   }
@@ -234,7 +236,7 @@ export async function getOrdersAdmin(
   }
   const { data, error, count } = await query.order("created_at", { ascending: false }).range(from, to);
   throwOnError("getOrdersAdmin", error);
-  return { orders: (data as unknown as OrderWithItems[]) ?? [], total: count ?? 0 };
+  return { orders: (data as unknown as OrderWithItemDetailsAndLocation[]) ?? [], total: count ?? 0 };
 }
 
 export async function updateOrderStatusAdmin(
@@ -577,6 +579,33 @@ export async function createInventoryTransactionAdmin(
     created_by: user?.id ?? null,
   });
   throwOnError("createInventoryTransactionAdmin", error);
+}
+
+export async function updateInventoryTransactionAdmin(
+  sb: Sb,
+  id: string,
+  input: {
+    transactionDate: string;
+    transactionType: "received" | "shipped" | "online_sale";
+    variantId: string;
+    locationId: string | null;
+    quantity: number;
+    notes?: string;
+  },
+): Promise<void> {
+  const { error } = await sb
+    .from("inventory_transactions")
+    .update({
+      transaction_date: input.transactionDate,
+      transaction_type: input.transactionType,
+      variant_id: input.variantId,
+      location_id: input.locationId,
+      quantity_in: input.transactionType === "received" ? input.quantity : null,
+      quantity_out: input.transactionType === "received" ? null : input.quantity,
+      notes: input.notes || null,
+    })
+    .eq("id", id);
+  throwOnError("updateInventoryTransactionAdmin", error);
 }
 
 export async function deleteInventoryTransactionAdmin(sb: Sb, id: string): Promise<void> {
