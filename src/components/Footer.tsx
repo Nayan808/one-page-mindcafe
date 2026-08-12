@@ -240,7 +240,7 @@ export function Footer() {
                 <Mail className="h-3.5 w-3.5 text-ink/40" aria-hidden />
                 team@mindcafe.app
               </a>
-              <span className="mt-0.5 block text-xs text-ink/50">response within 1 business day</span>
+              <span className="mt-0.5 block text-xs text-ink/50">response within 24 hours</span>
             </li>
             <li>
               <a
