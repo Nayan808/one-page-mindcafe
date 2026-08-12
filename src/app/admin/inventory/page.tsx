@@ -373,6 +373,11 @@ type SummaryRow = {
   price: number;
   reorderThreshold: number | null;
   totalRemaining: number;
+  /** The underlying inventory row's real id — only meaningful when the
+   * summary is scoped to exactly one location (or the online pool), so
+   * totalRemaining maps to a single editable row rather than a sum
+   * across several. Multiple-location scopes never read this field. */
+  inventoryRowId: string;
 };
 
 // Every column here is a real total already in the database (or, for
@@ -434,7 +439,11 @@ const ONLINE_VALUE = "";
 // real pickup_locations id and from ONLINE_VALUE.
 const ALL_ZOSTEL_VALUE = "__all_zostel__";
 
-function QuantityCell({ row }: { row: InventoryWithVariant }) {
+// Narrowed to just the two fields this cell actually touches (rather than
+// the full InventoryWithVariant shape) so it can also be used for a
+// summary-table row, which only carries the underlying inventory row's id
+// and quantity, not every joined column the per-location table has.
+function QuantityCell({ row }: { row: { id: string; quantity_available: number } }) {
   const queryClient = useQueryClient();
   const [value, setValue] = useState(String(row.quantity_available));
   const [justSaved, setJustSaved] = useState(false);
@@ -516,6 +525,7 @@ function aggregateByVariant(rows: FullInventoryRow[]): SummaryRow[] {
         price: row.price,
         reorderThreshold: row.reorderThreshold,
         totalRemaining: row.quantityAvailable,
+        inventoryRowId: row.id,
       });
     }
   }
@@ -599,6 +609,13 @@ export default function AdminInventoryPage() {
     return aggregateByVariant(filtered);
   }, [full, summaryScope]);
 
+  // Remaining stock is only directly editable here when the scope maps to
+  // exactly one underlying row per variant — a specific Zostel or the
+  // online pool. "all" and "all Zostel" are sums across several rows;
+  // there's no single row to write a new quantity into, so those stay
+  // read-only (edit the specific location instead).
+  const isSingleLocationScope = summaryScope !== SUMMARY_ALL && summaryScope !== SUMMARY_ALL_ZOSTEL;
+
   return (
     <div>
       <AdminPageHeader
@@ -659,7 +676,13 @@ export default function AdminInventoryPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-ink/70">{formatInr(summary.price)}</td>
-                        <td className="px-4 py-3 text-ink/70">{summary.totalRemaining}</td>
+                        <td className="px-4 py-3 text-ink/70">
+                          {isSingleLocationScope ? (
+                            <QuantityCell row={{ id: summary.inventoryRowId, quantity_available: summary.totalRemaining }} />
+                          ) : (
+                            summary.totalRemaining
+                          )}
+                        </td>
                         <td className="px-4 py-3 text-ink/70">{formatInr(stockValue)}</td>
                         <td className="px-4 py-3">
                           <ReorderThresholdCell summary={summary} />

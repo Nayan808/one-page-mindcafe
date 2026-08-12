@@ -482,6 +482,7 @@ export async function getAllZostelInventoryAdmin(sb: Sb): Promise<InventoryWithV
 }
 
 export type FullInventoryRow = {
+  id: string;
   quantityAvailable: number;
   variantId: string;
   productName: string;
@@ -503,11 +504,12 @@ export async function getFullInventoryAdmin(sb: Sb): Promise<FullInventoryRow[]>
   const { data, error } = await sb
     .from("inventory")
     .select(
-      "quantity_available, location_id, variant_id, product_variants(variant_label, price_override, reorder_threshold, products(name, price)), pickup_locations:location_id(name, is_active)",
+      "id, quantity_available, location_id, variant_id, product_variants(variant_label, price_override, reorder_threshold, products(name, price)), pickup_locations:location_id(name, is_active)",
     );
   throwOnError("getFullInventoryAdmin", error);
 
   const rows = (data ?? []) as unknown as Array<{
+    id: string;
     quantity_available: number;
     location_id: string | null;
     variant_id: string;
@@ -523,6 +525,7 @@ export async function getFullInventoryAdmin(sb: Sb): Promise<FullInventoryRow[]>
   return rows
     .filter((row) => row.location_id === null || row.pickup_locations?.is_active === true)
     .map((row) => ({
+      id: row.id,
       quantityAvailable: row.quantity_available,
       variantId: row.variant_id,
       productName: row.product_variants.products.name,
