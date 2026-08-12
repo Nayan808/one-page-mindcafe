@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Lock, LogOut, Package, RefreshCw } from "lucide-react";
+import { Lock, LogOut, Package, RefreshCw, StickyNote } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { QrScanner } from "@/components/staff/QrScanner";
 import { formatInr } from "@/lib/utils";
@@ -28,6 +28,7 @@ type StaffHistoryOrder = {
   order_number: string;
   customer_name: string;
   created_at: string;
+  notes: string | null;
   order_items: {
     quantity: number;
     unit_price: number;
@@ -80,6 +81,7 @@ type StaffOrder = {
   guest_phone: string | null;
   pickup_slot: string | null;
   total: number;
+  notes: string | null;
   order_items: {
     quantity: number;
     unit_price: number;
@@ -89,6 +91,25 @@ type StaffOrder = {
 };
 
 const SESSION_KEY = "feelz_staff_password";
+
+// The customer's free-text note from checkout ("Anything the Zostel front
+// desk should know…"). Deliberately loud — amber, icon, own block — because
+// it's the one field on an order that staff have to *act* on, and it's easy
+// to skim past a line of grey text while handing over a pickup. Renders
+// nothing at all when the customer left it blank (the common case), so an
+// empty note never adds noise to the queue.
+function CustomerNote({ notes, className = "" }: { notes: string | null; className?: string }) {
+  if (!notes?.trim()) return null;
+  return (
+    <div className={`flex gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 ${className}`}>
+      <StickyNote className="h-3.5 w-3.5 shrink-0 text-amber-700" aria-hidden />
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-label text-amber-800">customer note</p>
+        <p className="mt-0.5 whitespace-pre-wrap break-words text-xs text-amber-900">{notes.trim()}</p>
+      </div>
+    </div>
+  );
+}
 
 // Two ways to unlock, one input box: the shared dashboard password (sees
 // every location), or a single location's staff_pin (sees only that
@@ -432,6 +453,8 @@ export default function StaffDashboard() {
             </ul>
             <p className="font-medium">{formatInr(lookedUpOrder.total)}</p>
 
+            <CustomerNote notes={lookedUpOrder.notes} />
+
             <button
               type="button"
               onClick={() => void handleCollect(lookedUpOrder.id)}
@@ -475,6 +498,14 @@ export default function StaffDashboard() {
                   <span className="font-display font-bold tracking-[0.15em] text-ink/70">{order.pickup_code}</span>
                 </div>
                 <p className="text-ink/60">{order.customer_name}</p>
+                <ul className="mt-1.5 space-y-0.5 text-xs text-ink/70">
+                  {order.order_items.map((item, i) => (
+                    <li key={i}>
+                      {item.quantity} × {item.product_variants.products.name} ({item.product_variants.variant_label})
+                    </li>
+                  ))}
+                </ul>
+                <CustomerNote notes={order.notes} className="mt-2" />
               </li>
             ))}
           </ul>
@@ -625,6 +656,7 @@ export default function StaffDashboard() {
                       </li>
                     ))}
                   </ul>
+                  <CustomerNote notes={order.notes} className="mt-2" />
                 </li>
               ))}
             </ul>
