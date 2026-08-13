@@ -284,6 +284,7 @@ function ScanOrderInner() {
               setStep("location");
             }}
             backLabel="Start a new order"
+            showEmailNote={false}
           />
         ) : locationId ? (
           <ScanOrderPayment locationId={locationId} onBack={() => setStep("products")} onOrderPlaced={setOrderId} />
