@@ -25,10 +25,17 @@ export function OrderConfirmation({
   orderId,
   onStartNewOrder,
   backLabel = "Place Another Order",
+  showEmailNote = true,
 }: {
   orderId: string;
   onStartNewOrder: () => void;
   backLabel?: string;
+  // Display-only suppression of the "Also sent to you by email." line. The
+  // scan-and-order flow turns it off: the guest is standing at the front
+  // desk with the QR already on screen, so pointing at an inbox is noise
+  // there even for a signed-in user who does have an email on file. Does
+  // not affect whether the confirmation email is actually sent.
+  showEmailNote?: boolean;
 }) {
   const { data: order, isLoading } = useOrderTracking(orderId);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
@@ -87,7 +94,9 @@ export function OrderConfirmation({
                   Download QR
                 </a>
               )}
-              {hasEmailOnFile && <p className="mt-2 text-xs text-ink/50">Also sent to you by email.</p>}
+              {showEmailNote && hasEmailOnFile && (
+                <p className="mt-2 text-xs text-ink/50">Also sent to you by email.</p>
+              )}
             </>
           )}
         </div>
