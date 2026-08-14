@@ -103,8 +103,10 @@ Deno.serve(async (req) => {
   const paymentChanged = record.payment_status !== old_record?.payment_status;
 
   if (statusChanged && record.status === "confirmed") {
-    const { data: setting } = await sb.from("site_settings").select("value").eq("key", "admin_notification_email").maybeSingle();
-    const adminEmail = (setting?.value as string) || "team@mindcafe.app";
+    // Feelz order alerts go to the Feelz mailbox specifically, not the
+    // general admin_notification_email (team@mindcafe.app — that one
+    // still covers business leads and every other admin notification).
+    const adminEmail = "feelz@mindcafe.app";
     const { text, html } = renderEmail({
       heading: `New order: ${record.order_number}`,
       paragraphs: [`A new ${record.fulfillment_type} order was confirmed and paid — total ₹${record.total}.`],

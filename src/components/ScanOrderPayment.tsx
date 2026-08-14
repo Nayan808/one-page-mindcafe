@@ -185,7 +185,7 @@ export function ScanOrderPayment({
         <textarea
           value={notes}
           onChange={(event) => setNotes(event.target.value)}
-          placeholder="Anything the Zostel front desk should know…"
+          placeholder="e.g. Alex from Room 202"
           rows={2}
           className="input"
         />

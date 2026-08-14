@@ -27,6 +27,8 @@ type StaffHistoryOrder = {
   id: string;
   order_number: string;
   customer_name: string;
+  guest_phone: string | null;
+  guest_email: string | null;
   created_at: string;
   notes: string | null;
   order_items: {
@@ -35,6 +37,14 @@ type StaffHistoryOrder = {
     product_variants: { variant_label: string; products: { name: string } };
   }[];
 };
+
+// Guest checkout always collects a phone number and optionally an email;
+// an account order has neither on the row itself. Phone wins when both are
+// present — it's what staff actually need if they have to reach someone
+// at the pickup desk.
+function contactLine(phone: string | null, email: string | null): string | null {
+  return phone || email || null;
+}
 
 type StaffHistoryData = {
   location: { id: string; name: string; city: string } | null;
@@ -79,6 +89,7 @@ type StaffOrder = {
   created_at: string;
   customer_name: string;
   guest_phone: string | null;
+  guest_email: string | null;
   pickup_slot: string | null;
   total: number;
   notes: string | null;
@@ -438,7 +449,9 @@ export default function StaffDashboard() {
             <p>
               <span className="text-ink/60">Customer: </span>
               {lookedUpOrder.customer_name}
-              {lookedUpOrder.guest_phone ? ` · ${lookedUpOrder.guest_phone}` : ""}
+              {contactLine(lookedUpOrder.guest_phone, lookedUpOrder.guest_email)
+                ? ` · ${contactLine(lookedUpOrder.guest_phone, lookedUpOrder.guest_email)}`
+                : ""}
             </p>
             <p>
               <span className="text-ink/60">Payment: </span>
@@ -497,7 +510,12 @@ export default function StaffDashboard() {
                   <span className="font-medium text-ink">{order.order_number}</span>
                   <span className="font-display font-bold tracking-[0.15em] text-ink/70">{order.pickup_code}</span>
                 </div>
-                <p className="text-ink/60">{order.customer_name}</p>
+                <p className="text-ink/60">
+                  {order.customer_name}
+                  {contactLine(order.guest_phone, order.guest_email)
+                    ? ` · ${contactLine(order.guest_phone, order.guest_email)}`
+                    : ""}
+                </p>
                 <ul className="mt-1.5 space-y-0.5 text-xs text-ink/70">
                   {order.order_items.map((item, i) => (
                     <li key={i}>
@@ -648,7 +666,12 @@ export default function StaffDashboard() {
                     <span className="font-medium text-ink">{order.order_number}</span>
                     <span className="text-xs text-ink/50">{new Date(order.created_at).toLocaleString()}</span>
                   </div>
-                  <p className="text-ink/60">{order.customer_name}</p>
+                  <p className="text-ink/60">
+                    {order.customer_name}
+                    {contactLine(order.guest_phone, order.guest_email)
+                      ? ` · ${contactLine(order.guest_phone, order.guest_email)}`
+                      : ""}
+                  </p>
                   <ul className="mt-1.5 space-y-0.5 text-xs text-ink/70">
                     {order.order_items.map((item, i) => (
                       <li key={i}>

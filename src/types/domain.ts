@@ -60,4 +60,5 @@ export type OrderWithItemDetails = Order & { order_items: OrderItemWithVariant[]
 // or a location whose row got deleted after the order was placed).
 export type OrderWithItemDetailsAndLocation = OrderWithItemDetails & {
   pickup_locations: Pick<PickupLocation, "name" | "city"> | null;
+  profiles: Pick<Profile, "full_name" | "phone"> | null;
 };

@@ -220,15 +220,21 @@ function sanitizeSearchTerm(term: string): string {
 
 export async function getOrdersAdmin(
   sb: Sb,
-  options: { page: number; pageSize: number; status?: string; search?: string },
+  options: { page: number; pageSize: number; status?: string; locationId?: string; search?: string },
 ): Promise<{ orders: OrderWithItemDetailsAndLocation[]; total: number }> {
   const from = options.page * options.pageSize;
   const to = from + options.pageSize - 1;
   let query = sb
     .from("orders")
-    .select("*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city)", { count: "exact" });
+    .select(
+      "*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city), profiles(full_name, phone)",
+      { count: "exact" },
+    );
   if (options.status) {
     query = query.eq("status", options.status as Database["public"]["Tables"]["orders"]["Row"]["status"]);
+  }
+  if (options.locationId) {
+    query = query.eq("location_id", options.locationId);
   }
   const term = options.search ? sanitizeSearchTerm(options.search) : "";
   if (term) {

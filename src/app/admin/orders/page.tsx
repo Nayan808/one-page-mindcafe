@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getOrdersAdmin, updateOrderStatusAdmin, deleteOrderAdmin } from "@/lib/admin-api";
+import { getOrdersAdmin, getPickupLocationsAdmin, listUsersAdmin, updateOrderStatusAdmin, deleteOrderAdmin } from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
@@ -39,17 +39,52 @@ export default function AdminOrdersPage() {
   const confirmDialog = useConfirmDialog();
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
+  const [locationId, setLocationId] = useState("");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
-  const ordersQueryKey = ["admin", "orders", page, status, debouncedSearch] as const;
+  const ordersQueryKey = ["admin", "orders", page, status, locationId, debouncedSearch] as const;
 
   const ordersQuery = useQuery({
     queryKey: ordersQueryKey,
-    queryFn: () => getOrdersAdmin(createClient(), { page, pageSize: PAGE_SIZE, status: status || undefined, search: debouncedSearch || undefined }),
+    queryFn: () =>
+      getOrdersAdmin(createClient(), {
+        page,
+        pageSize: PAGE_SIZE,
+        status: status || undefined,
+        locationId: locationId || undefined,
+        search: debouncedSearch || undefined,
+      }),
   });
+
+  const locationsQuery = useQuery({
+    queryKey: ["admin", "pickup-locations"],
+    queryFn: () => getPickupLocationsAdmin(createClient()),
+  });
+
+  const locationFilterOptions: FilterOption[] = useMemo(
+    () => [
+      { value: "", label: "all locations" },
+      ...(locationsQuery.data ?? []).map((l) => ({ value: l.id, label: l.city ? `${l.name}, ${l.city}` : l.name })),
+    ],
+    [locationsQuery.data],
+  );
+
+  // Logged-in orders carry no email on the order row itself (only
+  // guest_email, for guest checkout) — the account's email lives in
+  // auth.users, so it's fetched once via the same admin-list-users lookup
+  // the users page uses and matched onto each order by user_id.
+  const usersQuery = useQuery({
+    queryKey: ["admin", "users"],
+    queryFn: () => listUsersAdmin(createClient()),
+  });
+  const emailByUserId = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const u of usersQuery.data ?? []) map.set(u.id, u.email);
+    return map;
+  }, [usersQuery.data]);
 
   // Live: new orders / status changes show up without a manual refresh —
   // broad invalidate, same rationale as the admin appointments page.
@@ -142,6 +177,26 @@ export default function AdminOrdersPage() {
 
   const columns: AdminColumn<OrderWithItemDetailsAndLocation>[] = [
     { key: "order_number", label: "order", render: (o) => <span className="font-medium text-ink">{o.order_number}</span> },
+    {
+      key: "contact",
+      label: "customer",
+      render: (o) => {
+        // Guest checkout (scan-and-order or site-direct) always collects a
+        // phone number and optionally an email, both stored on the order
+        // row. A logged-in order has neither — name/phone come from the
+        // profile, email from the auth.users lookup above.
+        const name = o.user_id ? o.profiles?.full_name : o.guest_name;
+        const phone = o.user_id ? o.profiles?.phone : o.guest_phone;
+        const email = o.user_id ? emailByUserId.get(o.user_id) : o.guest_email;
+        if (!name && !phone && !email) return <span className="text-ink/30">—</span>;
+        return (
+          <div className="space-y-0.5 text-xs">
+            {name && <p className="font-medium text-ink">{name}</p>}
+            <p className="text-ink/60">{phone || email || "—"}</p>
+          </div>
+        );
+      },
+    },
     { key: "type", label: "fulfillment", render: (o) => <span className="capitalize">{o.fulfillment_type}</span> },
     {
       key: "items",
@@ -234,6 +289,15 @@ export default function AdminOrdersPage() {
             setPage(0);
           }}
           searchPlaceholder="Search statuses…"
+        />
+        <FilterDropdown
+          options={locationFilterOptions}
+          value={locationId}
+          onChange={(v) => {
+            setLocationId(v);
+            setPage(0);
+          }}
+          searchPlaceholder="Search locations…"
         />
       </div>
 

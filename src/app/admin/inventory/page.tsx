@@ -511,6 +511,35 @@ const SUMMARY_ALL = "all";
 const SUMMARY_ALL_ZOSTEL = "all-zostel";
 const SUMMARY_ONLINE = "online";
 
+// Shared by both the live-stock summary and the transaction-log
+// reconciliation below, so "all Zostel" (say) means exactly the same set
+// of locations on both sides of the comparison.
+function inScope(locationId: string | null, scope: string): boolean {
+  if (scope === SUMMARY_ALL) return true;
+  if (scope === SUMMARY_ALL_ZOSTEL) return locationId !== null;
+  if (scope === SUMMARY_ONLINE) return locationId === null;
+  return locationId === scope;
+}
+
+type LogTotals = { in: number; out: number };
+
+// Net movement the manual log claims for each variant, within the current
+// scope — "received"/"online sale" adds to quantity_in, "shipped" to
+// quantity_out (see the add-transaction form). Not an absolute expected
+// count (the log has no opening-balance entry), just the sum of logged
+// movement, compared against live stock as a discrepancy signal.
+function aggregateTransactionsByVariant(transactions: InventoryTransactionWithVariant[], scope: string): Map<string, LogTotals> {
+  const map = new Map<string, LogTotals>();
+  for (const t of transactions) {
+    if (!inScope(t.location_id, scope)) continue;
+    const existing = map.get(t.variant_id) ?? { in: 0, out: 0 };
+    existing.in += t.quantity_in ?? 0;
+    existing.out += t.quantity_out ?? 0;
+    map.set(t.variant_id, existing);
+  }
+  return map;
+}
+
 function aggregateByVariant(rows: FullInventoryRow[]): SummaryRow[] {
   const byVariant = new Map<string, SummaryRow>();
   for (const row of rows) {
@@ -539,6 +568,13 @@ export default function AdminInventoryPage() {
 
   const fullInventoryQuery = useQuery({ queryKey: ["admin", "full-inventory"], queryFn: () => getFullInventoryAdmin(createClient()) });
   const locationsQuery = useQuery({ queryKey: ["admin", "pickup-locations"], queryFn: () => getPickupLocationsAdmin(createClient()) });
+  // Same queryKey as TransactionLogSection's own fetch below — react-query
+  // shares the one cache entry, so this doesn't double the network call
+  // and picks up the same invalidation when a transaction is added/edited.
+  const transactionsQuery = useQuery({
+    queryKey: ["admin", "inventory-transactions"],
+    queryFn: () => getInventoryTransactionsAdmin(createClient()),
+  });
   const isAllZostelView = locationId === ALL_ZOSTEL_VALUE;
   const inventoryQuery = useQuery({
     queryKey: ["admin", "inventory", locationId ?? "online"],
@@ -598,16 +634,13 @@ export default function AdminInventoryPage() {
   }, [full, activeZostelLocations]);
 
   const summaryRows: SummaryRow[] = useMemo(() => {
-    const filtered =
-      summaryScope === SUMMARY_ALL
-        ? full
-        : summaryScope === SUMMARY_ALL_ZOSTEL
-          ? full.filter((r) => r.locationId !== null)
-          : summaryScope === SUMMARY_ONLINE
-            ? full.filter((r) => r.locationId === null)
-            : full.filter((r) => r.locationId === summaryScope);
-    return aggregateByVariant(filtered);
+    return aggregateByVariant(full.filter((r) => inScope(r.locationId, summaryScope)));
   }, [full, summaryScope]);
+
+  const loggedByVariant = useMemo(
+    () => aggregateTransactionsByVariant(transactionsQuery.data ?? [], summaryScope),
+    [transactionsQuery.data, summaryScope],
+  );
 
   // Remaining stock is only directly editable here when the scope maps to
   // exactly one underlying row per variant — a specific Zostel or the
@@ -632,7 +665,8 @@ export default function AdminInventoryPage() {
               {summaryScope === SUMMARY_ALL || summaryScope === SUMMARY_ALL_ZOSTEL || summaryScope === SUMMARY_ONLINE
                 ? AGGREGATE_LOW_STOCK_FLOOR
                 : LOCATION_LOW_STOCK_FLOOR}{" "}
-              units left on some product.
+              units left on some product. &quot;Logged net&quot; and &quot;gap&quot; compare live stock against the
+              Transaction log below, for whatever scope is selected here.
             </p>
           </div>
           <FilterDropdown options={scopeOptions} value={summaryScope} onChange={setSummaryScope} searchPlaceholder="Search…" />
@@ -645,6 +679,8 @@ export default function AdminInventoryPage() {
                 <th className="px-4 py-3">price / box</th>
                 <th className="px-4 py-3">remaining stock</th>
                 <th className="px-4 py-3">stock value</th>
+                <th className="px-4 py-3">logged net (in − out)</th>
+                <th className="px-4 py-3">gap vs. log</th>
                 <th className="px-4 py-3">reorder threshold</th>
                 <th className="px-4 py-3">status</th>
               </tr>
@@ -652,13 +688,13 @@ export default function AdminInventoryPage() {
             <tbody>
               {fullInventoryQuery.isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-ink/50">
+                  <td colSpan={8} className="px-4 py-6 text-center text-ink/50">
                     Loading…
                   </td>
                 </tr>
               ) : summaryRows.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-6 text-center text-ink/50">
+                  <td colSpan={8} className="px-4 py-6 text-center text-ink/50">
                     No inventory in this scope.
                   </td>
                 </tr>
@@ -667,6 +703,9 @@ export default function AdminInventoryPage() {
                   {summaryRows.map((summary) => {
                     const stockValue = summary.totalRemaining * summary.price;
                     const isLow = summary.reorderThreshold !== null && summary.totalRemaining <= summary.reorderThreshold;
+                    const logged = loggedByVariant.get(summary.variantId);
+                    const loggedNet = logged ? logged.in - logged.out : null;
+                    const gap = loggedNet === null ? null : summary.totalRemaining - loggedNet;
                     return (
                       <tr key={summary.variantId} className="border-b border-ink/5 last:border-0 hover:bg-cream/60">
                         <td className="px-4 py-3 font-medium text-ink">
@@ -684,6 +723,28 @@ export default function AdminInventoryPage() {
                           )}
                         </td>
                         <td className="px-4 py-3 text-ink/70">{formatInr(stockValue)}</td>
+                        <td className="px-4 py-3">
+                          {loggedNet === null ? (
+                            <span className="text-ink/30">not logged</span>
+                          ) : (
+                            <span className={loggedNet >= 0 ? "text-emerald-700" : "text-red-700"}>
+                              {loggedNet >= 0 ? `+${loggedNet}` : loggedNet}
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {gap === null ? (
+                            <span className="text-ink/30">—</span>
+                          ) : gap === 0 ? (
+                            <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
+                              matches
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
+                              {gap > 0 ? `+${gap} unlogged` : `${Math.abs(gap)} over-logged`}
+                            </span>
+                          )}
+                        </td>
                         <td className="px-4 py-3">
                           <ReorderThresholdCell summary={summary} />
                         </td>
@@ -704,6 +765,8 @@ export default function AdminInventoryPage() {
                     <td className="px-4 py-3" />
                     <td className="px-4 py-3">{summaryRows.reduce((sum, s) => sum + s.totalRemaining, 0)}</td>
                     <td className="px-4 py-3">{formatInr(summaryRows.reduce((sum, s) => sum + s.totalRemaining * s.price, 0))}</td>
+                    <td className="px-4 py-3" />
+                    <td className="px-4 py-3" />
                     <td className="px-4 py-3" />
                     <td className="px-4 py-3" />
                   </tr>
