@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
   // separate Shiprocket call that needs a courier_id — left as a
   // follow-up step (via the Shiprocket dashboard or a courier-selection
   // function added later) rather than guessing a courier here.
-  // shiprocket-tracking-webhook picks up the AWB once it's assigned.
+  // delivery-status-webhook picks up the AWB once it's assigned.
 
   return jsonResponse({ created: true, shiprocket_order_id: shiprocketOrder.order_id });
 });

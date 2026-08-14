@@ -1,6 +1,6 @@
 // Shared CORS headers for Edge Functions called directly from the browser
 // (create-order, create-razorpay-order, merge-guest-cart, staff-pickup).
-// Webhook endpoints (payment-webhook, shiprocket-tracking-webhook,
+// Webhook endpoints (payment-webhook, delivery-status-webhook,
 // order-status-notifier, create-shiprocket-shipment) are called
 // server-to-server and don't need these, but including them is harmless.
 export const corsHeaders = {

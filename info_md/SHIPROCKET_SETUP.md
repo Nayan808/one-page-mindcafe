@@ -11,7 +11,7 @@ happen in your own Shiprocket account and the Supabase dashboard.
   delivery order transitions to `confirmed` (via a database trigger, see
   step 5 below). Logs into Shiprocket, creates the shipment, writes
   `shiprocket_order_id`/`shiprocket_shipment_id` back onto the order.
-- `supabase/functions/shiprocket-tracking-webhook/index.ts` — public
+- `supabase/functions/delivery-status-webhook/index.ts` — public
   endpoint Shiprocket calls with status updates. Updates `orders.status`/
   `awb_code`/`tracking_url` as the shipment moves through Shiprocket's
   lifecycle (picked up → shipped → out for delivery → delivered, or
@@ -52,20 +52,29 @@ set it.
 
 ## 3. Register the tracking webhook
 
-Shiprocket dashboard → Settings → API → Webhooks → add:
+Shiprocket dashboard → Settings → API → Webhooks. Shiprocket's current
+webhook UI sends the token as an HTTP header, not a URL query param, and
+its URL field rejects any URL containing "shiprocket", "kartrocket",
+"sr", or "kr" ("Address is not allowed") — the function is named
+`delivery-status-webhook` specifically to avoid that:
 
-```
-https://<project-ref>.supabase.co/functions/v1/shiprocket-tracking-webhook?secret=<the SHIPROCKET_WEBHOOK_SECRET value from step 2>
-```
+- **URL**: `https://<project-ref>.supabase.co/functions/v1/delivery-status-webhook`
+  (no query string — replace `<project-ref>` with your actual Supabase
+  project ref)
+- **Auth Token Type**: `x-api-key`
+- **Token**: the real `SHIPROCKET_WEBHOOK_SECRET` value you generated in
+  step 2 (not the literal placeholder text)
 
-Replace `<project-ref>` with your actual Supabase project ref, and the
-secret with the real value you generated (not the literal placeholder text).
+Save, then use the dashboard's "Test Webhook" button to confirm it
+reaches the function (it'll 401 if the token doesn't match what's in
+Supabase secrets, which is expected as a negative test if you deliberately
+enter the wrong value).
 
 ## 4. Deploy the functions
 
 ```bash
 supabase functions deploy create-shiprocket-shipment --no-verify-jwt
-supabase functions deploy shiprocket-tracking-webhook --no-verify-jwt
+supabase functions deploy delivery-status-webhook --no-verify-jwt
 ```
 
 ## 5. Trigger wiring (done — nothing for you to do here)

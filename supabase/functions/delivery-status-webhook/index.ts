@@ -1,9 +1,17 @@
-// Public endpoint Shiprocket calls with shipment status updates. Configure
-// this URL (with ?secret=<SHIPROCKET_WEBHOOK_SECRET>) in the Shiprocket
-// dashboard under Settings -> API -> Webhooks. Shiprocket doesn't offer
-// the kind of HMAC signature verification Razorpay does, so a shared
-// secret in the URL is the pragmatic substitute — reject anything without
-// the right one.
+// Public endpoint Shiprocket calls with shipment status updates. Named
+// "delivery-status-webhook" rather than anything containing "shiprocket"/
+// "kartrocket"/"sr"/"kr" — Shiprocket's own webhook URL field rejects
+// those keywords ("Address is not allowed"), so the function itself has
+// to avoid them, not just the URL typed into their form.
+//
+// Configure this URL in the Shiprocket dashboard under Settings -> API ->
+// Webhooks, with Auth Token Type "x-api-key" and Token =
+// SHIPROCKET_WEBHOOK_SECRET — Shiprocket's current webhook UI sends the
+// token as an `x-api-key` header, not a URL query param (also accepted
+// here as a fallback, in case an older/different Shiprocket webhook flow
+// is ever used instead). Shiprocket doesn't offer the kind of HMAC
+// signature verification Razorpay does, so a shared secret is the
+// pragmatic substitute — reject anything without the right one.
 //
 // NOTE: verify the exact payload field names against Shiprocket's current
 // webhook documentation before going live — this maps the commonly
@@ -29,7 +37,7 @@ function normalize(status: string): string | null {
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
-  const secret = url.searchParams.get("secret");
+  const secret = req.headers.get("x-api-key") ?? url.searchParams.get("secret");
   if (secret !== Deno.env.get("SHIPROCKET_WEBHOOK_SECRET")) {
     return jsonResponse({ error: "Unauthorized" }, 401);
   }
