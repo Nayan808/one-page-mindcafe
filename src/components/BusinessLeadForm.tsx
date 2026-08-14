@@ -13,6 +13,10 @@ const leadSchema = z.object({
   email: z.string().min(1, "Required").email("Enter a valid email"),
   phone: z.string().optional(),
   message: z.string().optional(),
+  // Honeypot — real users never see this field (hidden via CSS below), so
+  // it should always submit empty. A bot that blindly fills every input
+  // on the rendered page trips it; see submit-business-lead Edge Function.
+  website: z.string().optional(),
 });
 type LeadValues = z.infer<typeof leadSchema>;
 
@@ -31,6 +35,7 @@ export function BusinessLeadForm() {
       email: values.email,
       phone: values.phone || undefined,
       message: values.message || undefined,
+      honeypot: values.website,
     });
     setStatus("done");
   }
@@ -46,6 +51,13 @@ export function BusinessLeadForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 rounded-2xl border border-ink bg-white p-6 sm:p-8">
+      {/* Honeypot — off-screen, not display:none (some bots skip that),
+          excluded from tab order and screen readers. Real users never see
+          or fill it; see submit-business-lead Edge Function. */}
+      <div className="absolute left-[-9999px]" aria-hidden="true">
+        <label htmlFor="website">Leave this field empty</label>
+        <input id="website" type="text" tabIndex={-1} autoComplete="off" {...register("website")} />
+      </div>
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm text-ink/70">Organisation name</label>

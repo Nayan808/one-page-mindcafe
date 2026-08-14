@@ -891,20 +891,32 @@ export async function checkout(sb: Sb, input: CheckoutInput): Promise<CheckoutRe
 
 // --- Business leads (corporate/EAP contact form) ----------------------------
 
-// Public insert-only per RLS — the sales team reads these from the
-// dashboard (or a future admin view), not the frontend.
+// Routed through the submit-business-lead Edge Function rather than a
+// direct table insert — business_leads has no anon insert policy at all
+// anymore (see migration 20260814020000_lockdown_public_insert_forms.sql),
+// since the open policy was being actively spammed by a bot hitting the
+// REST API directly. The function checks a honeypot field + an IP rate
+// limit before writing. `honeypot` must stay empty; BusinessLeadForm.tsx
+// wires it to a field real users never see.
 export async function submitBusinessLead(
   sb: Sb,
-  input: { companyName: string; contactName: string; email: string; phone?: string; message?: string },
+  input: { companyName: string; contactName: string; email: string; phone?: string; message?: string; honeypot?: string },
 ): Promise<void> {
-  const { error } = await sb.from("business_leads").insert({
-    company_name: input.companyName,
-    contact_name: input.contactName,
-    email: input.email,
-    phone: input.phone,
-    message: input.message,
+  const { data, error } = await sb.functions.invoke("submit-business-lead", {
+    body: {
+      company_name: input.companyName,
+      contact_name: input.contactName,
+      email: input.email,
+      phone: input.phone,
+      message: input.message,
+      website: input.honeypot,
+    },
   });
-  throwOnError("submitBusinessLead", error);
+  if (error) {
+    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new ApiError("submitBusinessLead", { message: detail?.error ?? error.message });
+  }
+  if (data?.error) throw new ApiError("submitBusinessLead", { message: data.error });
 }
 
 // --- FAQs, milestones (CMS content) ------------------------------------------
