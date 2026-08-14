@@ -227,7 +227,7 @@ export async function getOrdersAdmin(
   let query = sb
     .from("orders")
     .select(
-      "*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city), profiles(full_name, phone)",
+      "*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city)",
       { count: "exact" },
     );
   if (options.status) {
@@ -242,7 +242,23 @@ export async function getOrdersAdmin(
   }
   const { data, error, count } = await query.order("created_at", { ascending: false }).range(from, to);
   throwOnError("getOrdersAdmin", error);
-  return { orders: (data as unknown as OrderWithItemDetailsAndLocation[]) ?? [], total: count ?? 0 };
+
+  // orders.user_id has no FK to public.profiles (only to auth.users), so
+  // the customer name/phone can't come along in the same nested select
+  // above — same two-query merge pattern as getAppointmentsAdmin.
+  const orders = (data as unknown as OrderWithItemDetailsAndLocation[]) ?? [];
+  const userIds = [...new Set(orders.map((o) => o.user_id).filter((id): id is string => id !== null))];
+  const profileById = new Map<string, { full_name: string | null; phone: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await sb.from("profiles").select("id, full_name, phone").in("id", userIds);
+    throwOnError("getOrdersAdmin (profiles)", profilesError);
+    for (const p of profiles ?? []) profileById.set(p.id, { full_name: p.full_name, phone: p.phone });
+  }
+
+  return {
+    orders: orders.map((o) => ({ ...o, profiles: o.user_id ? (profileById.get(o.user_id) ?? null) : null })),
+    total: count ?? 0,
+  };
 }
 
 export async function updateOrderStatusAdmin(
