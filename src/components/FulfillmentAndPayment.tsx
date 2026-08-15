@@ -4,7 +4,14 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { createClient } from "@/lib/supabase/client";
-import { checkPincodeServiceability, checkout, getActivePickupLocations, validateCoupon, type CouponPreview } from "@/lib/api";
+import {
+  checkPincodeServiceability,
+  checkout,
+  getActivePickupLocations,
+  validateCoupon,
+  type CouponPreview,
+  type PincodeServiceability,
+} from "@/lib/api";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useAddresses } from "@/lib/query/hooks";
 import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
@@ -28,9 +35,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [guestAddress, setGuestAddress] = useState<AddressFormValues | null>(null);
-  const [serviceability, setServiceability] = useState<{ ok: boolean; fee: number } | "unchecked" | "checking">(
-    "unchecked",
-  );
+  const [serviceability, setServiceability] = useState<PincodeServiceability | "unchecked" | "checking">("unchecked");
 
   const [locations, setLocations] = useState<PickupLocation[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -59,8 +64,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   async function handleCheckServiceability(pincode: string) {
     setServiceability("checking");
     const sb = createClient();
-    const result = await checkPincodeServiceability(sb, pincode).catch(() => null);
-    setServiceability(result ? { ok: true, fee: Number(result.delivery_fee) } : { ok: false, fee: 0 });
+    const cartItems = items.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity }));
+    const result = await checkPincodeServiceability(sb, pincode, cartItems).catch(
+      (): PincodeServiceability => ({ serviceable: false }),
+    );
+    setServiceability(result);
   }
 
   async function handleAddAddress(values: AddressFormValues) {
@@ -75,8 +83,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   }
 
   const deliveryFee =
-    mode === "delivery" && serviceability !== "unchecked" && serviceability !== "checking" && serviceability.ok
-      ? serviceability.fee
+    mode === "delivery" &&
+    serviceability !== "unchecked" &&
+    serviceability !== "checking" &&
+    serviceability.serviceable
+      ? serviceability.deliveryFee
       : 0;
   // Only trust the applied preview while the input still matches what was
   // checked — editing the code after applying shouldn't silently keep
@@ -99,7 +110,8 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     }
   }
 
-  const serviceabilityOk = serviceability !== "unchecked" && serviceability !== "checking" && serviceability.ok;
+  const serviceabilityOk =
+    serviceability !== "unchecked" && serviceability !== "checking" && serviceability.serviceable;
   const hasDeliveryTarget = user ? Boolean(selectedAddressId) || Boolean(guestAddress) : Boolean(guestAddress);
   const hasGuestContact = user || (guestName.trim() && guestPhone.trim() && guestEmail.trim());
 
@@ -268,12 +280,12 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             ))}
 
           {serviceability === "checking" && <p className="text-sm text-ink/60">Checking serviceability…</p>}
-          {serviceability !== "unchecked" && serviceability !== "checking" && !serviceability.ok && (
+          {serviceability !== "unchecked" && serviceability !== "checking" && !serviceability.serviceable && (
             <p className="text-sm text-amber-700">This pincode isn&apos;t serviceable yet. Try takeaway instead.</p>
           )}
-          {serviceability !== "unchecked" && serviceability !== "checking" && serviceability.ok && (
+          {serviceability !== "unchecked" && serviceability !== "checking" && serviceability.serviceable && (
             <p className="text-sm text-emerald-700">
-              Deliverable: fee {serviceability.fee === 0 ? "free" : formatInr(serviceability.fee)}
+              Deliverable: fee {serviceability.deliveryFee === 0 ? "free" : formatInr(serviceability.deliveryFee)}
             </p>
           )}
         </div>

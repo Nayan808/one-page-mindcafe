@@ -11,6 +11,64 @@
 import { userScopedClient, serviceRoleClient } from "../_shared/supabaseClients.ts";
 import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 
+// Shiprocket auth/serviceability logic is duplicated here and in
+// check-pincode-serviceability (rather than a shared _shared/ module) so
+// each function stays a single self-contained file deployable via the
+// dashboard's Code editor — same pattern as create-shiprocket-shipment's
+// own token cache.
+let cachedShiprocketToken: { token: string; expiresAt: number } | null = null;
+
+async function getShiprocketToken(): Promise<string> {
+  if (cachedShiprocketToken && cachedShiprocketToken.expiresAt > Date.now()) return cachedShiprocketToken.token;
+
+  const res = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email: Deno.env.get("SHIPROCKET_EMAIL"),
+      password: Deno.env.get("SHIPROCKET_PASSWORD"),
+    }),
+  });
+
+  if (!res.ok) throw new Error(`Shiprocket auth failed: ${res.status} ${await res.text()}`);
+  const data = await res.json();
+  cachedShiprocketToken = { token: data.token, expiresAt: Date.now() + 60 * 60 * 1000 };
+  return cachedShiprocketToken.token;
+}
+
+type ServiceabilityResult =
+  | { serviceable: true; deliveryFee: number; courierName: string; etd: string | null }
+  | { serviceable: false };
+
+async function checkServiceability(deliveryPincode: string, weightKg: number): Promise<ServiceabilityResult> {
+  const pickupPincode = Deno.env.get("SHIPROCKET_PICKUP_PINCODE");
+  const token = await getShiprocketToken();
+
+  const url = new URL("https://apiv2.shiprocket.in/v1/external/courier/serviceability/");
+  url.searchParams.set("pickup_postcode", pickupPincode ?? "");
+  url.searchParams.set("delivery_postcode", deliveryPincode);
+  url.searchParams.set("weight", String(weightKg));
+  url.searchParams.set("cod", "0");
+
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`Shiprocket serviceability check failed: ${res.status} ${await res.text()}`);
+
+  const body = await res.json();
+  const couriers = body?.data?.available_courier_companies as
+    | Array<{ rate: number; courier_name: string; etd?: string }>
+    | undefined;
+
+  if (!couriers || couriers.length === 0) return { serviceable: false };
+
+  const cheapest = couriers.reduce((min, c) => (c.rate < min.rate ? c : min), couriers[0]);
+  return {
+    serviceable: true,
+    deliveryFee: Number(cheapest.rate),
+    courierName: cheapest.courier_name,
+    etd: cheapest.etd ?? null,
+  };
+}
+
 type CartItemInput = { variant_id: string; quantity: number };
 
 type DeliveryFulfillment = {
@@ -77,7 +135,7 @@ Deno.serve(async (req) => {
   const variantIds = items.map((i) => i.variant_id);
   const { data: variants, error: variantsError } = await sb
     .from("product_variants")
-    .select("id, price_override, products(id, name, price, is_active)")
+    .select("id, price_override, weight_grams, products(id, name, price, is_active)")
     .in("id", variantIds);
 
   if (variantsError || !variants) return jsonResponse({ error: "Failed to look up products" }, 500);
@@ -85,10 +143,13 @@ Deno.serve(async (req) => {
   const variantById = new Map(variants.map((v) => [v.id, v as unknown as {
     id: string;
     price_override: number | null;
+    weight_grams: number | null;
     products: { id: string; name: string; price: number; is_active: boolean } | null;
   }]));
 
+  const FALLBACK_WEIGHT_GRAMS = 500;
   let subtotal = 0;
+  let totalWeightGrams = 0;
   const orderItemsInput: { variantId: string; quantity: number; unitPrice: number }[] = [];
 
   for (const item of items) {
@@ -99,6 +160,7 @@ Deno.serve(async (req) => {
     }
     const unitPrice = Number(variant.price_override ?? variant.products.price);
     subtotal += unitPrice * quantity;
+    totalWeightGrams += (variant.weight_grams ?? FALLBACK_WEIGHT_GRAMS) * quantity;
     orderItemsInput.push({ variantId: item.variant_id, quantity, unitPrice });
   }
 
@@ -142,13 +204,19 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "fulfillment.address_id or fulfillment.address is required for delivery" }, 400);
     }
 
-    const { data: serviceability } = await sb
-      .from("serviceable_pincodes")
-      .select("delivery_fee")
-      .eq("pincode", pincode)
-      .maybeSingle();
-    if (!serviceability) return jsonResponse({ error: "This pincode isn't serviceable yet" }, 400);
-    deliveryFee = Number(serviceability.delivery_fee);
+    // Real-time check against Shiprocket's own courier network, not the
+    // old manually-curated serviceable_pincodes table — this is the
+    // authoritative price actually charged, so a Shiprocket outage fails
+    // the checkout rather than silently falling back to a guessed fee.
+    let serviceability;
+    try {
+      serviceability = await checkServiceability(pincode, totalWeightGrams / 1000);
+    } catch (err) {
+      console.error("create-order: Shiprocket serviceability check failed", err);
+      return jsonResponse({ error: "Couldn't verify delivery availability right now — please try again" }, 502);
+    }
+    if (!serviceability.serviceable) return jsonResponse({ error: "This pincode isn't serviceable yet" }, 400);
+    deliveryFee = serviceability.deliveryFee;
   } else {
     if (!fulfillment.location_id) {
       return jsonResponse({ error: "fulfillment.location_id is required for takeaway" }, 400);

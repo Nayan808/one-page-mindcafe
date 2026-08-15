@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
   const { data: order, error } = await sb
     .from("orders")
     .select(
-      "id, order_number, subtotal, created_at, addresses:address_id(full_name, phone, line1, line2, city, state, pincode), order_items(quantity, unit_price, product_variants(variant_label, weight_grams, length_cm, breadth_cm, height_cm, products(name)))",
+      "id, order_number, subtotal, created_at, addresses:address_id(full_name, phone, line1, line2, city, state, pincode), order_items(quantity, unit_price, product_variants(id, variant_label, sku, weight_grams, length_cm, breadth_cm, height_cm, products(name)))",
     )
     .eq("id", record.id)
     .single();
@@ -76,7 +76,9 @@ Deno.serve(async (req) => {
     quantity: number;
     unit_price: number;
     product_variants: {
+      id: string;
       variant_label: string;
+      sku: string | null;
       weight_grams: number | null;
       length_cm: number | null;
       breadth_cm: number | null;
@@ -144,11 +146,18 @@ Deno.serve(async (req) => {
       billing_country: "India",
       billing_phone: address.phone,
       shipping_is_billing: true,
-      order_items: orderItems.map((item) => ({
-        name: `${item.product_variants.products.name} — ${item.product_variants.variant_label}`,
-        units: item.quantity,
-        selling_price: item.unit_price,
-      })),
+      order_items: orderItems.map((item) => {
+        const v = item.product_variants;
+        if (!v.sku) {
+          console.warn(`create-shiprocket-shipment: ${v.products.name} (${v.variant_label}) has no SKU set — using variant id as a placeholder`);
+        }
+        return {
+          name: `${v.products.name} — ${v.variant_label}`,
+          sku: v.sku ?? v.id,
+          units: item.quantity,
+          selling_price: item.unit_price,
+        };
+      }),
       payment_method: "Prepaid",
       sub_total: order.subtotal,
       length: maxLengthCm,
@@ -164,6 +173,16 @@ Deno.serve(async (req) => {
   }
 
   const shiprocketOrder = await shiprocketRes.json();
+
+  // Shiprocket returns some validation failures (e.g. an unrecognized
+  // pickup_location) as HTTP 200 with an error message in the body rather
+  // than a 4xx/5xx status, so `shiprocketRes.ok` alone isn't a reliable
+  // success check — a missing order_id means it didn't actually create
+  // anything despite the 200.
+  if (!shiprocketOrder.order_id) {
+    console.error("Shiprocket order creation returned no order_id", JSON.stringify(shiprocketOrder));
+    return jsonResponse({ error: "Shiprocket order creation failed", details: shiprocketOrder }, 502);
+  }
 
   await sb
     .from("orders")

@@ -208,10 +208,26 @@ export async function deleteAddress(sb: Sb, addressId: string): Promise<void> {
   throwOnError("deleteAddress", error);
 }
 
-export async function checkPincodeServiceability(sb: Sb, pincode: string) {
-  const { data, error } = await sb.from("serviceable_pincodes").select("*").eq("pincode", pincode).maybeSingle();
-  throwOnError("checkPincodeServiceability", error);
-  return data;
+export type PincodeServiceability =
+  | { serviceable: true; deliveryFee: number; courierName: string; etd: string | null }
+  | { serviceable: false };
+
+// Real-time check against Shiprocket's own courier network (via the
+// check-pincode-serviceability Edge Function), not a static local table —
+// covers virtually all of India rather than a hand-picked few cities.
+// create-order re-runs this same check server-side as the authoritative
+// price; this is just the checkout-time estimate shown to the customer.
+export async function checkPincodeServiceability(
+  sb: Sb,
+  pincode: string,
+  items: { variant_id: string; quantity: number }[],
+): Promise<PincodeServiceability> {
+  const { data, error } = await sb.functions.invoke("check-pincode-serviceability", { body: { pincode, items } });
+  if (error) {
+    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new ApiError("checkPincodeServiceability", { message: detail?.error ?? error.message });
+  }
+  return data as PincodeServiceability;
 }
 
 // --- Pickup locations (Zostel takeaway points) -----------------------
