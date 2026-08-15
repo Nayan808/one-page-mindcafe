@@ -7,12 +7,21 @@
 // order — this function is for the live checkout-time estimate only, never
 // the source of truth for what a customer is actually charged.
 //
-// Shiprocket auth/serviceability logic is duplicated here and in
-// create-order (rather than a shared _shared/ module) so each function
-// stays a single self-contained file deployable via the dashboard's Code
-// editor — same pattern as create-shiprocket-shipment's own token cache.
-import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
+// Fully self-contained (no _shared/ imports) — this function was created
+// via the dashboard's "new function" flow, which deploys each function in
+// isolation and can't reach the _shared/ folder other functions (deployed
+// together via the CLI) bundle in. Duplicating this little bit of setup
+// code is the price of that deploy path.
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
 
 type RequestBody = {
   pincode: string;
@@ -90,7 +99,7 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "pincode and a non-empty items array are required" }, 400);
   }
 
-  const sb = serviceRoleClient();
+  const sb = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
   const variantIds = items.map((i) => i.variant_id);
   const { data: variants, error } = await sb.from("product_variants").select("id, weight_grams").in("id", variantIds);
 
