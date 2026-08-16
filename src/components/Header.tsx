@@ -123,25 +123,25 @@ export function Header() {
     openDrawer();
   }
 
-  // The mobile menu panel is always solid bg-cream, so if the header
+  // The mobile menu panel is always solid bg-brand-blush, so if the header
   // itself is still in its transparent/white-text state (top of the
   // homepage, not yet scrolled) when it opens, the logo and close button
-  // render white-on-cream — nearly invisible. Opening the menu always
-  // forces the solid/dark styling regardless of scroll position.
+  // render white-on-blush — hard to read against each other. Opening the
+  // menu always forces the solid/dark styling regardless of scroll position.
   const headerSolid = solid || menuOpen;
 
   return (
     <header
       className={`sticky top-0 z-30 transition-colors duration-300 ${
         headerSolid
-          ? "border-b border-white/50 bg-cream/60 shadow-[0_1px_24px_-8px_rgba(77,42,57,0.18)] backdrop-blur-xl"
+          ? "border-b border-ink/10 bg-[#FAF4F7] shadow-[0_1px_24px_-8px_rgba(207,150,175,0.35)]"
           : "border-b border-transparent bg-transparent"
       }`}
     >
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
         <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center gap-2 leading-none">
           <span
-            className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors ${headerSolid ? "" : "bg-white/90 shadow-sm"}`}
+            className={`flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-colors ${headerSolid ? "bg-cream/90" : "bg-white/90"}`}
           >
             <Image src="/mindcafe-icon.png" alt="" width={28} height={28} priority className="h-7 w-7" />
           </span>
@@ -221,7 +221,7 @@ export function Header() {
       </div>
 
       {menuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-ink/10 bg-cream px-4 py-3 text-[11px] font-medium tracking-label text-ink/70 sm:hidden">
+        <nav className="flex flex-col gap-1 border-t border-ink/10 bg-[#FAF4F7] px-4 py-3 text-[11px] font-medium tracking-label text-ink/70 sm:hidden">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}

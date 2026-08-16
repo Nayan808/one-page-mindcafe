@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #f6f1e6;
+  --cream: #faf4f7;
   --ink: #111110;
 
   /* Brand palette (client-supplied, matches the mauve in mindcafe-icon.png

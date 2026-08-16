@@ -106,9 +106,7 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="relative overflow-hidden bg-cream">
-      <Image src="/feelz/hero-bg.png" alt="" fill priority className="object-cover" />
-      <div className="absolute inset-0 bg-cream/35" />
+    <section ref={timelineRef} className="relative overflow-hidden bg-white">
       <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="div"
