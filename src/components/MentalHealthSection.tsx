@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Pointer } from "lucide-react";
-import { Reveal } from "@/components/Reveal";
 
 // Homepage-only editorial break between the hero and the Feelz product
 // teaser. Deliberately not about Mindcafe's own products or verticals —
@@ -14,13 +12,21 @@ import { Reveal } from "@/components/Reveal";
 // format on purpose — general, non-clinical statements, no invented
 // statistics.
 //
-// Flip cards (tap to reveal the reality) instead of a static list: every
-// other content section on the homepage is either a static grid or a
-// plain divided list, so this is the one section that asks for an
-// interaction rather than just being read — fits the "Tear it. Place it.
-// Feel it." playfulness already established in the hero. The single
-// "consult an expert" link at the end is the one deliberate promotional
-// exception, a soft bridge out of the myths into real support.
+// Strikeout reveal instead of tap-to-flip: the myth text renders normally
+// (full-weight ink, not dimmed), and the strike itself is a bar that
+// visibly grows across it — an animated `background-size` on the inline
+// text span rather than a plain text-decoration-color fade (too subtle
+// to read as motion) or an absolutely-positioned "drawn line" overlay
+// (breaks on wrapped text). Backgrounds on inline elements paint
+// per line-fragment, so when the myth wraps to two lines, each line
+// grows its own bar to 100% of that line's own width at the same rate —
+// both lines finish together with no JS text-measurement needed. All
+// four cards fire together the moment the section scrolls into view, off
+// one shared IntersectionObserver on the grid rather than per-card
+// observers. Once a card's strike finishes, its reality appears
+// underneath. The single "consult an expert" link at the end is the one
+// deliberate promotional exception, a soft bridge out of the myths into
+// real support.
 const MYTHS = [
   {
     myth: "Only “serious” problems count as mental health issues.",
@@ -40,68 +46,83 @@ const MYTHS = [
   },
 ];
 
-function MythCard({ myth, reality }: { myth: string; reality: string }) {
-  const [flipped, setFlipped] = useState(false);
+function MythCard({ myth, reality, start }: { myth: string; reality: string; start: boolean }) {
+  const [revealed, setRevealed] = useState(false);
 
   return (
-    <button
-      type="button"
-      onClick={() => setFlipped((current) => !current)}
-      aria-pressed={flipped}
-      className="group block w-full text-left [perspective:1400px]"
-    >
-      <div
-        className={`relative min-h-[15rem] w-full transition-transform duration-500 ease-out [transform-style:preserve-3d] ${
-          flipped ? "[transform:rotateY(180deg)]" : ""
-        }`}
-      >
-        {/* Front — the myth */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-3xl border border-ink/10 bg-white p-7 text-center [backface-visibility:hidden] group-hover:border-ink/20">
-          <span className="text-[10px] font-semibold uppercase tracking-label text-ink/35">Myth</span>
-          <p className="font-tagline text-xl italic leading-snug text-ink/55 line-through decoration-ink/30 sm:text-2xl">
-            {myth}
-          </p>
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-label text-ink/30">
-            <Pointer className="h-3 w-3" aria-hidden />
-            tap to see the truth
-          </span>
-        </div>
+    <div className="relative flex min-h-[16rem] flex-col items-center gap-3 rounded-3xl border border-ink/10 bg-white p-7 text-center">
+      <span className="text-[10px] font-semibold uppercase tracking-label text-ink/35">Myth</span>
 
-        {/* Back — the reality */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-3xl border border-ink/10 bg-cream p-7 text-center text-ink [backface-visibility:hidden] [transform:rotateY(180deg)]">
-          <span className="text-[10px] font-semibold uppercase tracking-label text-brand">Reality</span>
-          <p className="text-base font-medium leading-relaxed sm:text-lg">{reality}</p>
-        </div>
+      <div className="flex flex-1 items-center justify-center">
+        <p className="font-tagline text-xl italic leading-snug text-ink sm:text-2xl">
+          <span
+            onTransitionEnd={(e) => {
+              if (e.propertyName === "background-size") setRevealed(true);
+            }}
+            className={`bg-gradient-to-r from-ink to-ink bg-center bg-no-repeat transition-[background-size] duration-[900ms] ease-in-out ${
+              start ? "bg-[length:100%_2px]" : "bg-[length:0%_2px]"
+            }`}
+          >
+            {myth}
+          </span>
+        </p>
       </div>
-    </button>
+
+      <div className="min-h-[4.5rem]">
+        {revealed && (
+          <>
+            <span className="text-[10px] font-semibold uppercase tracking-label text-brand">Reality</span>
+            <p className="mt-1 text-base font-medium leading-relaxed text-ink sm:text-lg">{reality}</p>
+          </>
+        )}
+      </div>
+    </div>
   );
 }
 
 export function MentalHealthSection() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [start, setStart] = useState(false);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStart(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
-        <Reveal className="text-center">
+        <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Mental Health, Plainly</p>
           <h2 className="font-display mt-2 text-4xl font-bold leading-[1.1] text-ink sm:text-5xl">
             What we get wrong <span className="font-tagline italic text-brand">about mental health.</span>
           </h2>
-          <p className="mt-3 text-sm text-ink/50">Tap a card to see the truth.</p>
-        </Reveal>
+        </div>
 
-        <div className="mt-12 grid gap-5 sm:grid-cols-2">
-          {MYTHS.map((item, index) => (
-            <Reveal key={item.myth} delayMs={index * 90}>
-              <MythCard myth={item.myth} reality={item.reality} />
-            </Reveal>
+        <div ref={containerRef} className="mt-12 grid gap-5 sm:grid-cols-2">
+          {MYTHS.map((item) => (
+            <MythCard key={item.myth} myth={item.myth} reality={item.reality} start={start} />
           ))}
         </div>
 
-        <Reveal delayMs={MYTHS.length * 90} className="mt-12 text-center">
+        <div className="mt-12 text-center">
           <Link href="/book-appointment" className="pill-btn">
             Consult an Expert
           </Link>
-        </Reveal>
+        </div>
       </div>
     </section>
   );
