@@ -173,25 +173,23 @@ function CorporateTestimonials() {
 export default function BusinessPage() {
   return (
     <div>
-      <section className="relative overflow-hidden bg-ink text-cream">
-        <Image src="/business/hero-bg.png" alt="" fill priority className="object-cover" />
-        <div className="absolute inset-0 bg-black/55" />
+      <section className="relative overflow-hidden bg-white text-ink">
         <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
+          <span className="rounded-full border border-ink/20 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/70">
             Build Healthier Teams
           </span>
           <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
             Improve <span className="font-tagline italic text-brand">team performance.</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
+          <p className="mx-auto mt-4 max-w-lg text-sm text-ink/60 sm:text-base">
             For companies, universities, startups, and institutions seeking structured mental wellness solutions
             through counselling, workshops, and performance tools.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <a href="#get-in-touch" className="pill-btn-white">
+            <a href="#get-in-touch" className="pill-btn">
               Partner With Us →
             </a>
-            <a href="#whats-included" className="pill-btn-outline !border-cream/30 !text-cream hover:!bg-cream/10">
+            <a href="#whats-included" className="pill-btn-outline">
               Explore Offerings
             </a>
           </div>
@@ -321,7 +319,10 @@ export default function BusinessPage() {
 
       <CorporateTestimonials />
 
-      <section id="get-in-touch" className="bg-white">
+      <section
+        id="get-in-touch"
+        className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-cream sm:-mt-12 sm:rounded-t-[3rem]"
+      >
         <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="text-center">
           <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">

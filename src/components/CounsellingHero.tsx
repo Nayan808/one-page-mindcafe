@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Laptop, Lock, User } from "lucide-react";
@@ -18,11 +17,9 @@ export function CounsellingHero() {
   });
 
   return (
-    <section className="relative overflow-hidden bg-ink text-cream">
-      <Image src="/counselling/hero-bg.png" alt="" fill priority className="object-cover" />
-      <div className="absolute inset-0 bg-black/60" />
+    <section className="relative overflow-hidden bg-white text-ink">
       <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-        <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
+        <span className="rounded-full border border-ink/20 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/70">
           certified professionals, private &amp; confidential
         </span>
 
@@ -30,22 +27,22 @@ export function CounsellingHero() {
           Professional mental health <span className="font-tagline italic text-brand">support.</span>
         </h1>
 
-        <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
+        <p className="mx-auto mt-4 max-w-lg text-sm text-ink/60 sm:text-base">
           Confidential one-on-one counselling sessions with certified professionals, designed to help you manage
           emotional challenges, reduce stress, and build lasting mental well-being.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Link href="/book-appointment" className="pill-btn-white">
+          <Link href="/book-appointment" className="pill-btn">
             Book a Session
             <ArrowRight className="h-3.5 w-3.5" aria-hidden />
           </Link>
-          <a href="#how-it-works" className="pill-btn-outline !border-cream/30 !text-cream hover:!bg-cream/10">
+          <a href="#how-it-works" className="pill-btn-outline">
             How It Works
           </a>
         </div>
 
-        <div className="mx-auto mt-8 flex max-w-lg flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-cream/60">
+        <div className="mx-auto mt-8 flex max-w-lg flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-ink/60">
           <span className="flex items-center gap-1.5">
             <Lock className="h-3.5 w-3.5" aria-hidden />
             100% confidential
@@ -60,7 +57,7 @@ export function CounsellingHero() {
           </span>
           {priceQuery.data != null && (
             <span>
-              from <span className="font-semibold text-cream">₹{priceQuery.data}</span>/session
+              from <span className="font-semibold text-ink">₹{priceQuery.data}</span>/session
             </span>
           )}
         </div>

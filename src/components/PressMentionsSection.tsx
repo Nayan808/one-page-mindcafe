@@ -31,7 +31,7 @@ const PRESS = [
 
 export function PressMentionsSection() {
   return (
-    <section className="bg-white py-16">
+    <section className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-cream py-16 sm:-mt-12 sm:rounded-t-[3rem]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <Reveal className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">As Seen On</p>
@@ -51,7 +51,7 @@ export function PressMentionsSection() {
                 mass: 1,
                 delay: index * 0.06,
               }}
-              className="flex h-20 items-center justify-center rounded-2xl border border-ink/25 px-4 grayscale transition-all duration-300 hover:grayscale-0 hover:shadow-md"
+              className="flex h-20 items-center justify-center rounded-2xl border border-ink/15 bg-white px-4 grayscale transition-all duration-300 hover:grayscale-0 hover:shadow-md"
             >
               <div className={`relative w-full ${item.imgHeight ?? "h-9"}`}>
                 <Image src={item.src} alt={item.name} fill sizes="180px" className="object-contain" />

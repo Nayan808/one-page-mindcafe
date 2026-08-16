@@ -15,7 +15,7 @@ export function HeadsUpSection() {
             <p className="text-[10px] uppercase tracking-label opacity-80">Before You Start</p>
           </div>
         </div>
-        <div className="grid flex-1 gap-x-6 gap-y-3 bg-white p-5 text-sm text-ink/65 sm:grid-cols-2 sm:p-6">
+        <div className="grid flex-1 gap-x-6 gap-y-3 bg-cream p-5 text-sm text-ink/65 sm:grid-cols-2 sm:p-6">
           {NOTES.map((note) => (
             <p key={note.n} className="leading-relaxed">
               <span className="font-semibold text-ink">{note.n}</span> {note.text}

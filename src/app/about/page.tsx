@@ -11,15 +11,13 @@ import { StorySection } from "@/components/StorySection";
 export default function AboutPage() {
   return (
     <div>
-      <section className="relative overflow-hidden bg-ink text-cream">
-        <Image src="/about/hero-bg.png" alt="" fill priority className="object-cover" />
-        <div className="absolute inset-0 bg-ink/75" />
+      <section className="relative overflow-hidden bg-white text-ink">
         <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">About Mindcafe</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">About Mindcafe</p>
           <h1 className="font-display mx-auto mt-4 max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
             A world where seeking support is as natural as offering a hand.
           </h1>
-          <p className="mt-4 text-sm text-cream/70 sm:text-base">
+          <p className="mt-4 text-sm text-ink/60 sm:text-base">
             Our mission: make mental wellness practical, accessible, and relevant, part of everyday life, not just
             something for crisis moments.
           </p>
@@ -32,23 +30,23 @@ export default function AboutPage() {
 
       <FounderSection />
 
-      <section className="bg-ink text-cream">
+      <section className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-cream text-ink sm:-mt-12 sm:rounded-t-[3rem]">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <h2 className="font-display text-4xl font-bold leading-[1.1] sm:text-5xl">
             Ready to be part of the <span className="font-tagline italic text-brand">Mindcafe story?</span>
           </h2>
-          <p className="mt-4 text-sm text-cream/70 sm:text-base">
+          <p className="mt-4 text-sm text-ink/70 sm:text-base">
             Whether you need personal support or want to bring wellness to your organisation, Mindcafe is here for
             you.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/book-appointment" className="pill-btn-white">
-              Book a Session →
+            <Link href="/book-appointment" className="pill-btn">
+              Book a Session
             </Link>
-            <Link href="/feelz" className="pill-btn-outline !border-cream/30 !text-cream hover:!bg-cream/10">
+            <Link href="/feelz" className="pill-btn-outline">
               Explore Feelz
             </Link>
-            <Link href="/business" className="pill-btn-outline !border-cream/30 !text-cream hover:!bg-cream/10">
+            <Link href="/business" className="pill-btn-outline">
               For Business
             </Link>
           </div>
