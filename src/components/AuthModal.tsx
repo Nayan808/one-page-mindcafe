@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { AuthForm } from "@/components/AuthForm";
 
@@ -12,7 +13,19 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   // they sign in. Passing the current path keeps them where they were,
   // matching how the email/OTP step already behaves (onSuccess just closes
   // the modal in place, no navigation at all).
+  //
+  // usePathname() alone drops the hash (e.g. /feelz#extrovert) — Next's
+  // router doesn't track fragments — so a product-section anchor would be
+  // lost on the round trip through Google, landing back at the top of the
+  // page instead of the section the customer was actually browsing.
+  // window.location.hash fills that gap; captured fresh on every open (not
+  // at mount) since it can only be read client-side.
   const pathname = usePathname();
+  const [returnTo, setReturnTo] = useState(pathname);
+
+  useEffect(() => {
+    if (isOpen) setReturnTo(pathname + window.location.hash);
+  }, [isOpen, pathname]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Sign in" panelClassName="!bg-white">

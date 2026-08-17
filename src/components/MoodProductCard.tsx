@@ -28,6 +28,10 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   const [quantity, setQuantity] = useState(1);
   const [available, setAvailable] = useState<number | null>(null);
   const [showDetails, setShowDetails] = useState(false);
+  // Set once an item's been added, so the "view cart" button below can
+  // appear — deliberately not auto-opening the drawer, so adding an item
+  // doesn't interrupt someone still comparing/picking other products.
+  const [justAdded, setJustAdded] = useState(false);
   const { addItem, isReady, openDrawer } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
@@ -62,7 +66,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
       product: { id: product.id, name: product.name, image_url: product.image_url, price: product.price },
       quantity,
     });
-    openDrawer();
+    setJustAdded(true);
   }
 
   return (
@@ -153,6 +157,16 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
           {addItem.isPending ? "Adding…" : user ? "Add to Cart" : "Sign In to Add"}
         </button>
       </div>
+
+      {justAdded && (
+        <button
+          type="button"
+          onClick={openDrawer}
+          className="mt-2 w-full rounded-full border border-white/40 bg-white/10 px-4 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/20"
+        >
+          Added to cart — view cart
+        </button>
+      )}
 
       {product.description && (
         <div className="mt-4 border-t border-white/20 pt-3">

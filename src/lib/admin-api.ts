@@ -227,13 +227,18 @@ export async function getOrdersAdmin(
   let query = sb
     .from("orders")
     .select(
-      "*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city)",
+      "*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city), addresses:address_id(city, pincode)",
       { count: "exact" },
     );
   if (options.status) {
     query = query.eq("status", options.status as Database["public"]["Tables"]["orders"]["Row"]["status"]);
   }
-  if (options.locationId) {
+  if (options.locationId === "online") {
+    // Synthetic filter value (not a real pickup_locations id) — delivery
+    // orders have no location_id, so "online" means "show delivery orders"
+    // rather than any specific Zostel pickup point.
+    query = query.eq("fulfillment_type", "delivery");
+  } else if (options.locationId) {
     query = query.eq("location_id", options.locationId);
   }
   const term = options.search ? sanitizeSearchTerm(options.search) : "";

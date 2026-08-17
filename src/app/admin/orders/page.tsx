@@ -67,6 +67,7 @@ export default function AdminOrdersPage() {
   const locationFilterOptions: FilterOption[] = useMemo(
     () => [
       { value: "", label: "all locations" },
+      { value: "online", label: "online (delivery)" },
       ...(locationsQuery.data ?? []).map((l) => ({ value: l.id, label: l.city ? `${l.name}, ${l.city}` : l.name })),
     ],
     [locationsQuery.data],
@@ -223,6 +224,25 @@ export default function AdminOrdersPage() {
         ) : (
           <span className="text-ink/30">—</span>
         ),
+    },
+    {
+      key: "city_pincode",
+      label: "city / pincode",
+      render: (o) => {
+        if (o.fulfillment_type !== "delivery") return <span className="text-ink/30">—</span>;
+        // Signed-in checkout carries city/pincode via the saved address row
+        // (o.addresses); guest checkout has no address_id and instead
+        // stores them directly on the order (guest_address_city/pincode).
+        const city = o.addresses?.city ?? o.guest_address_city;
+        const pincode = o.addresses?.pincode ?? o.guest_address_pincode;
+        if (!city && !pincode) return <span className="text-ink/30">—</span>;
+        return (
+          <span className="text-xs">
+            {city ?? "—"}
+            {pincode ? ` · ${pincode}` : ""}
+          </span>
+        );
+      },
     },
     { key: "total", label: "total", render: (o) => <span>{formatInr(o.total)}</span> },
     { key: "payment", label: "payment", render: (o) => <span className="capitalize">{o.payment_status}</span> },

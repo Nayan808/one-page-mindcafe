@@ -57,8 +57,12 @@ export type OrderItemWithVariant = OrderItem & {
 export type OrderWithItemDetails = Order & { order_items: OrderItemWithVariant[] };
 // Admin orders list — same item/variant/product join as the customer
 // "your orders" view, plus the pickup location (null for delivery orders,
-// or a location whose row got deleted after the order was placed).
+// or a location whose row got deleted after the order was placed) and the
+// saved address (null for guest checkout, which carries its city/pincode
+// on the order row itself via guest_address_city/guest_address_pincode
+// instead — see the `Order` base type this extends).
 export type OrderWithItemDetailsAndLocation = OrderWithItemDetails & {
   pickup_locations: Pick<PickupLocation, "name" | "city"> | null;
+  addresses: Pick<Address, "city" | "pincode"> | null;
   profiles: Pick<Profile, "full_name" | "phone"> | null;
 };
