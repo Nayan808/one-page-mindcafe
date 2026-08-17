@@ -18,6 +18,12 @@ import { corsHeaders, jsonResponse } from "../_shared/cors.ts";
 // own token cache.
 let cachedShiprocketToken: { token: string; expiresAt: number } | null = null;
 
+// Site-wide free delivery: every delivery order silently gets this coupon
+// applied server-side — no code entry from the customer. See the
+// 20260817000000_free_delivery_coupon_type migration for the coupon row
+// and the discount_type it relies on.
+const FREE_DELIVERY_COUPON_CODE = "FREESHIP";
+
 async function getShiprocketToken(): Promise<string> {
   if (cachedShiprocketToken && cachedShiprocketToken.expiresAt > Date.now()) return cachedShiprocketToken.token;
 
@@ -57,6 +63,15 @@ async function checkServiceability(deliveryPincode: string, weightKg: number): P
   const couriers = body?.data?.available_courier_companies as
     | Array<{ rate: number; courier_name: string; etd?: string }>
     | undefined;
+
+  // Logged unconditionally (not just on the empty-result path) so a run of
+  // logs shows the actual courier count Shiprocket returned each time —
+  // that's what makes a checkout-time "deliverable" estimate disagreeing
+  // with this same call moments later diagnosable, instead of just two
+  // silent booleans that don't explain themselves.
+  console.log(
+    `create-order: Shiprocket serviceability for ${deliveryPincode} (from ${pickupPincode}, ${weightKg}kg) — ${couriers?.length ?? 0} couriers available`,
+  );
 
   if (!couriers || couriers.length === 0) return { serviceable: false };
 
@@ -170,6 +185,7 @@ Deno.serve(async (req) => {
   let locationId: string | null = null;
   let pickupSlot: string | null = null;
   let deliveryFee = 0;
+  let freeDeliveryApplied = false;
 
   if (fulfillment.type === "delivery") {
     let pincode: string;
@@ -208,15 +224,41 @@ Deno.serve(async (req) => {
     // old manually-curated serviceable_pincodes table — this is the
     // authoritative price actually charged, so a Shiprocket outage fails
     // the checkout rather than silently falling back to a guessed fee.
+    //
+    // One retry on a "no couriers" result before failing the order: the
+    // checkout-time estimate (check-pincode-serviceability) already told
+    // the customer this address was deliverable, so a single empty
+    // response here is more likely Shiprocket-side flakiness between two
+    // calls seconds apart than a real coverage change — worth one more
+    // look before turning that into a hard failure at the moment they're
+    // trying to pay.
     let serviceability;
     try {
       serviceability = await checkServiceability(pincode, totalWeightGrams / 1000);
+      if (!serviceability.serviceable) {
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        serviceability = await checkServiceability(pincode, totalWeightGrams / 1000);
+      }
     } catch (err) {
       console.error("create-order: Shiprocket serviceability check failed", err);
       return jsonResponse({ error: "Couldn't verify delivery availability right now — please try again" }, 502);
     }
     if (!serviceability.serviceable) return jsonResponse({ error: "This pincode isn't serviceable yet" }, 400);
     deliveryFee = serviceability.deliveryFee;
+
+    // deliveryFee above stays the real Shiprocket cost (recorded on the
+    // order below for accounting) — this only decides whether the
+    // customer is charged for it.
+    const { data: freeDeliveryCoupon } = await sb
+      .from("coupons")
+      .select("is_active, expires_at, usage_limit, times_used")
+      .eq("code", FREE_DELIVERY_COUPON_CODE)
+      .maybeSingle();
+    freeDeliveryApplied = Boolean(
+      freeDeliveryCoupon?.is_active &&
+        (!freeDeliveryCoupon.expires_at || new Date(freeDeliveryCoupon.expires_at) > new Date()) &&
+        (freeDeliveryCoupon.usage_limit === null || freeDeliveryCoupon.times_used < freeDeliveryCoupon.usage_limit),
+    );
   } else {
     if (!fulfillment.location_id) {
       return jsonResponse({ error: "fulfillment.location_id is required for takeaway" }, 400);
@@ -272,7 +314,7 @@ Deno.serve(async (req) => {
     }
   }
 
-  const total = Math.max(0, subtotal - discountAmount + deliveryFee);
+  const total = Math.max(0, subtotal - discountAmount + (freeDeliveryApplied ? 0 : deliveryFee));
 
   const { data: order, error: orderError } = await sb
     .from("orders")
@@ -314,6 +356,9 @@ Deno.serve(async (req) => {
 
   if (appliedCouponCode) {
     await sb.rpc("increment_coupon_usage", { p_code: appliedCouponCode });
+  }
+  if (freeDeliveryApplied) {
+    await sb.rpc("increment_coupon_usage", { p_code: FREE_DELIVERY_COUPON_CODE });
   }
 
   // Cart's job is done once its contents are snapshotted into the order.

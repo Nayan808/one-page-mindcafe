@@ -72,6 +72,15 @@ async function checkServiceability(deliveryPincode: string, weightKg: number): P
     | Array<{ rate: number; courier_name: string; etd?: string }>
     | undefined;
 
+  // Logged unconditionally so this estimate and create-order's own
+  // server-side re-check can be compared in the logs by pincode/weight —
+  // the two are expected to agree, and when they don't (this said
+  // deliverable, the order-time recheck then said no couriers, or vice
+  // versa) the courier counts are what explain why.
+  console.log(
+    `check-pincode-serviceability: ${deliveryPincode} (from ${pickupPincode}, ${weightKg}kg) — ${couriers?.length ?? 0} couriers available`,
+  );
+
   if (!couriers || couriers.length === 0) return { serviceable: false };
 
   const cheapest = couriers.reduce((min, c) => (c.rate < min.rate ? c : min), couriers[0]);

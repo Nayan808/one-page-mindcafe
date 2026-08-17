@@ -35,7 +35,10 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
   const [guestAddress, setGuestAddress] = useState<AddressFormValues | null>(null);
-  const [serviceability, setServiceability] = useState<PincodeServiceability | "unchecked" | "checking">("unchecked");
+  const [serviceability, setServiceability] = useState<PincodeServiceability | "unchecked" | "checking" | "error">(
+    "unchecked",
+  );
+  const [serviceabilityError, setServiceabilityError] = useState<string | null>(null);
 
   const [locations, setLocations] = useState<PickupLocation[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
@@ -63,12 +66,20 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
 
   async function handleCheckServiceability(pincode: string) {
     setServiceability("checking");
+    setServiceabilityError(null);
     const sb = createClient();
     const cartItems = items.map((i) => ({ variant_id: i.variant_id, quantity: i.quantity }));
-    const result = await checkPincodeServiceability(sb, pincode, cartItems).catch(
-      (): PincodeServiceability => ({ serviceable: false }),
-    );
-    setServiceability(result);
+    try {
+      const result = await checkPincodeServiceability(sb, pincode, cartItems);
+      setServiceability(result);
+    } catch (err) {
+      // A failed check (network issue, Shiprocket auth/config problem) is
+      // NOT the same as Shiprocket genuinely not covering this pincode —
+      // collapsing both into "not serviceable" hides real integration
+      // breakage behind what looks like a normal coverage gap.
+      setServiceability("error");
+      setServiceabilityError(err instanceof Error ? err.message : "Couldn't check delivery availability");
+    }
   }
 
   async function handleAddAddress(values: AddressFormValues) {
@@ -86,6 +97,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     mode === "delivery" &&
     serviceability !== "unchecked" &&
     serviceability !== "checking" &&
+    serviceability !== "error" &&
     serviceability.serviceable
       ? serviceability.deliveryFee
       : 0;
@@ -93,7 +105,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   // checked — editing the code after applying shouldn't silently keep
   // discounting at the old value.
   const discountAmount = appliedCoupon?.code === couponCode.trim().toUpperCase() ? appliedCoupon.discountAmount : 0;
-  const total = Math.max(0, subtotal - discountAmount + deliveryFee);
+  // Delivery is free for every customer right now — create-order applies
+  // this server-side too (the FREESHIP coupon, looked up automatically,
+  // no code entry from the customer), so the total shown here has to
+  // exclude it the same way or this estimate would be wrong.
+  const total = Math.max(0, subtotal - discountAmount);
 
   async function handleApplyCoupon() {
     setIsCheckingCoupon(true);
@@ -111,7 +127,10 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   }
 
   const serviceabilityOk =
-    serviceability !== "unchecked" && serviceability !== "checking" && serviceability.serviceable;
+    serviceability !== "unchecked" &&
+    serviceability !== "checking" &&
+    serviceability !== "error" &&
+    serviceability.serviceable;
   const hasDeliveryTarget = user ? Boolean(selectedAddressId) || Boolean(guestAddress) : Boolean(guestAddress);
   const hasGuestContact = user || (guestName.trim() && guestPhone.trim() && guestEmail.trim());
 
@@ -280,14 +299,33 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             ))}
 
           {serviceability === "checking" && <p className="text-sm text-ink/60">Checking serviceability…</p>}
-          {serviceability !== "unchecked" && serviceability !== "checking" && !serviceability.serviceable && (
-            <p className="text-sm text-amber-700">This pincode isn&apos;t serviceable yet. Try takeaway instead.</p>
-          )}
-          {serviceability !== "unchecked" && serviceability !== "checking" && serviceability.serviceable && (
-            <p className="text-sm text-emerald-700">
-              Deliverable: fee {serviceability.deliveryFee === 0 ? "free" : formatInr(serviceability.deliveryFee)}
+          {serviceability === "error" && (
+            <p className="text-sm text-red-700">
+              {serviceabilityError ?? "Couldn't check delivery availability"} — please try again.
             </p>
           )}
+          {serviceability !== "unchecked" &&
+            serviceability !== "checking" &&
+            serviceability !== "error" &&
+            !serviceability.serviceable && (
+              <p className="text-sm text-amber-700">This pincode isn&apos;t serviceable yet. Try takeaway instead.</p>
+            )}
+          {serviceability !== "unchecked" &&
+            serviceability !== "checking" &&
+            serviceability !== "error" &&
+            serviceability.serviceable && (
+              <p className="text-sm text-emerald-700">
+                Deliverable —{" "}
+                {serviceability.deliveryFee === 0 ? (
+                  "free"
+                ) : (
+                  <>
+                    <span className="text-ink/40 line-through">{formatInr(serviceability.deliveryFee)}</span>{" "}
+                    <span className="font-semibold">FREE</span>
+                  </>
+                )}
+              </p>
+            )}
         </div>
       ) : (
         <div className="space-y-4">
@@ -374,7 +412,14 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         )}
         <div className="flex justify-between">
           <span>{mode === "delivery" ? "Delivery fee" : "Pickup"}</span>
-          <span>{deliveryFee === 0 ? "Free" : formatInr(deliveryFee)}</span>
+          {mode === "delivery" && deliveryFee > 0 ? (
+            <span>
+              <span className="text-ink/40 line-through">{formatInr(deliveryFee)}</span>{" "}
+              <span className="font-semibold text-emerald-700">FREE</span>
+            </span>
+          ) : (
+            <span>Free</span>
+          )}
         </div>
         <div className="mt-2 flex justify-between border-t border-ink/10 pt-2 font-medium">
           <span>Total</span>

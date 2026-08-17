@@ -3,6 +3,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { INDIA_STATES, CITIES_BY_STATE } from "@/lib/indiaLocations";
 
 export const addressSchema = z.object({
   label: z.string().optional(),
@@ -29,14 +30,16 @@ export function AddressForm({ onSubmit, isSubmitting, submitLabel = "Use This Ad
   const {
     register,
     handleSubmit,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm<AddressFormValues>({ resolver: zodResolver(addressSchema), defaultValues });
 
+  const selectedState = watch("state");
+  const cityOptions = selectedState ? (CITIES_BY_STATE[selectedState] ?? []) : [];
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="grid gap-3 sm:grid-cols-2">
-      <Field label="Label (Home/Work/Other)" error={errors.label?.message}>
-        <input {...register("label")} className="input" />
-      </Field>
       <Field label="Full Name" error={errors.full_name?.message}>
         <input {...register("full_name")} className="input" />
       </Field>
@@ -46,17 +49,33 @@ export function AddressForm({ onSubmit, isSubmitting, submitLabel = "Use This Ad
       <Field label="Pincode" error={errors.pincode?.message}>
         <input {...register("pincode")} className="input" />
       </Field>
-      <Field label="Address Line 1" error={errors.line1?.message} full>
+      <Field label="Address" error={errors.line1?.message} full>
         <input {...register("line1")} className="input" />
       </Field>
-      <Field label="Address Line 2 (optional)" error={errors.line2?.message} full>
-        <input {...register("line2")} className="input" />
+      <Field label="State" error={errors.state?.message}>
+        <select {...register("state", { onChange: () => setValue("city", "") })} className="input">
+          <option value="">Select state</option>
+          {INDIA_STATES.map((state) => (
+            <option key={state} value={state}>
+              {state}
+            </option>
+          ))}
+        </select>
       </Field>
       <Field label="City" error={errors.city?.message}>
-        <input {...register("city")} className="input" />
-      </Field>
-      <Field label="State" error={errors.state?.message}>
-        <input {...register("state")} className="input" />
+        <input
+          {...register("city")}
+          className="input"
+          list="city-options"
+          autoComplete="off"
+          disabled={!selectedState}
+          placeholder={selectedState ? "Select or type a city" : "Select a state first"}
+        />
+        <datalist id="city-options">
+          {cityOptions.map((city) => (
+            <option key={city} value={city} />
+          ))}
+        </datalist>
       </Field>
       <Field label="Landmark (optional)" error={errors.landmark?.message} full>
         <input {...register("landmark")} className="input" />
