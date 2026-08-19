@@ -20,6 +20,16 @@ import type { PickupLocation } from "@/types/domain";
 
 type Mode = "delivery" | "takeaway";
 
+// Auto-applied once the cart crosses this subtotal — delivery/takeaway
+// checkout only. Scan-and-order uses its own separate payment component
+// (ScanOrderPayment.tsx) that never runs this file's logic at all, so it's
+// naturally excluded rather than special-cased here. The ₹300 minimum is
+// also enforced server-side via the coupon row's own min_order_amount, so
+// this constant is just what triggers the auto-fill — the actual gate
+// lives in the database.
+const AUTO_COUPON_CODE = "FEELZ10";
+const AUTO_COUPON_MIN_SUBTOTAL = 300;
+
 // Delivery or takeaway pickup at a listed Zostel — payment is Razorpay
 // only in both cases (pay-online, no cash-on-pickup). No account is
 // required: a guest supplies name/phone(/email) instead, and the actual
@@ -52,6 +62,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
+  // Tracks whether the current coupon code came from the auto-apply effect
+  // below rather than the customer typing it in themselves — lets the
+  // effect clean up after its own discount (e.g. cart drops back under
+  // ₹300) without ever touching one the customer applied on purpose.
+  const [isAutoCoupon, setIsAutoCoupon] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,12 +126,12 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   // exclude it the same way or this estimate would be wrong.
   const total = Math.max(0, subtotal - discountAmount);
 
-  async function handleApplyCoupon() {
+  async function applyCoupon(code: string) {
     setIsCheckingCoupon(true);
     setCouponError(null);
     try {
       const sb = createClient();
-      const result = await validateCoupon(sb, couponCode, subtotal);
+      const result = await validateCoupon(sb, code, subtotal);
       setAppliedCoupon(result);
     } catch (err) {
       setAppliedCoupon(null);
@@ -125,6 +140,34 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
       setIsCheckingCoupon(false);
     }
   }
+
+  async function handleApplyCoupon() {
+    await applyCoupon(couponCode);
+  }
+
+  // Auto-apply: fills in and validates AUTO_COUPON_CODE the moment the
+  // cart crosses the threshold, as long as the customer hasn't already
+  // typed a code of their own (empty field + nothing applied yet).
+  useEffect(() => {
+    if (subtotal >= AUTO_COUPON_MIN_SUBTOTAL && !couponCode.trim() && !appliedCoupon && !isCheckingCoupon) {
+      setCouponCode(AUTO_COUPON_CODE);
+      setIsAutoCoupon(true);
+      void applyCoupon(AUTO_COUPON_CODE);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subtotal, couponCode, appliedCoupon, isCheckingCoupon]);
+
+  // Auto-remove: if the cart drops back under the threshold (item removed
+  // etc.), clear the discount this effect applied — but only if it's the
+  // one that's still active, so a customer's own valid coupon is never
+  // touched here.
+  useEffect(() => {
+    if (isAutoCoupon && subtotal < AUTO_COUPON_MIN_SUBTOTAL) {
+      setCouponCode("");
+      setAppliedCoupon(null);
+      setIsAutoCoupon(false);
+    }
+  }, [isAutoCoupon, subtotal]);
 
   const serviceabilityOk =
     serviceability !== "unchecked" &&
@@ -377,6 +420,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
               setCouponCode(event.target.value);
               setAppliedCoupon(null);
               setCouponError(null);
+              setIsAutoCoupon(false);
             }}
             onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), handleApplyCoupon())}
             placeholder="Enter coupon code"
@@ -394,7 +438,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         {couponError && <p className="mt-1.5 text-sm text-red-600">{couponError}</p>}
         {discountAmount > 0 && (
           <p className="mt-1.5 text-sm text-emerald-700">
-            &ldquo;{appliedCoupon!.code}&rdquo; applied, {formatInr(discountAmount)} off
+            &ldquo;{appliedCoupon!.code}&rdquo; {isAutoCoupon ? "applied automatically" : "applied"}, {formatInr(discountAmount)} off
           </p>
         )}
       </div>

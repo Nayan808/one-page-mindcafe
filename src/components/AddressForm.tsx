@@ -7,10 +7,25 @@ import { z } from "zod";
 import { INDIA_STATES, CITIES_BY_STATE } from "@/lib/indiaLocations";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 
+// Strips everything but digits and keeps the last 10 — normalizes
+// "+91 98765 43210", "091-98765-43210", "9876543210" etc. down to the bare
+// 10-digit form every downstream consumer (Shiprocket's billing_phone,
+// tel: links) actually needs, rather than storing whatever format someone
+// happened to type.
+function normalizePhone(raw: string): string {
+  return raw.replace(/\D/g, "").slice(-10);
+}
+
 export const addressSchema = z.object({
   label: z.string().optional(),
   full_name: z.string().min(1, "Required"),
-  phone: z.string().min(6, "Required"),
+  // Indian mobile numbers: exactly 10 digits, first digit 6-9. Transform
+  // runs before the check, so "+91 98765 43210" normalizes to
+  // "9876543210" and passes, while "567890" (too short) correctly fails.
+  phone: z
+    .string()
+    .transform(normalizePhone)
+    .refine((val) => /^[6-9]\d{9}$/.test(val), { message: "Enter a valid 10-digit mobile number" }),
   line1: z.string().min(1, "Required"),
   line2: z.string().optional(),
   city: z.string().min(1, "Required"),
@@ -96,7 +111,7 @@ export function AddressForm({ onSubmit, isSubmitting, submitLabel = "Use This Ad
         <input {...register("full_name")} className="input" />
       </Field>
       <Field label="Phone" error={errors.phone?.message}>
-        <input {...register("phone")} className="input" />
+        <input {...register("phone")} type="tel" inputMode="numeric" placeholder="10-digit mobile number" className="input" />
       </Field>
       <Field label="Address" error={errors.line1?.message} full>
         <input {...register("line1")} className="input" />

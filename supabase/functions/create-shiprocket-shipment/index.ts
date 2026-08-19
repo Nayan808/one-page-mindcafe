@@ -125,6 +125,13 @@ Deno.serve(async (req) => {
   const billingFirstName = spaceIndex === -1 ? address.full_name : address.full_name.slice(0, spaceIndex);
   const billingLastName = spaceIndex === -1 ? "" : address.full_name.slice(spaceIndex + 1);
 
+  // Shiprocket requires a bare 10-digit number, but the address form
+  // doesn't enforce any phone format — customers can (and do) end up with
+  // "+91XXXXXXXXXX", spaces, or dashes saved on their address. Strip
+  // everything but digits and take the last 10, which normalizes all of
+  // those (plus a leading "0" trunk prefix) down to what Shiprocket wants.
+  const billingPhone = address.phone.replace(/\D/g, "").slice(-10);
+
   const shiprocketRes = await fetch("https://apiv2.shiprocket.in/v1/external/orders/create/adhoc", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
@@ -144,7 +151,7 @@ Deno.serve(async (req) => {
       billing_state: address.state,
       billing_pincode: address.pincode,
       billing_country: "India",
-      billing_phone: address.phone,
+      billing_phone: billingPhone,
       shipping_is_billing: true,
       order_items: orderItems.map((item) => {
         const v = item.product_variants;
