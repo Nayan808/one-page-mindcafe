@@ -24,7 +24,17 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   const [returnTo, setReturnTo] = useState(pathname);
 
   useEffect(() => {
-    if (isOpen) setReturnTo(pathname + window.location.hash);
+    if (!isOpen) return;
+    setReturnTo(pathname + window.location.hash);
+    // Home-page sections (e.g. the mood-picking grid in Hero.tsx) scroll
+    // via a plain scrollIntoView() call, never touching the URL — no hash
+    // exists there to round-trip through Google at all. Stashing the raw
+    // scroll position covers that case too: restored by
+    // ScrollRestoreOnAuthReturn after the page reloads post-login. Only
+    // meaningful for the Google path (a real navigate-away-and-back); the
+    // email/OTP step never leaves the page, so scroll position is already
+    // untouched there regardless.
+    sessionStorage.setItem("authReturnScrollY", String(window.scrollY));
   }, [isOpen, pathname]);
 
   return (
@@ -36,7 +46,7 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
       {/* Remount on every open so a half-finished code step from a previous
           visit doesn't linger — Modal keeps children mounted and just
           toggles aria-hidden rather than unmounting on close. */}
-      <AuthForm key={String(isOpen)} returnTo={pathname} onSuccess={onClose} />
+      <AuthForm key={String(isOpen)} returnTo={returnTo} onSuccess={onClose} />
     </Modal>
   );
 }

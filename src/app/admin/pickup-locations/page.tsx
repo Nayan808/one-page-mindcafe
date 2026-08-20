@@ -12,8 +12,8 @@ import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import type { PickupLocation } from "@/types/domain";
 
-type Form = { name: string; address: string; city: string; is_active: boolean };
-const EMPTY: Form = { name: "", address: "", city: "", is_active: true };
+type Form = { name: string; address: string; city: string; is_active: boolean; commission_percent: number };
+const EMPTY: Form = { name: "", address: "", city: "", is_active: true, commission_percent: 10 };
 
 // Same excluded-ambiguous-chars alphabet the DB's generate_staff_pin()
 // uses server-side (0/O, 1/I/L dropped) — client-side "regenerate" just
@@ -117,7 +117,13 @@ export default function AdminPickupLocationsPage() {
   }
   function openEdit(loc: PickupLocation) {
     setEditing(loc);
-    setForm({ name: loc.name, address: loc.address, city: loc.city, is_active: loc.is_active });
+    setForm({
+      name: loc.name,
+      address: loc.address,
+      city: loc.city,
+      is_active: loc.is_active,
+      commission_percent: loc.commission_percent,
+    });
     setPin(loc.staff_pin);
     setReauthPassword("");
     setReauthError(null);
@@ -130,6 +136,7 @@ export default function AdminPickupLocationsPage() {
     { key: "address", label: "address", render: (l) => <span className="text-ink/60">{l.address}</span> },
     { key: "city", label: "city", render: (l) => <span>{l.city}</span> },
     { key: "staff_pin", label: "staff pin", render: (l) => <span className="font-mono tracking-widest">{l.staff_pin}</span> },
+    { key: "commission", label: "commission", render: (l) => <span>{Number(l.commission_percent)}%</span> },
     { key: "active", label: "active", render: (l) => <span>{l.is_active ? "yes" : "no"}</span> },
   ];
 
@@ -157,6 +164,20 @@ export default function AdminPickupLocationsPage() {
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name (e.g. Zostel Goa)" className="input" />
           <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="input" />
           <textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" rows={2} className="input" />
+          <div>
+            <label className="mb-1 block text-sm text-ink/70">
+              Commission % — Zostel&apos;s cut of every sale made at this location, shown on /staff
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={100}
+              step={0.1}
+              value={form.commission_percent}
+              onChange={(e) => setForm({ ...form, commission_percent: Number(e.target.value) })}
+              className="input"
+            />
+          </div>
           <label className="flex items-center gap-2 text-sm text-ink/70">
             <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
             Active (shown on site)

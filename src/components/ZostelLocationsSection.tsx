@@ -2,6 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight, MapPin, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -23,25 +24,39 @@ function mapsUrl(location: PickupLocation): string {
 }
 
 function LocationCard({ location, wide }: { location: PickupLocation; wide?: boolean }) {
+  // Card's primary action is now "order here" (straight into scan-and-order
+  // pre-scoped to this Zostel via ?location=, which ScanOrderContent.tsx
+  // already reads to skip its location-picker step) rather than opening
+  // Google Maps — ordering is the thing someone's actually here to do.
+  // Directions are still one tap away via the map-pin icon. It's a sibling
+  // of the Link, not nested inside it — an <a> can't validly contain
+  // another <a>/interactive element, so this is a shared `relative`
+  // wrapper with the icon absolutely positioned on top instead.
   return (
-    <a
-      href={mapsUrl(location)}
-      target="_blank"
-      rel="noreferrer"
-      className={`shrink-0 rounded-2xl border border-ink bg-white p-4 text-left text-ink shadow-lg transition hover:bg-ink/5 ${wide ? "w-64" : "w-56"}`}
-    >
-      <div className="relative h-8 w-8 overflow-hidden rounded-full border border-ink/10">
-        <Image src="/press/zostel.png" alt="" fill className="object-cover" />
-      </div>
-      <p className="font-display mt-2.5 text-base font-bold">{location.name}</p>
-      <p className="mt-1.5 flex items-start gap-1.5 text-xs text-ink/70">
-        <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink/50" aria-hidden />
-        {location.address}
-      </p>
-      <span className="mt-3 inline-block rounded-full border border-ink px-3 py-1 text-[11px] font-medium">
-        {location.city}
-      </span>
-    </a>
+    <div className={`relative shrink-0 ${wide ? "w-64" : "w-56"}`}>
+      <Link
+        href={`/scan-order?location=${location.id}`}
+        className="block rounded-2xl border border-ink bg-white p-4 text-left text-ink shadow-lg transition hover:bg-ink/5"
+      >
+        <div className="relative h-8 w-8 overflow-hidden rounded-full border border-ink/10">
+          <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+        </div>
+        <p className="font-display mt-2.5 text-base font-bold">{location.name}</p>
+        <p className="mt-1.5 flex items-start gap-1.5 pr-6 text-xs text-ink/70">{location.address}</p>
+        <span className="mt-3 inline-block rounded-full border border-ink px-3 py-1 text-[11px] font-medium">
+          {location.city}
+        </span>
+      </Link>
+      <a
+        href={mapsUrl(location)}
+        target="_blank"
+        rel="noreferrer"
+        aria-label={`Open ${location.name} in Google Maps`}
+        className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 bg-white text-ink/60 hover:text-ink"
+      >
+        <MapPin className="h-3.5 w-3.5" aria-hidden />
+      </a>
+    </div>
   );
 }
 

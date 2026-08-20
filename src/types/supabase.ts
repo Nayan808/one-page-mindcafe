@@ -104,6 +104,7 @@ export interface Database {
           is_active: boolean;
           staff_pin: string;
           maps_url: string | null;
+          commission_percent: number;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["pickup_locations"]["Row"]> & {

@@ -6,6 +6,7 @@ import { createQueryClient } from "@/lib/query/queryClient";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { ScrollRestoreOnAuthReturn } from "@/components/ScrollRestoreOnAuthReturn";
 
 export function Providers({ children }: { children: ReactNode }) {
   // useState (not useMemo) so the QueryClient instance survives fast
@@ -16,7 +17,10 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AuthModalProvider>
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            <ScrollRestoreOnAuthReturn />
+            {children}
+          </CartProvider>
         </AuthModalProvider>
       </AuthProvider>
     </QueryClientProvider>

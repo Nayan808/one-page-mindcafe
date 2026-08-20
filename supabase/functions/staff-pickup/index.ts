@@ -134,7 +134,7 @@ Deno.serve(async (req) => {
     // window; omitted entirely means "all time".
     let ordersQuery = sb
       .from("orders")
-      .select("id, order_items(quantity, unit_price, variant_id)")
+      .select("id, location_id, order_items(quantity, unit_price, variant_id)")
       .eq("fulfillment_type", "takeaway")
       .eq("payment_status", "paid");
     if (locationId !== null) ordersQuery = ordersQuery.eq("location_id", locationId);
@@ -142,18 +142,29 @@ Deno.serve(async (req) => {
     const { data: soldOrders, error: soldError } = await ordersQuery;
     if (soldError) return jsonResponse({ error: "Failed to load sales" }, 500);
 
-    // Zostel's cut of every sale made at their property — a flat 10% of
-    // revenue, same rate applied everywhere (not stored anywhere yet;
-    // this is the one place it's used, so it isn't worth a settings row
-    // until a second use shows up).
-    const COMMISSION_RATE = 0.1;
+    // Zostel's cut of every sale made at their property — now a per-location
+    // rate (see pickup_locations.commission_percent), admin-editable via
+    // /admin/pickup-locations. The master (all-locations) view has to look
+    // each order's own location up individually here rather than applying
+    // one flat rate, since different Zostels can now charge different cuts.
+    const DEFAULT_COMMISSION_PERCENT = 10;
+    const commissionPercentByLocation = new Map<string, number>();
+    {
+      const { data: allLocations } = await sb.from("pickup_locations").select("id, commission_percent");
+      for (const l of allLocations ?? []) commissionPercentByLocation.set(l.id, Number(l.commission_percent));
+    }
 
-    const soldByVariant = new Map<string, { unitsSold: number; revenue: number }>();
+    const soldByVariant = new Map<string, { unitsSold: number; revenue: number; commission: number }>();
     for (const order of soldOrders ?? []) {
+      const rate =
+        (commissionPercentByLocation.get((order as { location_id: string | null }).location_id ?? "") ??
+          DEFAULT_COMMISSION_PERCENT) / 100;
       for (const item of (order as unknown as { order_items: { quantity: number; unit_price: number; variant_id: string }[] }).order_items) {
-        const existing = soldByVariant.get(item.variant_id) ?? { unitsSold: 0, revenue: 0 };
+        const existing = soldByVariant.get(item.variant_id) ?? { unitsSold: 0, revenue: 0, commission: 0 };
+        const itemRevenue = item.quantity * Number(item.unit_price);
         existing.unitsSold += item.quantity;
-        existing.revenue += item.quantity * Number(item.unit_price);
+        existing.revenue += itemRevenue;
+        existing.commission += itemRevenue * rate;
         soldByVariant.set(item.variant_id, existing);
       }
     }
@@ -182,27 +193,32 @@ Deno.serve(async (req) => {
 
     const products = [...byVariant.entries()]
       .map(([variantId, v]) => {
-        const revenue = soldByVariant.get(variantId)?.revenue ?? 0;
+        const sold = soldByVariant.get(variantId);
         return {
           variantId,
           productName: v.productName,
           variantLabel: v.variantLabel,
           price: v.price,
           unitsRemaining: v.unitsRemaining,
-          unitsSold: soldByVariant.get(variantId)?.unitsSold ?? 0,
-          revenue,
-          commission: revenue * COMMISSION_RATE,
+          unitsSold: sold?.unitsSold ?? 0,
+          revenue: sold?.revenue ?? 0,
+          commission: sold?.commission ?? 0,
         };
       })
       .sort((a, b) => a.productName.localeCompare(b.productName));
 
-    let location: { id: string; name: string; city: string } | null = null;
+    let location: { id: string; name: string; city: string; commission_percent: number } | null = null;
     if (locationId !== null) {
-      const { data } = await sb.from("pickup_locations").select("id, name, city").eq("id", locationId).maybeSingle();
+      const { data } = await sb
+        .from("pickup_locations")
+        .select("id, name, city, commission_percent")
+        .eq("id", locationId)
+        .maybeSingle();
       location = data ?? null;
     }
 
     const totalRevenue = products.reduce((sum, p) => sum + p.revenue, 0);
+    const totalCommission = products.reduce((sum, p) => sum + p.commission, 0);
 
     return jsonResponse({
       location,
@@ -211,8 +227,13 @@ Deno.serve(async (req) => {
         unitsRemaining: products.reduce((sum, p) => sum + p.unitsRemaining, 0),
         unitsSold: products.reduce((sum, p) => sum + p.unitsSold, 0),
         revenue: totalRevenue,
-        commissionRate: COMMISSION_RATE,
-        commission: totalRevenue * COMMISSION_RATE,
+        // A single rate only really means something when scoped to one
+        // location (the master/combined view can span several different
+        // rates now) — this is the blended effective rate either way:
+        // exactly that location's own rate when scoped, a weighted
+        // average across locations when combined.
+        commissionRate: totalRevenue > 0 ? totalCommission / totalRevenue : 0,
+        commission: totalCommission,
       },
     });
   }
