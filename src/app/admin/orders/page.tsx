@@ -31,6 +31,19 @@ const STATUS_FILTER_OPTIONS: FilterOption[] = [
   ...STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
 ];
 
+const PAYMENT_STATUSES = ["pending", "pending_cash", "paid", "refund_required", "refunded", "failed"];
+
+const PAYMENT_STATUS_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "all payments" },
+  ...PAYMENT_STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
+];
+
+const FULFILLMENT_FILTER_OPTIONS: FilterOption[] = [
+  { value: "", label: "all types" },
+  { value: "delivery", label: "delivery" },
+  { value: "takeaway", label: "takeaway" },
+];
+
 const PAGE_SIZE = 20;
 
 export default function AdminOrdersPage() {
@@ -40,12 +53,27 @@ export default function AdminOrdersPage() {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState("");
   const [locationId, setLocationId] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState("");
+  const [fulfillmentType, setFulfillmentType] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [search, setSearch] = useState("");
   const debouncedSearch = useDebouncedValue(search);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const queryClient = useQueryClient();
 
-  const ordersQueryKey = ["admin", "orders", page, status, locationId, debouncedSearch] as const;
+  const ordersQueryKey = [
+    "admin",
+    "orders",
+    page,
+    status,
+    locationId,
+    paymentStatus,
+    fulfillmentType,
+    dateFrom,
+    dateTo,
+    debouncedSearch,
+  ] as const;
 
   const ordersQuery = useQuery({
     queryKey: ordersQueryKey,
@@ -55,6 +83,10 @@ export default function AdminOrdersPage() {
         pageSize: PAGE_SIZE,
         status: status || undefined,
         locationId: locationId || undefined,
+        paymentStatus: paymentStatus || undefined,
+        fulfillmentType: fulfillmentType || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
         search: debouncedSearch || undefined,
       }),
   });
@@ -319,6 +351,67 @@ export default function AdminOrdersPage() {
           }}
           searchPlaceholder="Search locations…"
         />
+        <FilterDropdown
+          options={PAYMENT_STATUS_FILTER_OPTIONS}
+          value={paymentStatus}
+          onChange={(v) => {
+            setPaymentStatus(v);
+            setPage(0);
+          }}
+          searchPlaceholder="Search payment status…"
+        />
+        <FilterDropdown
+          options={FULFILLMENT_FILTER_OPTIONS}
+          value={fulfillmentType}
+          onChange={(v) => {
+            setFulfillmentType(v);
+            setPage(0);
+          }}
+          searchPlaceholder="Search type…"
+        />
+        <div className="flex items-center gap-1.5 text-xs">
+          <input
+            type="date"
+            value={dateFrom}
+            onChange={(e) => {
+              setDateFrom(e.target.value);
+              setPage(0);
+            }}
+            max={dateTo || undefined}
+            className="input !w-auto !py-1.5 text-xs"
+            aria-label="From date"
+          />
+          <span className="text-ink/40">to</span>
+          <input
+            type="date"
+            value={dateTo}
+            onChange={(e) => {
+              setDateTo(e.target.value);
+              setPage(0);
+            }}
+            min={dateFrom || undefined}
+            className="input !w-auto !py-1.5 text-xs"
+            aria-label="To date"
+          />
+        </div>
+        {(status || locationId || paymentStatus || fulfillmentType || dateFrom || dateTo || search) && (
+          <button
+            type="button"
+            onClick={() => {
+              setStatus("");
+              setLocationId("");
+              setPaymentStatus("");
+              setFulfillmentType("");
+              setDateFrom("");
+              setDateTo("");
+              setSearch("");
+              setPage(0);
+            }}
+            className="text-xs text-ink/50 underline hover:text-ink"
+          >
+            clear filters
+          </button>
+        )}
       </div>
 
       {selectedIds.size > 0 && (

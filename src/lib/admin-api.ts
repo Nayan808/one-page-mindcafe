@@ -220,7 +220,17 @@ function sanitizeSearchTerm(term: string): string {
 
 export async function getOrdersAdmin(
   sb: Sb,
-  options: { page: number; pageSize: number; status?: string; locationId?: string; search?: string },
+  options: {
+    page: number;
+    pageSize: number;
+    status?: string;
+    locationId?: string;
+    search?: string;
+    paymentStatus?: string;
+    fulfillmentType?: string;
+    dateFrom?: string;
+    dateTo?: string;
+  },
 ): Promise<{ orders: OrderWithItemDetailsAndLocation[]; total: number }> {
   const from = options.page * options.pageSize;
   const to = from + options.pageSize - 1;
@@ -240,6 +250,23 @@ export async function getOrdersAdmin(
     query = query.eq("fulfillment_type", "delivery");
   } else if (options.locationId) {
     query = query.eq("location_id", options.locationId);
+  }
+  if (options.paymentStatus) {
+    query = query.eq("payment_status", options.paymentStatus as Database["public"]["Tables"]["orders"]["Row"]["payment_status"]);
+  }
+  if (options.fulfillmentType) {
+    query = query.eq(
+      "fulfillment_type",
+      options.fulfillmentType as Database["public"]["Tables"]["orders"]["Row"]["fulfillment_type"],
+    );
+  }
+  if (options.dateFrom) query = query.gte("created_at", options.dateFrom);
+  if (options.dateTo) {
+    // dateTo is a plain yyyy-mm-dd from a <input type="date">, so this
+    // needs to include the entire day rather than filtering at midnight.
+    const end = new Date(options.dateTo);
+    end.setDate(end.getDate() + 1);
+    query = query.lt("created_at", end.toISOString().slice(0, 10));
   }
   const term = options.search ? sanitizeSearchTerm(options.search) : "";
   if (term) {
