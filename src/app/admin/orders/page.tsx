@@ -11,7 +11,7 @@ import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
-import { formatDate, formatInr } from "@/lib/utils";
+import { formatDateTime, formatInr } from "@/lib/utils";
 import type { OrderWithItemDetailsAndLocation } from "@/types/domain";
 
 const STATUSES = [
@@ -316,7 +316,7 @@ export default function AdminOrdersPage() {
           <span className="text-ink/40">not shipped</span>
         ),
     },
-    { key: "date", label: "placed", render: (o) => <span className="text-ink/60">{formatDate(o.created_at)}</span> },
+    { key: "date", label: "placed", render: (o) => <span className="whitespace-nowrap text-ink/60">{formatDateTime(o.created_at)}</span> },
   ];
 
   return (

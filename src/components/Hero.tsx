@@ -334,6 +334,19 @@ export function Hero() {
             );
           })}
         </div>
+
+        {items.length > 0 && (
+          <div className="mt-10 flex justify-center">
+            <button
+              type="button"
+              onClick={openDrawer}
+              className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold uppercase tracking-label text-cream transition hover:bg-ink/85"
+            >
+              <ShoppingBag className="h-4 w-4" aria-hidden />
+              Proceed to Cart · {items.reduce((sum, item) => sum + item.quantity, 0)}
+            </button>
+          </div>
+        )}
       </div>
       </div>
 

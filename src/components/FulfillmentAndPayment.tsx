@@ -243,14 +243,14 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           onClick={() => setMode("delivery")}
           className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium ${mode === "delivery" ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/70"}`}
         >
-          delivery
+          DIRECT DELIVERY
         </button>
         <button
           type="button"
           onClick={() => setMode("takeaway")}
           className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium ${mode === "takeaway" ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/70"}`}
         >
-          takeaway at a Zostel
+          TAKEAWAY FROM A ZOSTEL
         </button>
       </div>
 
