@@ -1,0 +1,8 @@
+{
+  "frameCount": 96,
+  "width": 1280,
+  "height": 720,
+  "pattern": "frame-%04d.webp",
+  "sourceDuration": 8,
+  "totalBytes": 2645556
+}
