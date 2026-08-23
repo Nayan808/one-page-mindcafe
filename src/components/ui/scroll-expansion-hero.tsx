@@ -24,6 +24,11 @@ interface ScrollExpandMediaProps {
   // which only fades in once the media finishes expanding) — for CTAs
   // that should be reachable immediately, before the user scrolls at all.
   belowTitle?: ReactNode;
+  // Ceiling on the background photo's opacity. Defaults to 1, i.e. the
+  // original behaviour. Lowering it lets whatever sits behind this hero
+  // (the neural field, in HomeHero) read through from first paint instead
+  // of only being revealed once the photo has faded out on expand.
+  bgMaxOpacity?: number;
   children?: ReactNode;
 }
 
@@ -37,6 +42,7 @@ const ScrollExpandMedia = ({
   scrollToExpand,
   textBlend,
   belowTitle,
+  bgMaxOpacity = 1,
   children,
 }: ScrollExpandMediaProps) => {
   const [scrollProgress, setScrollProgress] = useState<number>(0);
@@ -161,7 +167,7 @@ const ScrollExpandMedia = ({
           <motion.div
             className="absolute inset-0 z-0 h-full"
             initial={{ opacity: 0 }}
-            animate={{ opacity: 1 - scrollProgress }}
+            animate={{ opacity: (1 - scrollProgress) * bgMaxOpacity }}
             transition={{ duration: 0.1 }}
           >
             <Image

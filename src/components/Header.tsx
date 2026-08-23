@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Menu, ShoppingBag, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
@@ -66,55 +66,77 @@ export function Header() {
   const { status, profile, user, signOut } = useAuth();
   const { openAuthModal } = useAuthModal();
   const { itemCount, openDrawer } = useCartContext();
-  const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Only the homepage opens with a transparent header (its hero is a
-  // full-bleed video/image) — every other page keeps the normal solid
-  // one. HomeHero's ScrollExpandMedia intercepts wheel/touch scroll
-  // itself and keeps window.scrollY pinned at 0 until the media finishes
-  // expanding, so this can't just watch scroll position; it mirrors the
-  // same wheel/touch-direction check ScrollExpandMedia uses internally to
-  // decide "collapse back to the top" (deltaY < 0 near scrollY 0), so the
-  // two stay in sync without the two components needing to share state.
+  // CINEMATIC MODE — homepage only.
+  //
+  // This Header is global, so the dark treatment must never leak onto the
+  // light routes (/feelz, /counselling, …) where it would be white-on-cream
+  // and unreadable. `cinematic` gates every dark style below.
+  //
+  // At the top of the homepage the bar is fully transparent so it sits
+  // inside the artwork; past ~40px it eases into a tinted, softly-bordered
+  // surface. Plain scroll position is enough now — the old wheel/touch
+  // synchronisation hack existed only for the removed ScrollExpandMedia
+  // hero, which pinned scrollY at 0 and made position untrustworthy.
+  const pathname = usePathname();
   const isHome = pathname === "/";
-  const [solid, setSolid] = useState(!isHome);
+  const [scrolled, setScrolled] = useState(false);
+  // Whether the bar is still sitting over the dark hero artwork. This is NOT
+  // the same as "on the homepage" — the page turns ivory below the hero, and
+  // treating the whole route as dark left cream links on cream, invisible.
+  const [overHero, setOverHero] = useState(true);
 
   useEffect(() => {
-    if (!isHome) {
-      setSolid(true);
-      return;
-    }
-    setSolid(false);
+    if (!isHome) return;
 
-    let touchStartY = 0;
-    const handleWheel = (e: WheelEvent) => {
-      if (e.deltaY > 0) setSolid(true);
-      else if (e.deltaY < 0 && window.scrollY <= 5) setSolid(false);
-    };
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-    const handleTouchMove = (e: TouchEvent) => {
-      const deltaY = touchStartY - e.touches[0].clientY;
-      if (deltaY > 0) setSolid(true);
-      else if (deltaY < 0 && window.scrollY <= 5) setSolid(false);
-    };
-    const handleScroll = () => {
-      if (window.scrollY > 0) setSolid(true);
+    let raf = 0;
+    const measure = () => {
+      raf = 0;
+      setScrolled(window.scrollY > 40);
+      const hero = document.getElementById("home-hero");
+      // The bar has left the artwork once the hero's bottom edge passes above
+      // the bar itself. Falls back to a scroll threshold if the hero is
+      // absent, so other pages using this Header can never get stuck dark.
+      setOverHero(hero ? hero.getBoundingClientRect().bottom > 96 : window.scrollY < 400);
     };
 
-    window.addEventListener("wheel", handleWheel, { passive: true });
-    window.addEventListener("touchstart", handleTouchStart, { passive: true });
-    window.addEventListener("touchmove", handleTouchMove, { passive: true });
-    window.addEventListener("scroll", handleScroll, { passive: true });
+    // rAF-throttled: getBoundingClientRect is a layout read, so it must not
+    // run once per scroll event.
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(measure);
+    };
+
+    measure();
+
+    // The first measure runs before the hero has its final height (fonts and
+    // the artwork are still settling), so it can read a collapsed box and
+    // decide "not over the hero" — and with nothing scrolling, that wrong
+    // answer would stand forever. Watching the hero for resize means any
+    // layout settle re-measures, which self-corrects that first read.
+    const hero = document.getElementById("home-hero");
+    const ro = hero ? new ResizeObserver(onScroll) : null;
+    if (hero && ro) ro.observe(hero);
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    window.addEventListener("load", onScroll);
     return () => {
-      window.removeEventListener("wheel", handleWheel);
-      window.removeEventListener("touchstart", handleTouchStart);
-      window.removeEventListener("touchmove", handleTouchMove);
-      window.removeEventListener("scroll", handleScroll);
+      if (raf) cancelAnimationFrame(raf);
+      ro?.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      window.removeEventListener("load", onScroll);
     };
   }, [isHome]);
+
+  // `cinematic` = the floating glass island shape (homepage, menu closed).
+  const cinematic = isHome && !menuOpen;
+  // `onDark` = that island is over the artwork, so it takes cream type and a
+  // light rim. Off the artwork it keeps the same glass but flips to ink.
+  const onDark = cinematic && overHero;
+  // Light routes keep the original solid cream bar exactly as before.
+  const solid = !isHome;
 
   const dashboardLink = getDashboardLink(profile?.role);
 
@@ -132,36 +154,64 @@ export function Header() {
 
   return (
     <header
-      className={`sticky top-0 z-30 transition-colors duration-300 ${
-        headerSolid
-          ? "border-b border-ink/10 bg-[#FAF4F7] shadow-[0_1px_24px_-8px_rgba(207,150,175,0.35)]"
-          : "border-b border-transparent bg-transparent"
+      // In cinematic mode the <header> itself carries no surface at all — it
+      // is just a transparent frame providing the inset. The Liquid Glass
+      // panel is the inner row, so it reads as a floating island over the
+      // artwork rather than a bar welded to the top of the page.
+      //
+      // The light-route branch keeps the newer solid #FAF4F7 bar and its
+      // blush shadow — that styling came from the other side of this merge
+      // and is deliberately preserved.
+      className={`sticky top-0 z-30 transition-all duration-500 ease-out ${
+        cinematic
+          ? "px-3 pt-3 sm:px-6 sm:pt-4"
+          : headerSolid
+            ? "border-b border-ink/10 bg-[#FAF4F7] shadow-[0_1px_24px_-8px_rgba(207,150,175,0.35)]"
+            : "border-b border-transparent bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+      <div
+        className={`mx-auto flex max-w-7xl items-center justify-between transition-all duration-500 ${
+          cinematic
+            ? `liquid-glass rounded-full px-4 py-2.5 sm:px-6 sm:py-3 ${onDark ? "" : "liquid-glass-onlight"} ${scrolled ? "liquid-glass-dense" : ""}`
+            : "px-5 py-4 sm:px-8"
+        }`}
+      >
         <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center gap-2 leading-none">
           <span
             className={`flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-colors ${headerSolid ? "bg-cream/90" : "bg-white/90"}`}
           >
             <Image src="/mindcafe-icon.png" alt="" width={28} height={28} priority className="h-7 w-7" />
           </span>
-          <span className={`font-display text-xl font-bold ${headerSolid ? "text-ink" : "text-white"}`}>mindcafe</span>
+          <span className={`font-display text-xl font-bold tracking-tight ${onDark ? "text-[#f6efe4]" : cinematic ? "text-ink" : headerSolid ? "text-ink" : "text-white"}`}>mindcafe</span>
         </Link>
 
+        {/* Cinematic nav: lighter weight, wider letter-spacing and a hairline
+            underline wipe (.nav-cine) instead of the roll-up, which reads as
+            calmer and more architectural against the artwork. Light routes
+            keep the original RollingText treatment untouched. */}
         <nav
-          className={`font-display hidden items-center gap-7 text-sm font-semibold tracking-label sm:flex ${
-            headerSolid ? "text-ink/70" : "text-white/90"
+          className={`font-display hidden items-center sm:flex ${
+            cinematic
+              ? `gap-9 text-[11px] font-medium tracking-[0.18em] ${onDark ? "text-[#f6efe4]/70" : "text-ink/65"}`
+              : `gap-7 text-sm font-semibold tracking-label ${headerSolid ? "text-ink/70" : "text-white/90"}`
           }`}
         >
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`group uppercase leading-none ${headerSolid ? "hover:text-brand" : "hover:text-white"}`}
-            >
-              <RollingText text={link.label} />
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) =>
+            cinematic ? (
+              <Link key={link.href} href={link.href} className={`nav-cine ${onDark ? "hover:text-[#f6efe4]" : "hover:text-brand"}`}>
+                {link.label}
+              </Link>
+            ) : (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`group uppercase leading-none ${headerSolid ? "hover:text-brand" : "hover:text-white"}`}
+              >
+                <RollingText text={link.label} />
+              </Link>
+            ),
+          )}
         </nav>
 
         {/* Cart + account: visible inline on desktop, folded into the
@@ -171,12 +221,18 @@ export function Header() {
             override classes) since layering a white-text utility on top
             of that shared class isn't guaranteed to win the cascade. */}
         <div className="hidden items-center gap-3 sm:flex">
+          {/* Book Session = tertiary (outlined), Log In = the navbar's
+              strongest action. Both use the shared .btn-cine-* system, so
+              they share radius, type and easing with the hero CTAs and read
+              as one hierarchy: hero primary > nav solid > nav ghost. */}
           <Link
             href="/book-appointment"
             className={
-              headerSolid
-                ? "pill-btn-outline !py-2 text-xs"
-                : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
+              onDark
+                ? "btn-cine-ghost"
+                : cinematic || headerSolid
+                  ? "pill-btn-outline !py-2 text-xs"
+                  : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
             }
           >
             Book Session
@@ -186,12 +242,17 @@ export function Header() {
             <button
               onClick={openDrawer}
               className={
-                headerSolid
-                  ? "pill-btn-outline !py-2 text-xs"
-                  : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
+                onDark
+                  ? "btn-cine-ghost"
+                  : cinematic || headerSolid
+                    ? "pill-btn-outline !py-2 text-xs"
+                    : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
               }
             >
-              <ShoppingBag className={`h-3.5 w-3.5 ${headerSolid ? "text-ink" : "text-white"}`} aria-hidden />
+              <ShoppingBag
+                className={`h-3.5 w-3.5 ${onDark ? "text-[#f4ead9]" : "text-ink"}`}
+                aria-hidden
+              />
               Cart{itemCount > 0 ? ` · ${itemCount}` : ""}
             </button>
           )}
@@ -200,7 +261,7 @@ export function Header() {
             <ProfileMenu />
           ) : (
             status !== "loading" && (
-              <button type="button" onClick={openAuthModal} className="pill-btn !py-2 text-xs">
+              <button type="button" onClick={openAuthModal} className={onDark ? "btn-cine-solid" : "pill-btn !py-2 text-xs"}>
                 Log In
               </button>
             )
@@ -211,7 +272,7 @@ export function Header() {
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
           className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border sm:hidden ${
-            headerSolid ? "border-ink/15 text-ink" : "border-white/40 text-white"
+            onDark ? "border-[#f4ead9]/25 text-[#f6efe4]" : "border-ink/15 text-ink"
           }`}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
           aria-expanded={menuOpen}

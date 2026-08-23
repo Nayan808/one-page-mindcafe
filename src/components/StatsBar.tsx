@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getSiteSetting } from "@/lib/api";
-import { Reveal } from "@/components/Reveal";
+import { CountUp, DrawLine, RiseIn } from "@/components/motion/primitives";
 
 const DEFAULT_CHIPS = ["10 strips per box", "4 moods"];
 
@@ -32,30 +32,47 @@ export function StatsBar() {
 
   return (
     <div className="border-y border-ink/10 bg-gradient-to-b from-white to-cream/50 px-4 py-14 text-center">
-      <Reveal className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
+      {/* A breathing space, so the order matters: the divider draws first,
+          the figure counts up, and only then does the label arrive. */}
+      <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
         {chips.map((chip, index) => {
           const split = splitLeadingNumber(chip);
           return (
             <div key={chip} className="flex items-center gap-6 sm:gap-10">
-              {index > 0 && <span className="h-10 w-px bg-brand/15" aria-hidden />}
-              <div className="group flex flex-col items-center gap-1.5 rounded-2xl px-6 py-3 transition-transform duration-300 hover:-translate-y-1">
+              {index > 0 && (
+                <DrawLine
+                  className="h-10 w-px bg-brand/15"
+                  vertical
+                  origin="top"
+                  delay={index * 0.12}
+                />
+              )}
+              <div className="group flex flex-col items-center gap-1.5 rounded-2xl px-6 py-3 transition-transform duration-500 ease-out hover:-translate-y-1">
                 {split ? (
                   <>
-                    <span className="font-hero text-4xl font-bold leading-none text-brand transition-colors duration-300 group-hover:text-brand-navy sm:text-5xl">
-                      {split.figure}
-                    </span>
-                    <span className="text-[11px] font-semibold uppercase tracking-label text-ink/50">
-                      {split.label}
-                    </span>
+                    <RiseIn delay={0.15 + index * 0.12} y={10} blur={4} amount={0.6}>
+                      <CountUp
+                        value={split.figure}
+                        delay={0.25 + index * 0.12}
+                        className="font-hero block text-4xl font-bold leading-none text-brand transition-colors duration-500 group-hover:text-brand-navy sm:text-5xl"
+                      />
+                    </RiseIn>
+                    <RiseIn delay={0.6 + index * 0.12} y={6} blur={3} amount={0.6}>
+                      <span className="text-[11px] font-semibold uppercase tracking-label text-ink/50">
+                        {split.label}
+                      </span>
+                    </RiseIn>
                   </>
                 ) : (
-                  <span className="font-display text-lg font-bold text-ink sm:text-xl">{chip}</span>
+                  <RiseIn delay={0.15 + index * 0.12} amount={0.6}>
+                    <span className="font-display text-lg font-bold text-ink sm:text-xl">{chip}</span>
+                  </RiseIn>
                 )}
               </div>
             </div>
           );
         })}
-      </Reveal>
+      </div>
     </div>
   );
 }

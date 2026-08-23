@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getRecentReviews, getReviewsSummary } from "@/lib/api";
-import { Reveal } from "@/components/Reveal";
+import { MaskLine, RiseIn } from "@/components/motion/primitives";
 import type { Review } from "@/types/domain";
 
 function Stars({ rating, className = "text-amber-400" }: { rating: number; className?: string }) {
@@ -66,34 +66,57 @@ export function TestimonialsSection() {
   return (
     <section className="bg-white py-20">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <Reveal className="flex flex-wrap items-end justify-between gap-4">
+        {/* The page's quietest moment: label, then heading, then the rating —
+            each waiting on the one before it, so the section settles rather
+            than arriving all at once. */}
+        <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Real Stories</p>
+            <RiseIn y={8} blur={3} amount={0.6}>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">
+                Real Stories
+              </p>
+            </RiseIn>
             <h2 className="font-display mt-2 text-5xl font-bold tracking-tight text-ink sm:text-6xl">
-              India is <span className="font-tagline italic text-brand">healing</span>.
+              <MaskLine delay={0.16} duration={1.1}>
+                India is <span className="font-tagline italic text-brand">healing</span>.
+              </MaskLine>
             </h2>
           </div>
           {summary && (
-            <div className="flex items-center gap-2">
-              <Stars rating={summary.average} />
-              <span className="text-sm text-ink/60">
-                <span className="font-display font-bold text-ink">{summary.average.toFixed(1)}/5</span> from{" "}
-                {summary.count} review{summary.count === 1 ? "" : "s"}
-              </span>
-            </div>
+            <RiseIn delay={0.55} y={10} amount={0.4}>
+              <div className="flex items-center gap-2">
+                <Stars rating={summary.average} />
+                <span className="text-sm text-ink/60">
+                  <span className="font-display font-bold text-ink">
+                    {summary.average.toFixed(1)}/5
+                  </span>{" "}
+                  from {summary.count} review{summary.count === 1 ? "" : "s"}
+                </span>
+              </div>
+            </RiseIn>
           )}
-        </Reveal>
+        </div>
 
         <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {/* The dark featured tile lands first and alone — it is the
+              emotional anchor, so the supporting voices follow it rather
+              than competing with it. */}
           {first && (
-            <Reveal className="sm:col-span-2">
+            <RiseIn className="sm:col-span-2" y={22} blur={6} duration={1.05} amount={0.2}>
               <ReviewCard review={first} featured />
-            </Reveal>
+            </RiseIn>
           )}
           {rest.map((review, index) => (
-            <Reveal key={review.id} delayMs={index * 70}>
+            <RiseIn
+              key={review.id}
+              delay={0.34 + index * 0.12}
+              y={18}
+              blur={5}
+              duration={0.9}
+              amount={0.2}
+            >
               <ReviewCard review={review} />
-            </Reveal>
+            </RiseIn>
           ))}
         </div>
       </div>

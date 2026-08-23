@@ -7,6 +7,7 @@ import { Mail, Phone } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { subscribeToNewsletter } from "@/lib/api";
 import { useAuthModal } from "@/contexts/AuthModalContext";
+import { StaggerGroup } from "@/components/motion/primitives";
 
 // lucide-react has no brand icons in this version (see the comment below),
 // but this exact glyph — rounded square, lens circle, flash dot — is the
@@ -93,7 +94,8 @@ export function Footer() {
   const { openAuthModal } = useAuthModal();
   return (
     <footer className="mx-3 mb-3 rounded-2xl border border-cream/10 bg-brand-wine px-6 py-8 text-center text-cream sm:mx-6 sm:mb-6 sm:px-10 sm:text-left">
-      <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Quiet closure: columns arrive in sequence rather than as one block. */}
+      <StaggerGroup className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4" gap={0.11}>
         <div>
           <p className="font-display text-2xl font-bold">Feelz</p>
           <p className="mx-auto mt-2 max-w-xs text-sm text-cream/60 sm:mx-0">
@@ -195,9 +197,12 @@ export function Footer() {
             </li>
           </ul>
         </div>
-      </div>
+      </StaggerGroup>
 
-      <div className="mt-8 grid gap-8 border-t border-cream/10 pt-8 sm:grid-cols-2 lg:grid-cols-4">
+      <StaggerGroup
+        className="mt-8 grid gap-8 border-t border-cream/10 pt-8 sm:grid-cols-2 lg:grid-cols-4"
+        gap={0.11}
+      >
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Stay in the Loop</p>
           <NewsletterForm />
@@ -282,7 +287,7 @@ export function Footer() {
           </div>
           <span className="badge-pill mt-4 inline-block">ISO/IEC 27001</span>
         </div>
-      </div>
+      </StaggerGroup>
 
       <div className="mt-8 flex flex-col items-center gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 sm:flex-row sm:items-center sm:justify-between">
         <p>© 2026 Mindcafe, a venture of Sneh Care Club Pvt. Ltd. All rights reserved.</p>

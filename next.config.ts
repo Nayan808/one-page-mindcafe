@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Next 16 requires every `quality` value used by next/image to be
+    // declared here, or it warns at runtime. 90 is for the homepage hero
+    // artwork: it is a large, softly-graded image and 75 leaves visible
+    // banding across the sky. 75 stays the default for everything else.
+    qualities: [75, 90],
     remotePatterns: [
       // mindcafe.app: legacy — photos hotlinked from the existing live
       // site before the expert-photos storage bucket existed. Some rows

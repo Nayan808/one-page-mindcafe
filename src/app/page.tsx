@@ -26,6 +26,9 @@ import { PressMentionsSection } from "@/components/PressMentionsSection";
 // needing any layout.tsx change.
 export default function Home() {
   return (
+    // The page-wide WebGL neural field and its `neural-page` wrapper are
+    // gone: the hero is now the scroll-scrubbed video sequence, and every
+    // section below it goes back to its own normal opaque background.
     <>
       <HomeHero />
       <MentalHealthSection />

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { motion } from "motion/react";
-import { Reveal } from "@/components/Reveal";
+import { RiseIn } from "@/components/motion/primitives";
 
 // Homepage-only, placed as the last section in page.tsx so it lands
 // right before the (global, layout-level) <Footer>. Grayscale-by-default
@@ -11,9 +11,9 @@ import { Reveal } from "@/components/Reveal";
 // adapted from — a plain bordered-tile grid reads more consistent with
 // the rest of the page than a cycling carousel would, and there's no
 // need for carousel mechanics with a fixed set of 10 logos anyway. The
-// tile entrance (blur + spring, one-shot on scroll into view) mirrors
-// that reference's per-logo animation feel without porting its cycling
-// AnimatePresence machinery.
+// tile entrance is a one-shot blur-to-focus on scroll into view, eased
+// rather than sprung, so the row settles as a single group — quiet
+// credibility, not nine logos each announcing themselves.
 const PRESS = [
   { name: "Brides", src: "/press/brides.png" },
   { name: "CNBC-TV18", src: "/press/cnbc-tv18.svg" },
@@ -33,25 +33,27 @@ export function PressMentionsSection() {
   return (
     <section className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-cream py-16 sm:-mt-12 sm:rounded-t-[3rem]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
-        <Reveal className="text-center">
+        <RiseIn className="text-center" y={8} blur={3} amount={0.6}>
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">As Seen On</p>
-        </Reveal>
+        </RiseIn>
 
         <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {PRESS.map((item, index) => (
             <motion.div
               key={item.name}
-              initial={{ opacity: 0, y: 24, filter: "blur(8px)" }}
+              // Was a spring at stiffness 300 — it overshot and bounced,
+              // which is exactly the register this page avoids. These are
+              // credibility marks: they should settle, not pop. Shorter
+              // offset and a tight stagger so the row arrives as ONE group
+              // rather than as nine individually animated logos.
+              initial={{ opacity: 0, y: 14, filter: "blur(5px)" }}
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              viewport={{ once: true, amount: 0.4 }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 20,
-                mass: 1,
-                delay: index * 0.06,
-              }}
-              className="flex h-20 items-center justify-center rounded-2xl border border-ink/15 bg-white px-4 grayscale transition-all duration-300 hover:grayscale-0 hover:shadow-md"
+              viewport={{ once: true, amount: 0.35 }}
+              transition={{ duration: 0.8, delay: index * 0.055, ease: [0.22, 0.61, 0.36, 1] }}
+              // Tile styling (white fill, ink/15 border) is the newer design
+              // and is kept as-is; only the motion was replaced, since the
+              // spring it used to carry overshot and bounced.
+              className="flex h-20 items-center justify-center rounded-2xl border border-ink/15 bg-white px-4 grayscale transition-all duration-500 ease-out hover:border-ink/30 hover:grayscale-0 hover:shadow-[0_10px_28px_-18px_rgba(77,42,57,0.4)]"
             >
               <div className={`relative w-full ${item.imgHeight ?? "h-9"}`}>
                 <Image src={item.src} alt={item.name} fill sizes="180px" className="object-contain" />

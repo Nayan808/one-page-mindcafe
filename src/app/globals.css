@@ -104,6 +104,362 @@ h2.font-display {
   @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-cream px-6 py-3 text-sm font-medium text-brand shadow-sm transition hover:opacity-90;
 }
 
+/* ---- Liquid Glass -------------------------------------------------------
+   The macOS/iOS dock material. Four things have to be present together or it
+   reads as ordinary frosted glass:
+
+   1. SATURATE, not just blur. `saturate(180%)` is what makes the colours
+      behind the panel bloom through it — that is the "liquid" quality. Blur
+      alone gives you a grey fog.
+   2. A specular RIM on the top edge only (inset 0 1px), because real glass
+      catches the light along its upper bevel.
+   3. A soft sheen falling from the top edge, via ::before — the highlight
+      rolling off the curved surface.
+   4. A real drop shadow, so the panel floats above the content rather than
+      being painted onto it.
+
+   -webkit- prefix included: Safari still needs it for backdrop-filter. */
+.liquid-glass {
+  position: relative;
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(22px) saturate(185%);
+  backdrop-filter: blur(22px) saturate(185%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 10px 34px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  transition:
+    background 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.5s cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 0.5s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* The highlight rolling off the top curve. Kept above the blur but below
+   content, and pointer-events-none so it never eats a click. */
+.liquid-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.06) 24%,
+    rgba(255, 255, 255, 0) 56%
+  );
+}
+
+/* Denser once the page has scrolled — the panel gains presence as content
+   passes behind it, without ever becoming opaque. */
+.liquid-glass-dense {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.38),
+    0 2px 10px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Same material, tuned for LIGHT ground. Once the navbar scrolls off the
+   dark artwork and onto the ivory page, a white-on-white panel with a cream
+   rim disappears completely — so the surface goes denser, the rim flips to
+   a hairline of ink, and the shadow warms and softens. The glass shape and
+   blur are unchanged, so the switch reads as the panel adapting rather than
+   as a different component. */
+.liquid-glass-onlight {
+  background: rgba(255, 255, 255, 0.62);
+  border-color: rgba(17, 17, 16, 0.08);
+  box-shadow:
+    0 10px 30px rgba(77, 42, 57, 0.1),
+    0 2px 8px rgba(77, 42, 57, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(17, 17, 16, 0.03);
+}
+.liquid-glass-onlight::before {
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.14) 26%,
+    rgba(255, 255, 255, 0) 58%
+  );
+}
+.liquid-glass-onlight.liquid-glass-dense {
+  background: rgba(255, 255, 255, 0.76);
+  border-color: rgba(17, 17, 16, 0.12);
+  box-shadow:
+    0 14px 36px rgba(77, 42, 57, 0.14),
+    0 2px 10px rgba(77, 42, 57, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(17, 17, 16, 0.04);
+}
+
+/* Fallback: without backdrop-filter the panel would be a near-invisible
+   white wash over the artwork, so it falls back to a tinted solid instead. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .liquid-glass {
+    background: rgba(30, 20, 38, 0.72);
+  }
+}
+
+/* ---- Footer link micro-interaction --------------------------------------
+   The closing note of the page, so the interaction is an underline that
+   DRAWS rather than a colour flash. Implemented as a background gradient
+   whose width animates — text-decoration cannot be transitioned, and a
+   pseudo-element would break on links that wrap across lines.
+
+   Scoped away from the footer's buttons and logo links so they keep their
+   own treatment. */
+footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-cine-secondary):not(:has(img)) {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-size: 0% 1px;
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  text-decoration: none;
+  transition:
+    background-size 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
+    color 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-cine-secondary):not(:has(img)):hover {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  footer a {
+    transition: none;
+  }
+}
+
+/* ---- Editorial grain ----------------------------------------------------
+   Fractal-noise texture as an inline SVG data URI, so it costs no request
+   and no image asset. Held at very low opacity and blended with `overlay`
+   so it reads as paper tooth rather than as visible dirt — you should feel
+   it more than see it. */
+.grain-fine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+}
+
+/* The one continuing thread: a slow shimmer travelling down its length. */
+@keyframes thread-drift {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.thread-line {
+  animation: thread-drift 26s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .thread-line {
+    animation: none;
+  }
+}
+
+/* ---- Hero artwork light animation --------------------------------------
+   Drives HeroLightFlow. Kept in CSS rather than JS because these run
+   continuously on ~30 SVG nodes — the compositor handles them without any
+   per-frame JavaScript at all. */
+@keyframes hero-flow-travel {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-spark-twinkle {
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.18);
+  }
+}
+
+.hero-flow {
+  animation-name: hero-flow-travel;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+.hero-spark {
+  animation-name: hero-spark-twinkle;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* The sun in the artwork, breathing. Long period and a tiny scale change:
+   sunlight swells and settles, it does not pulse. */
+@keyframes hero-bloom-breathe {
+  0%,
+  100% {
+    opacity: 0.26;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.52;
+    transform: scale(1.06);
+  }
+}
+.hero-bloom {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-bloom-breathe 13s ease-in-out infinite;
+}
+
+/* Warm haze over the cloud band, drifting sideways slowly enough that you
+   only notice it if you stare — the air moving, not a shape sliding. */
+@keyframes hero-haze-drift {
+  0%,
+  100% {
+    opacity: 0.14;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.28;
+    transform: translateX(-26px);
+  }
+}
+.hero-haze {
+  transform-box: fill-box;
+  animation: hero-haze-drift 34s ease-in-out infinite;
+}
+
+/* Motes lifting through the dark side. They fade in, rise, and fade out —
+   never looping visibly, because they are invisible at both ends. */
+@keyframes hero-mote-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  18% {
+    opacity: 0.5;
+  }
+  82% {
+    opacity: 0.28;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-86px);
+  }
+}
+.hero-mote {
+  transform-box: fill-box;
+  animation: hero-mote-rise linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-bloom,
+  .hero-haze,
+  .hero-mote {
+    animation: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-flow,
+  .hero-spark {
+    animation: none;
+  }
+}
+
+/* ---- Cinematic button system -------------------------------------------
+   One shared language for the dark hero world: the navbar's Book Session /
+   Log In and the hero's two CTAs all use these, so they read as one design
+   system with three levels of hierarchy rather than four unrelated buttons.
+   Shared: radius, type scale, 300ms easing, tiny lift on hover. Different:
+   surface weight only.
+
+   These are additive — the existing .pill-btn family is untouched and still
+   used by the rest of the light-themed site. */
+/* NOTE: the shared base is written out longhand in each class rather than
+   via `@apply .btn-cine`. Tailwind v4's @apply only accepts UTILITIES —
+   applying another custom class silently produces nothing, which is exactly
+   how the first version of these buttons ended up with no surface at all. */
+.btn-cine-primary,
+.btn-cine-secondary,
+.btn-cine-ghost,
+.btn-cine-solid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+/* PRIMARY — warm cream surface, the strongest action on the page. */
+.btn-cine-primary {
+  @apply bg-[#f4ead9] px-6 py-3 text-[13px] text-[#1a1016] shadow-[0_1px_2px_rgba(0,0,0,0.25)];
+}
+.btn-cine-primary:hover {
+  @apply -translate-y-px bg-[#fdf6e9] shadow-[0_10px_26px_-12px_rgba(244,234,217,0.6)];
+}
+
+/* SECONDARY — outlined, understated, identical geometry to primary. */
+.btn-cine-secondary {
+  @apply border border-[#f4ead9]/25 bg-[#f4ead9]/[0.05] px-6 py-3 text-[13px] text-[#f4ead9];
+}
+.btn-cine-secondary:hover {
+  @apply -translate-y-px border-[#f4ead9]/50 bg-[#f4ead9]/10;
+}
+
+/* TERTIARY — compact utility, for the navbar. */
+.btn-cine-ghost {
+  @apply border border-[#f4ead9]/20 px-4 py-2 text-[12px] text-[#f4ead9]/85;
+}
+.btn-cine-ghost:hover {
+  @apply border-[#f4ead9]/45 bg-[#f4ead9]/[0.07] text-[#f4ead9];
+}
+
+.btn-cine-solid {
+  @apply bg-[#f4ead9] px-4 py-2 text-[12px] text-[#1a1016];
+}
+.btn-cine-solid:hover {
+  @apply -translate-y-px bg-[#fdf6e9];
+}
+
+/* Nav link with a hairline underline that wipes in from the left. */
+.nav-cine {
+  @apply relative uppercase transition-colors duration-300 ease-out;
+}
+.nav-cine::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  height: 1px;
+  width: 100%;
+  transform: scaleX(0);
+  transform-origin: left;
+  background: currentColor;
+  opacity: 0.6;
+  transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+.nav-cine:hover::after {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-cine::after {
+    transition: none;
+  }
+  .btn-cine {
+    transition: none;
+  }
+}
+
 .badge-pill {
   @apply rounded-full border border-ink/15 bg-white/70 px-3 py-1 text-[11px] font-medium tracking-[0.14em] text-ink/70;
 }
