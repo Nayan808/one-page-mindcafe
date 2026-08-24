@@ -81,8 +81,7 @@ export function CounsellingTeaserSection() {
                     <motion.div
                       className="relative aspect-square w-full overflow-hidden bg-ink/5"
                       initial={calm ? false : { clipPath: "inset(0 0 100% 0)" }}
-                      whileInView={{ clipPath: "inset(0 0 0% 0)" }}
-                      viewport={{ once: true, amount: 0.25 }}
+                      animate={{ clipPath: "inset(0 0 0% 0)" }}
                       transition={{ duration: 1.1, delay: base + 0.1, ease: EASE }}
                     >
                       {expert.photo_url ? (

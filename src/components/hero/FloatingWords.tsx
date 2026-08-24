@@ -115,7 +115,7 @@ export function SettledWord({
     <motion.span
       // Upright Bodoni, and a touch more tracking than the italic group —
       // resolved words are allowed to take up space.
-      className="font-hero absolute whitespace-nowrap text-[16px] font-semibold text-[#3a1c07]"
+      className="font-hero absolute whitespace-nowrap text-[16px] font-semibold text-white"
       style={{ top, left }}
       initial={
         reduced ? false : { opacity: 0, y: 12, filter: "blur(9px)", letterSpacing: "-0.01em" }

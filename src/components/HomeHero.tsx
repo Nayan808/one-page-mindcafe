@@ -334,11 +334,13 @@ export function HomeHero() {
           <JourneyStrip reduced={reduced} delay={T.journey} />
         </div>
 
-        <motion.div
+        <motion.button
+          type="button"
+          onClick={() => document.getElementById("feelz-teaser")?.scrollIntoView({ behavior: "smooth" })}
           // Centred, matching the reference: the scroll cue is an invitation
           // to the whole page, so it belongs on the hero's centre axis rather
           // than hanging off the end of the left-hand copy column.
-          className="mt-6 flex items-center justify-center gap-3 text-[9.5px] uppercase tracking-[0.2em] text-[#f6efe4]/35"
+          className="mt-6 flex items-center justify-center gap-3 text-[9.5px] uppercase tracking-[0.2em] text-[#f6efe4]/35 transition-colors hover:text-[#f6efe4]/60"
           initial={reduced ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.84, delay: T.cue, ease: EASE }}
@@ -351,7 +353,7 @@ export function HomeHero() {
             />
           </span>
           Scroll to begin your journey
-        </motion.div>
+        </motion.button>
       </div>
 
       {/* Soft blend into whatever follows — no hard cut, and the hook point

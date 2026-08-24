@@ -154,7 +154,7 @@ export function Header() {
     openDrawer();
   }
 
-  // The mobile menu panel is always solid bg-brand-blush, so if the header
+  // The mobile menu panel is always solid white, so if the header
   // itself is still in its transparent/white-text state (top of the
   // homepage, not yet scrolled) when it opens, the logo and close button
   // render white-on-blush — hard to read against each other. Opening the
@@ -168,14 +168,13 @@ export function Header() {
       // panel is the inner row, so it reads as a floating island over the
       // artwork rather than a bar welded to the top of the page.
       //
-      // The light-route branch keeps the newer solid #FAF4F7 bar and its
-      // blush shadow — that styling came from the other side of this merge
-      // and is deliberately preserved.
+      // The light-route branch keeps a solid white bar with a neutral
+      // ink-tinted shadow.
       className={`sticky top-0 z-30 transition-all duration-500 ease-out ${
         cinematic
           ? "px-3 pt-3 sm:px-6 sm:pt-4"
           : headerSolid
-            ? "border-b border-ink/10 bg-[#FAF4F7] shadow-[0_1px_24px_-8px_rgba(207,150,175,0.35)]"
+            ? "border-b border-ink/10 bg-white shadow-[0_1px_24px_-8px_rgba(17,17,16,0.18)]"
             : "border-b border-transparent bg-transparent"
       }`}
     >
@@ -291,7 +290,7 @@ export function Header() {
       </div>
 
       {menuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-ink/10 bg-[#FAF4F7] px-4 py-3 text-[11px] font-medium tracking-label text-ink/70 sm:hidden">
+        <nav className="flex flex-col gap-1 border-t border-ink/10 bg-white px-4 py-3 text-[11px] font-medium tracking-label text-ink/70 sm:hidden">
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}
