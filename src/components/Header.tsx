@@ -130,12 +130,21 @@ export function Header() {
     };
   }, [isHome]);
 
-  // `cinematic` = the floating glass island shape (homepage, menu closed).
-  const cinematic = isHome && !menuOpen;
-  // `onDark` = that island is over the artwork, so it takes cream type and a
-  // light rim. Off the artwork it keeps the same glass but flips to ink.
-  const onDark = cinematic && overHero;
-  // Light routes keep the original solid cream bar exactly as before.
+  // `cinematic` = the floating Liquid Glass island. Now on EVERY route, not
+  // just the homepage, so the navbar is one consistent component sitewide.
+  // The only thing that turns it off is the mobile menu, which needs a solid
+  // opaque surface to be readable when expanded.
+  const cinematic = !menuOpen;
+  // `onDark` = that island is over the homepage hero artwork, so it takes
+  // cream type and a light rim. Everywhere else — inner pages, and the
+  // homepage below the hero — it keeps the identical glass shape and blur
+  // but flips to the light-ground variant with ink type.
+  //
+  // isHome is required here: `overHero` only updates on the homepage (its
+  // effect returns early elsewhere), so without this guard it would stay
+  // true on inner pages and paint cream text onto a light panel.
+  const onDark = cinematic && isHome && overHero;
+  // Retained for the mobile-menu-open state below.
   const solid = !isHome;
 
   const dashboardLink = getDashboardLink(profile?.role);
