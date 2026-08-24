@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzTeaser } from "@/lib/api";
@@ -15,24 +15,18 @@ type TeaserProduct = Pick<Product, "id" | "name" | "image_url">;
 
 // CHAPTER 2 — the breath after the hero.
 //
-// The hero is untouched. The seam works from this side only: this section
-// OPENS on the hero's exact background (#150c1c) and dissolves it down
-// through dusty lavender and mauve into warm ivory over ~34rem. There is no
-// divider, no wipe and no wave — the darkness simply runs out of itself, so
-// the eye never finds an edge to call "where the hero ended".
+// A plain white section. It previously carried a tinted dissolve, three
+// ambient colour fields, a drifting thread and a grain texture; all of that
+// was removed on request, leaving only content and its scroll reveals.
 //
-// Everything visual here is CSS colour, light, type and whitespace. No
-// photography, no illustration, no canvas.
+// The single remaining background element is a short, entirely neutral
+// dark-to-white blend at the very top — without it the hero's near-black
+// would meet white as a hard horizontal line.
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
-/** Hero's background, repeated exactly. Any drift here reopens the seam. */
+/** Hero's background, repeated exactly, so the blend above starts on the
+ *  same colour the hero ends on. */
 const HERO_DARK = "#150c1c";
-/** The page cream, read from the token so it can never drift out of step. */
-// Tracks the site token rather than hardcoding a tone. The palette moved
-// to a cooler, pinker cream (#faf4f7) and this section was left painting a
-// warm yellowish ivory, which showed as a visible colour step against the
-// body at both of its edges.
-const IVORY = "var(--cream)";
 
 export function FeelzTeaserSection() {
   const teaserQuery = useQuery({
@@ -43,17 +37,10 @@ export function FeelzTeaserSection() {
   const [lightboxProduct, setLightboxProduct] = useState<TeaserProduct | null>(null);
 
   const reduced = !!useReducedMotion();
-  const sectionRef = useRef<HTMLElement>(null);
 
-  // Scroll-linked ambient drift. Ranges are tiny on purpose — the section
-  // should feel alive, never busy.
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start end", "end start"],
-  });
-  const glowA = useTransform(scrollYProgress, [0, 1], [0, -46]);
-  const glowB = useTransform(scrollYProgress, [0, 1], [0, 34]);
-  const threadY = useTransform(scrollYProgress, [0, 1], [0, -60]);
+  // The scroll-linked ambient drift that used to live here (two glow fields
+  // and the thread) is gone along with the layers it moved, so the section
+  // no longer runs any scroll listener at all.
 
   const headingStagger = {
     hidden: {},
@@ -78,111 +65,26 @@ export function FeelzTeaserSection() {
   };
 
   return (
-    <section
-      ref={sectionRef}
-      className="grain-fine relative isolate overflow-hidden"
-      style={{ backgroundColor: IVORY }}
-    >
-      {/* LAYER 2 — the dissolve. Starts as the hero's own colour and loses
-          itself through lavender and mauve into the ivory base. Multi-stop
-          with a long tail so there is no perceptible banding or edge. */}
+    <section className="relative isolate overflow-hidden bg-white">
+      {/* Plain white section. The tinted dissolve, the three ambient colour
+          fields, the drifting thread and the grain texture have all been
+          removed — the only thing left behind the content is white.
+          Everything below this point is content and its scroll reveals.
+
+          The one exception is this short blend. The hero directly above ends
+          on its own near-black (#150c1c), so with nothing here at all that
+          dark would butt straight into white as a hard horizontal line. This
+          is a neutral dark-to-white ramp only: no lavender, no mauve, no
+          colour of any kind. */}
       <div
-        // Shorter on phones: at 34rem the dissolve alone filled most of a
-        // mobile viewport, so the section opened on a long empty gradient.
-        className="pointer-events-none absolute inset-x-0 top-0 -z-20 h-[21rem] sm:h-[28rem] lg:h-[34rem]"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 sm:h-52"
         style={{
-          // The tail fades to TRANSPARENT ivory, not opaque ivory. Ending
-          // opaque made this layer occlude the ambient glows sitting behind
-          // it, so they popped into view in a straight line at its bottom
-          // edge — a visible seam, which is the one thing this gradient
-          // exists to prevent.
-          background: `linear-gradient(to bottom,
-            ${HERO_DARK} 0%,
-            #1d1327 12%,
-            #322243 28%,
-            #5b4468 44%,
-            #93789b 60%,
-            #c3a9bd 73%,
-            rgba(230,214,226,0.72) 86%,
-            rgba(250,244,247,0) 100%)`,
+          background: `linear-gradient(to bottom, ${HERO_DARK} 0%, rgba(21,12,28,0.55) 34%, rgba(255,255,255,0) 100%)`,
         }}
         aria-hidden
       />
 
-      {/* LAYER 3 — ambient light fields. Enormous, heavily feathered radial
-          gradients rather than shapes: at this size and softness they read
-          as light in the room, and never resolve into blobs. */}
-      <motion.div
-        className="pointer-events-none absolute -z-30"
-        style={{
-          left: "-18%",
-          top: "22%",
-          width: "68%",
-          height: "60%",
-          y: reduced ? 0 : glowA,
-          background:
-            "radial-gradient(closest-side, rgba(166,108,152,0.13) 0%, rgba(166,108,152,0.05) 46%, rgba(250,244,247,0) 100%)",
-        }}
-        aria-hidden
-      />
-      <motion.div
-        className="pointer-events-none absolute -z-30"
-        style={{
-          right: "-14%",
-          top: "44%",
-          width: "62%",
-          height: "56%",
-          y: reduced ? 0 : glowB,
-          background:
-            "radial-gradient(closest-side, rgba(227,195,155,0.16) 0%, rgba(227,195,155,0.06) 44%, rgba(250,244,247,0) 100%)",
-        }}
-        aria-hidden
-      />
-      <div
-        className="pointer-events-none absolute -z-30"
-        style={{
-          left: "34%",
-          bottom: "-10%",
-          width: "44%",
-          height: "38%",
-          background:
-            "radial-gradient(closest-side, rgba(152,97,120,0.07) 0%, rgba(250,244,247,0) 100%)",
-        }}
-        aria-hidden
-      />
-
-      {/* THE THREAD — one thin line continuing the hero's flow downward, then
-          giving out. Deliberately singular: a second one would become a
-          pattern, and a thicker one would become a divider. */}
-      <motion.svg
-        className="pointer-events-none absolute -z-20 hidden md:block"
-        style={{ left: "58%", top: 0, width: 320, height: "82%", y: reduced ? 0 : threadY }}
-        viewBox="0 0 320 900"
-        preserveAspectRatio="none"
-        fill="none"
-        aria-hidden
-      >
-        <defs>
-          <linearGradient id="threadFade" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#c9a6d8" stopOpacity="0" />
-            <stop offset="14%" stopColor="#c9a6d8" stopOpacity="0.5" />
-            <stop offset="58%" stopColor="#c9a0b4" stopOpacity="0.26" />
-            <stop offset="100%" stopColor="#e3c39b" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M 176 0 C 232 150, 96 268, 148 420 C 196 560, 74 664, 128 812 C 152 872, 140 886, 136 900"
-          stroke="url(#threadFade)"
-          strokeWidth="1.1"
-          strokeLinecap="round"
-          className={reduced ? undefined : "thread-line"}
-          style={{ strokeDasharray: "200 1500", strokeDashoffset: 1700 }}
-        />
-      </motion.svg>
-
-      {/* Content. The top padding is doing real work: it is the breathing
-          space the dissolve needs in order to finish before any type starts. */}
-      <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-[15rem] sm:px-8 sm:pb-28 sm:pt-[22rem] lg:pt-[30rem]">
+      <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-40 sm:px-8 sm:pb-28 sm:pt-52">
         <motion.div
           className="text-center"
           variants={headingStagger}
@@ -241,7 +143,7 @@ export function FeelzTeaserSection() {
                 initial={reduced ? undefined : "hidden"}
                 whileInView="show"
                 viewport={{ once: true, amount: 0.25 }}
-                className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-ink/[0.09] bg-[#fdfaf5] transition-all duration-500 ease-out hover:-translate-y-1 hover:border-ink/20 hover:bg-white"
+                className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-ink/[0.09] bg-white transition-all duration-500 ease-out hover:-translate-y-1 hover:border-ink/20 hover:shadow-[0_14px_34px_-22px_rgba(17,17,16,0.35)]"
               >
                 {/* Accent hairline that only surfaces on hover — the card's
                     one piece of colour, drawn from its own mood gradient. */}
