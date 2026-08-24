@@ -24,10 +24,6 @@ type TeaserProduct = Pick<Product, "id" | "name" | "image_url">;
 // would meet white as a hard horizontal line.
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
-/** Hero's background, repeated exactly, so the blend above starts on the
- *  same colour the hero ends on. */
-const HERO_DARK = "#150c1c";
-
 export function FeelzTeaserSection() {
   const teaserQuery = useQuery({
     queryKey: ["products", "feelz-teaser"],
@@ -67,22 +63,9 @@ export function FeelzTeaserSection() {
   return (
     <section id="feelz-teaser" className="relative isolate overflow-hidden bg-white">
       {/* Plain white section. The tinted dissolve, the three ambient colour
-          fields, the drifting thread and the grain texture have all been
-          removed — the only thing left behind the content is white.
-          Everything below this point is content and its scroll reveals.
-
-          The one exception is this short blend. The hero directly above ends
-          on its own near-black (#150c1c), so with nothing here at all that
-          dark would butt straight into white as a hard horizontal line. This
-          is a neutral dark-to-white ramp only: no lavender, no mauve, no
-          colour of any kind. */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-40 sm:h-52"
-        style={{
-          background: `linear-gradient(to bottom, ${HERO_DARK} 0%, rgba(21,12,28,0.55) 34%, rgba(255,255,255,0) 100%)`,
-        }}
-        aria-hidden
-      />
+          fields, the drifting thread, the grain texture, and the dark-to-white
+          blend at the top have all been removed — the only thing behind the
+          content is white, full stop. */}
 
       <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-40 sm:px-8 sm:pb-28 sm:pt-52">
         <motion.div
