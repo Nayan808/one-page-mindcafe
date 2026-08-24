@@ -67,7 +67,7 @@ export function FeelzTeaserSection() {
           blend at the top have all been removed — the only thing behind the
           content is white, full stop. */}
 
-      <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-40 sm:px-8 sm:pb-28 sm:pt-52">
+      <div className="relative mx-auto max-w-6xl px-5 pb-24 pt-16 sm:px-8 sm:pb-28 sm:pt-20">
         <motion.div
           className="text-center"
           variants={headingStagger}
