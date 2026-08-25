@@ -3,12 +3,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getOrdersAdmin, getPickupLocationsAdmin, listUsersAdmin, updateOrderStatusAdmin, deleteOrderAdmin } from "@/lib/admin-api";
+import {
+  getOrdersAdmin,
+  getPickupLocationsAdmin,
+  listUsersAdmin,
+  updateOrderStatusAdmin,
+  updateOrderDetailsAdmin,
+  updateOrderItemQuantityAdmin,
+  deleteOrderAdmin,
+  type OrderDetailsEdit,
+} from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
+import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatDateTime, formatInr } from "@/lib/utils";
@@ -194,6 +204,53 @@ export default function AdminOrdersPage() {
   const orders = ordersQuery.data?.orders ?? [];
   const total = ordersQuery.data?.total ?? 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Edit modal — mirrors /admin/pickup-locations' pencil-icon → form-modal
+  // pattern. `editingOrder` is kept in sync with the live query below
+  // rather than frozen at open time, so an item-quantity change (which
+  // recomputes subtotal/total server-side) is reflected the moment the
+  // refetch lands, without the admin having to close and reopen.
+  const [editingOrder, setEditingOrder] = useState<OrderWithItemDetailsAndLocation | null>(null);
+  const [detailsForm, setDetailsForm] = useState<OrderDetailsEdit>({});
+
+  useEffect(() => {
+    if (!editingOrder) return;
+    const fresh = orders.find((o) => o.id === editingOrder.id);
+    if (fresh && fresh !== editingOrder) setEditingOrder(fresh);
+  }, [orders, editingOrder]);
+
+  function openEdit(order: OrderWithItemDetailsAndLocation) {
+    setEditingOrder(order);
+    setDetailsForm({
+      location_id: order.location_id,
+      pickup_slot: order.pickup_slot,
+      payment_status: order.payment_status,
+      notes: order.notes,
+      guest_address_line1: order.guest_address_line1,
+      guest_address_line2: order.guest_address_line2,
+      guest_address_city: order.guest_address_city,
+      guest_address_state: order.guest_address_state,
+      guest_address_pincode: order.guest_address_pincode,
+    });
+  }
+
+  const saveDetails = useMutation({
+    mutationFn: (args: { id: string; edit: OrderDetailsEdit }) => updateOrderDetailsAdmin(createClient(), args.id, args.edit),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "orders"] });
+      setEditingOrder(null);
+    },
+  });
+
+  // Deliberately not optimistic: this touches inventory server-side (see
+  // admin_set_order_item_quantity in 20260825000000_admin_order_editing.sql)
+  // and can fail on insufficient stock — the row should only ever show a
+  // quantity the server actually accepted.
+  const updateItemQty = useMutation({
+    mutationFn: (args: { orderId: string; itemId: string; quantity: number }) =>
+      updateOrderItemQuantityAdmin(createClient(), args.orderId, args.itemId, args.quantity),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "orders"] }),
+  });
 
   function toggleRow(id: string) {
     setSelectedIds((current) => {
@@ -460,6 +517,7 @@ export default function AdminOrdersPage() {
         selectedIds={selectedIds}
         onToggleRow={toggleRow}
         onToggleAll={toggleAll}
+        onEdit={openEdit}
         onDelete={
           isSuperAdmin
             ? async (o) => {
@@ -495,6 +553,204 @@ export default function AdminOrdersPage() {
           </button>
         </div>
       )}
+
+      <Modal isOpen={!!editingOrder} onClose={() => setEditingOrder(null)} title={editingOrder ? `edit — ${editingOrder.order_number}` : "edit order"}>
+        {editingOrder && (
+          <div className="space-y-5">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">Items</p>
+              <div className="space-y-2 rounded-lg border border-ink/15 p-3">
+                {editingOrder.order_items.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-3 text-sm">
+                    <div className="min-w-0">
+                      <p className="truncate text-ink">
+                        {item.product_variants.products.name} · {item.product_variants.variant_label}
+                      </p>
+                      <p className="text-xs text-ink/50">{formatInr(item.unit_price)} each</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateItemQty.mutate({ orderId: editingOrder.id, itemId: item.id, quantity: item.quantity - 1 })}
+                        disabled={updateItemQty.isPending || item.quantity <= 1}
+                        className="flex h-6 w-6 items-center justify-center rounded-full border border-ink/20 text-ink disabled:opacity-30"
+                      >
+                        −
+                      </button>
+                      <span className="w-5 text-center">{item.quantity}</span>
+                      <button
+                        type="button"
+                        onClick={() => updateItemQty.mutate({ orderId: editingOrder.id, itemId: item.id, quantity: item.quantity + 1 })}
+                        disabled={updateItemQty.isPending}
+                        className="flex h-6 w-6 items-center justify-center rounded-full border border-ink/20 text-ink disabled:opacity-30"
+                      >
+                        +
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          if (
+                            await confirmDialog({
+                              title: "remove item",
+                              message: `Remove "${item.product_variants.products.name} · ${item.product_variants.variant_label}" from this order? If stock was already taken for it, it'll be restocked.`,
+                              danger: true,
+                            })
+                          ) {
+                            updateItemQty.mutate({ orderId: editingOrder.id, itemId: item.id, quantity: 0 });
+                          }
+                        }}
+                        disabled={updateItemQty.isPending}
+                        className="text-xs text-red-600 hover:text-red-700 disabled:opacity-30"
+                      >
+                        remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {updateItemQty.isError && (
+                <p className="mt-1.5 text-xs text-red-600">
+                  {updateItemQty.error instanceof Error ? updateItemQty.error.message : "Couldn't update quantity — not enough stock?"}
+                </p>
+              )}
+              <div className="mt-2 flex justify-between text-xs text-ink/60">
+                <span>subtotal</span>
+                <span>{formatInr(editingOrder.subtotal)}</span>
+              </div>
+              <div className="flex justify-between text-xs text-ink/60">
+                <span>delivery fee</span>
+                <span>{formatInr(editingOrder.delivery_fee)}</span>
+              </div>
+              {editingOrder.discount_amount > 0 && (
+                <div className="flex justify-between text-xs text-ink/60">
+                  <span>discount</span>
+                  <span>−{formatInr(editingOrder.discount_amount)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm font-medium text-ink">
+                <span>total</span>
+                <span>{formatInr(editingOrder.total)}</span>
+              </div>
+            </div>
+
+            {editingOrder.fulfillment_type === "takeaway" && (
+              <div>
+                <label className="mb-1 block text-sm text-ink/70">Pickup location</label>
+                <select
+                  value={detailsForm.location_id ?? ""}
+                  onChange={(e) => setDetailsForm({ ...detailsForm, location_id: e.target.value || null })}
+                  className="input"
+                >
+                  <option value="">— none —</option>
+                  {(locationsQuery.data ?? []).map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.name}
+                      {l.city ? `, ${l.city}` : ""}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  value={detailsForm.pickup_slot ?? ""}
+                  onChange={(e) => setDetailsForm({ ...detailsForm, pickup_slot: e.target.value || null })}
+                  placeholder="Pickup slot (e.g. 4–6pm)"
+                  className="input mt-2"
+                />
+              </div>
+            )}
+
+            {editingOrder.fulfillment_type === "delivery" &&
+              (editingOrder.address_id ? (
+                <div>
+                  <label className="mb-1 block text-sm text-ink/70">Delivery address</label>
+                  <p className="rounded-lg border border-ink/15 bg-cream/60 p-3 text-xs text-ink/60">
+                    This order ships to the customer&apos;s saved address ({editingOrder.addresses?.city ?? "—"}
+                    {editingOrder.addresses?.pincode ? ` · ${editingOrder.addresses.pincode}` : ""}) — edit it from their account,
+                    not here.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="mb-1 block text-sm text-ink/70">Delivery address (guest checkout)</label>
+                  <div className="space-y-2">
+                    <input
+                      value={detailsForm.guest_address_line1 ?? ""}
+                      onChange={(e) => setDetailsForm({ ...detailsForm, guest_address_line1: e.target.value })}
+                      placeholder="Address line 1"
+                      className="input"
+                    />
+                    <input
+                      value={detailsForm.guest_address_line2 ?? ""}
+                      onChange={(e) => setDetailsForm({ ...detailsForm, guest_address_line2: e.target.value || null })}
+                      placeholder="Address line 2 (optional)"
+                      className="input"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        value={detailsForm.guest_address_city ?? ""}
+                        onChange={(e) => setDetailsForm({ ...detailsForm, guest_address_city: e.target.value })}
+                        placeholder="City"
+                        className="input"
+                      />
+                      <input
+                        value={detailsForm.guest_address_state ?? ""}
+                        onChange={(e) => setDetailsForm({ ...detailsForm, guest_address_state: e.target.value })}
+                        placeholder="State"
+                        className="input"
+                      />
+                    </div>
+                    <input
+                      value={detailsForm.guest_address_pincode ?? ""}
+                      onChange={(e) => setDetailsForm({ ...detailsForm, guest_address_pincode: e.target.value })}
+                      placeholder="Pincode"
+                      className="input"
+                    />
+                  </div>
+                </div>
+              ))}
+
+            <div>
+              <label className="mb-1 block text-sm text-ink/70">Payment status</label>
+              <select
+                value={detailsForm.payment_status ?? editingOrder.payment_status}
+                onChange={(e) =>
+                  setDetailsForm({ ...detailsForm, payment_status: e.target.value as OrderDetailsEdit["payment_status"] })
+                }
+                className="input"
+              >
+                {PAYMENT_STATUSES.map((s) => (
+                  <option key={s} value={s}>
+                    {s.replace(/_/g, " ")}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm text-ink/70">Internal notes</label>
+              <textarea
+                value={detailsForm.notes ?? ""}
+                onChange={(e) => setDetailsForm({ ...detailsForm, notes: e.target.value || null })}
+                rows={2}
+                className="input"
+              />
+            </div>
+
+            {saveDetails.isError && (
+              <p className="text-sm text-red-600">
+                {saveDetails.error instanceof Error ? saveDetails.error.message : "Failed to save changes"}
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => saveDetails.mutate({ id: editingOrder.id, edit: detailsForm })}
+              disabled={saveDetails.isPending}
+              className="pill-btn w-full"
+            >
+              {saveDetails.isPending ? "saving…" : "save"}
+            </button>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 }

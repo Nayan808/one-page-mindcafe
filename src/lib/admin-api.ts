@@ -293,13 +293,59 @@ export async function getOrdersAdmin(
   };
 }
 
+// "cancelled" is routed through admin_cancel_order (see
+// 20260825000000_admin_order_editing.sql) instead of a plain column
+// update — it restocks the order's items back to inventory, but only for
+// an order whose stock was actually decremented already (anything past
+// 'placed'), and only once (idempotent on an already-cancelled order).
 export async function updateOrderStatusAdmin(
   sb: Sb,
   orderId: string,
   status: Database["public"]["Tables"]["orders"]["Row"]["status"],
 ): Promise<void> {
+  if (status === "cancelled") {
+    const { error } = await sb.rpc("admin_cancel_order", { p_order_id: orderId });
+    throwOnError("updateOrderStatusAdmin (cancel)", error);
+    return;
+  }
   const { error } = await sb.from("orders").update({ status }).eq("id", orderId);
   throwOnError("updateOrderStatusAdmin", error);
+}
+
+// Plain-column edits an admin can make on an order after the fact —
+// covered by the existing orders_admin_update RLS policy, so a normal
+// .update() is enough (no inventory/total side effects like the item
+// quantity RPC below). guest_address_* only exists on guest-checkout
+// orders; a signed-in order's address lives on the separate `addresses`
+// row via address_id and isn't editable from here.
+export type OrderDetailsEdit = Partial<{
+  location_id: string | null;
+  pickup_slot: string | null;
+  payment_status: Database["public"]["Tables"]["orders"]["Row"]["payment_status"];
+  notes: string | null;
+  guest_address_line1: string | null;
+  guest_address_line2: string | null;
+  guest_address_city: string | null;
+  guest_address_state: string | null;
+  guest_address_pincode: string | null;
+}>;
+
+export async function updateOrderDetailsAdmin(sb: Sb, orderId: string, edit: OrderDetailsEdit): Promise<void> {
+  const { error } = await sb.from("orders").update(edit).eq("id", orderId);
+  throwOnError("updateOrderDetailsAdmin", error);
+}
+
+// order_items has no RLS update/delete policy at all (see setup.sql) —
+// line items are an immutable purchase record except through this RPC,
+// which also reconciles inventory and recomputes orders.subtotal/total
+// atomically server-side. newQuantity: 0 removes the line entirely.
+export async function updateOrderItemQuantityAdmin(sb: Sb, orderId: string, itemId: string, newQuantity: number): Promise<void> {
+  const { error } = await sb.rpc("admin_set_order_item_quantity", {
+    p_order_id: orderId,
+    p_item_id: itemId,
+    p_new_quantity: newQuantity,
+  });
+  throwOnError("updateOrderItemQuantityAdmin", error);
 }
 
 // RLS (orders_super_admin_delete) restricts this to super_admin — a plain

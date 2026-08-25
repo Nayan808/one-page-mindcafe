@@ -652,6 +652,14 @@ export interface Database {
         Args: Record<string, never>;
         Returns: number;
       };
+      admin_cancel_order: {
+        Args: { p_order_id: string };
+        Returns: undefined;
+      };
+      admin_set_order_item_quantity: {
+        Args: { p_order_id: string; p_item_id: string; p_new_quantity: number };
+        Returns: undefined;
+      };
     };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

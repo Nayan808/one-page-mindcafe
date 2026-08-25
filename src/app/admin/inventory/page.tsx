@@ -8,9 +8,7 @@ import {
   addMissingInventoryRowsAdmin,
   createInventoryTransactionAdmin,
   deleteInventoryTransactionAdmin,
-  getAllZostelInventoryAdmin,
   getFullInventoryAdmin,
-  getInventoryAdmin,
   getInventoryTransactionsAdmin,
   getPickupLocationsAdmin,
   getProductsAdmin,
@@ -23,7 +21,7 @@ import {
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
 import { formatInr } from "@/lib/utils";
-import type { InventoryWithVariant, InventoryWithVariantAndLocation, PickupLocation, ProductWithVariants } from "@/types/domain";
+import type { PickupLocation, ProductWithVariants } from "@/types/domain";
 
 // Same hardcoded floor for every "each" (single-location) option — chosen
 // directly, not derived from the per-variant reorder_threshold feature
@@ -70,8 +68,17 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
 
   const [date, setDate] = useState(() => toLocalDateInputValue(new Date()));
   const [type, setType] = useState<"received" | "shipped" | "online_sale">("received");
-  const [variantId, setVariantId] = useState("");
-  const [place, setPlace] = useState(""); // "" = online
+  // Place and product are both checkbox multi-selects rather than single
+  // dropdowns — checking several places and/or several products logs one
+  // transaction per (place × product) combination, splitting the single
+  // quantity entered below evenly across all of them (remainder goes to
+  // the first few so the total still adds up exactly). Checking "Zostel"
+  // reveals a checkbox per active location, all pre-checked, so "log this
+  // shipment across every Zostel" is one click plus individual opt-outs.
+  const [placeOnline, setPlaceOnline] = useState(true);
+  const [placeZostel, setPlaceZostel] = useState(false);
+  const [selectedZostelIds, setSelectedZostelIds] = useState<Set<string>>(new Set());
+  const [selectedVariantIds, setSelectedVariantIds] = useState<Set<string>>(new Set());
   const [quantity, setQuantity] = useState("");
   const [notes, setNotes] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
@@ -92,24 +99,87 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
     queryClient.invalidateQueries({ queryKey: ["admin", "inventory-transactions"] });
   };
 
-  const createTransaction = useMutation({
-    mutationFn: () =>
-      createInventoryTransactionAdmin(createClient(), {
-        transactionDate: date,
-        transactionType: type,
-        variantId,
-        locationId: place || null,
-        quantity: Number(quantity),
-        notes: notes.trim() || undefined,
-      }),
+  // null stands for Online (matches createInventoryTransactionAdmin's own
+  // locationId: string | null) — one token per checked place, in the
+  // order they'll be combined with each checked product below.
+  const placeTokens = useMemo(() => {
+    const tokens: (string | null)[] = [];
+    if (placeOnline) tokens.push(null);
+    if (placeZostel) {
+      for (const loc of activeLocations) {
+        if (selectedZostelIds.has(loc.id)) tokens.push(loc.id);
+      }
+    }
+    return tokens;
+  }, [placeOnline, placeZostel, selectedZostelIds, activeLocations]);
+
+  const comboCount = placeTokens.length * selectedVariantIds.size;
+
+  function toggleZostelMaster(checked: boolean) {
+    setPlaceZostel(checked);
+    setSelectedZostelIds(checked ? new Set(activeLocations.map((l) => l.id)) : new Set());
+  }
+  function toggleZostelLocation(id: string, checked: boolean) {
+    setSelectedZostelIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+  function toggleVariant(id: string, checked: boolean) {
+    setSelectedVariantIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
+
+  const createTransactions = useMutation({
+    mutationFn: async (rows: { variantId: string; locationId: string | null; quantity: number }[]) => {
+      const sb = createClient();
+      await Promise.all(
+        rows.map((r) =>
+          createInventoryTransactionAdmin(sb, {
+            transactionDate: date,
+            transactionType: type,
+            variantId: r.variantId,
+            locationId: r.locationId,
+            quantity: r.quantity,
+            notes: notes.trim() || undefined,
+          }),
+        ),
+      );
+    },
     onSuccess: () => {
       setFormError(null);
       setQuantity("");
       setNotes("");
       invalidate();
     },
-    onError: (err) => setFormError(err instanceof Error ? err.message : "Failed to add transaction"),
+    onError: (err) => setFormError(err instanceof Error ? err.message : "Failed to add transaction(s)"),
   });
+
+  // Splits the one quantity entered below evenly across every (place ×
+  // product) combination checked — e.g. 300 units across 3 products lands
+  // 100 each; a total that doesn't divide evenly gives the remainder to
+  // the first few combos so the sum still matches exactly what was typed.
+  function handleAdd() {
+    const qty = Number(quantity);
+    if (comboCount === 0 || !qty || qty < comboCount) return;
+    const base = Math.floor(qty / comboCount);
+    const remainder = qty % comboCount;
+    const rows: { variantId: string; locationId: string | null; quantity: number }[] = [];
+    let i = 0;
+    for (const vId of selectedVariantIds) {
+      for (const locationId of placeTokens) {
+        rows.push({ variantId: vId, locationId, quantity: base + (i < remainder ? 1 : 0) });
+        i++;
+      }
+    }
+    createTransactions.mutate(rows);
+  }
 
   const deleteTransaction = useMutation({
     mutationFn: (id: string) => deleteInventoryTransactionAdmin(createClient(), id),
@@ -157,12 +227,12 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
 
       <div className="border-b border-ink/10 p-4">
         <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">add transaction</p>
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
             <label className="mb-1 block text-[11px] font-medium text-ink/50">date</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input" />
           </div>
-          <div className="">
+          <div>
             <label className="mb-1 block text-[11px] font-medium text-ink/50">type</label>
             <select value={type} onChange={(e) => setType(e.target.value as typeof type)} className="input">
               <option value="received">Received</option>
@@ -170,40 +240,71 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
               <option value="online_sale">Online sale</option>
             </select>
           </div>
-          <div className="">
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">place</label>
-            <select value={place} onChange={(e) => setPlace(e.target.value)} className="input">
-              <option value="">Online</option>
-              {activeLocations.map((loc) => (
-                <option key={loc.id} value={loc.id}>
-                  {loc.name}
-                </option>
-              ))}
-            </select>
+
+          <div>
+            <p className="mb-1 text-[11px] font-medium text-ink/50">place</p>
+            <div className="flex flex-wrap gap-2">
+              <label className="flex items-center gap-1.5 rounded-full border border-ink/20 px-3 py-1 text-xs">
+                <input type="checkbox" checked={placeOnline} onChange={(e) => setPlaceOnline(e.target.checked)} />
+                Online
+              </label>
+              <label className="flex items-center gap-1.5 rounded-full border border-ink/20 px-3 py-1 text-xs">
+                <input type="checkbox" checked={placeZostel} onChange={(e) => toggleZostelMaster(e.target.checked)} />
+                Zostel
+              </label>
+            </div>
+            {placeZostel && (
+              <div className="mt-2 flex max-h-32 flex-wrap gap-2 overflow-y-auto rounded-lg border border-ink/10 bg-cream/40 p-2">
+                {activeLocations.map((loc) => (
+                  <label key={loc.id} className="flex items-center gap-1.5 rounded-full border border-ink/20 bg-white px-2.5 py-1 text-xs">
+                    <input
+                      type="checkbox"
+                      checked={selectedZostelIds.has(loc.id)}
+                      onChange={(e) => toggleZostelLocation(loc.id, e.target.checked)}
+                    />
+                    {loc.name}
+                  </label>
+                ))}
+              </div>
+            )}
           </div>
-          <div className="">
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">product</label>
-            <select value={variantId} onChange={(e) => setVariantId(e.target.value)} className="input">
-              <option value="">Select product…</option>
+
+          <div>
+            <div className="mb-1 flex items-center justify-between">
+              <p className="text-[11px] font-medium text-ink/50">product</p>
+              <label className="flex items-center gap-1.5 text-[11px] text-ink/50">
+                <input
+                  type="checkbox"
+                  checked={variantOptions.length > 0 && selectedVariantIds.size === variantOptions.length}
+                  onChange={(e) => setSelectedVariantIds(e.target.checked ? new Set(variantOptions.map((v) => v.id)) : new Set())}
+                />
+                all
+              </label>
+            </div>
+            <div className="flex max-h-32 flex-wrap gap-2 overflow-y-auto rounded-lg border border-ink/10 p-2">
               {variantOptions.map((v) => (
-                <option key={v.id} value={v.id}>
+                <label key={v.id} className="flex items-center gap-1.5 rounded-full border border-ink/20 px-2.5 py-1 text-xs">
+                  <input type="checkbox" checked={selectedVariantIds.has(v.id)} onChange={(e) => toggleVariant(v.id, e.target.checked)} />
                   {v.label}
-                </option>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
-          <div className="">
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">quantity</label>
+
+          <div>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">
+              quantity {comboCount > 1 ? `(split across ${comboCount})` : ""}
+            </label>
             <input
               type="number"
-              min="1"
+              min={comboCount || 1}
               placeholder="Quantity"
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               className="input"
             />
           </div>
-          <div className="">
+          <div>
             <label className="mb-1 block text-[11px] font-medium text-ink/50">reference / notes</label>
             <input
               value={notes}
@@ -213,14 +314,20 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
             />
           </div>
         </div>
+        {comboCount > 1 && Number(quantity) >= comboCount && (
+          <p className="mt-2 text-[11px] text-ink/50">
+            Will log {comboCount} entries — {Math.floor(Number(quantity) / comboCount)}
+            {Number(quantity) % comboCount > 0 ? `–${Math.ceil(Number(quantity) / comboCount)}` : ""} units each, split evenly.
+          </p>
+        )}
         {formError && <p className="mt-2 text-xs text-red-600">{formError}</p>}
         <button
           type="button"
-          onClick={() => createTransaction.mutate()}
-          disabled={!date || !variantId || !quantity || Number(quantity) <= 0 || createTransaction.isPending}
+          onClick={handleAdd}
+          disabled={!date || comboCount === 0 || !quantity || Number(quantity) < comboCount || createTransactions.isPending}
           className="pill-btn mt-3 !py-1.5 text-xs disabled:opacity-40"
         >
-          {createTransaction.isPending ? "adding…" : "add transaction"}
+          {createTransactions.isPending ? "adding…" : comboCount > 1 ? `add ${comboCount} transactions` : "add transaction"}
         </button>
       </div>
 
@@ -431,18 +538,9 @@ function ReorderThresholdCell({ summary }: { summary: SummaryRow }) {
   );
 }
 
-// FilterDropdown works on plain strings; "" stands in for the central/
-// online pool (locationId = null) since no real pickup_locations id can
-// ever be an empty string.
-const ONLINE_VALUE = "";
-// Sentinel for "every active Zostel location at once" — distinct from any
-// real pickup_locations id and from ONLINE_VALUE.
-const ALL_ZOSTEL_VALUE = "__all_zostel__";
-
-// Narrowed to just the two fields this cell actually touches (rather than
-// the full InventoryWithVariant shape) so it can also be used for a
-// summary-table row, which only carries the underlying inventory row's id
-// and quantity, not every joined column the per-location table has.
+// Narrowed to just the two fields this cell actually touches — the
+// summary table's row only carries the underlying inventory row's id and
+// quantity, not a full joined inventory row.
 function QuantityCell({ row }: { row: { id: string; quantity_available: number } }) {
   const queryClient = useQueryClient();
   const [value, setValue] = useState(String(row.quantity_available));
@@ -563,7 +661,6 @@ function aggregateByVariant(rows: FullInventoryRow[]): SummaryRow[] {
 
 export default function AdminInventoryPage() {
   const queryClient = useQueryClient();
-  const [locationId, setLocationId] = useState<string | null>(null);
   const [summaryScope, setSummaryScope] = useState<string>(SUMMARY_ALL);
 
   const fullInventoryQuery = useQuery({ queryKey: ["admin", "full-inventory"], queryFn: () => getFullInventoryAdmin(createClient()) });
@@ -575,17 +672,6 @@ export default function AdminInventoryPage() {
     queryKey: ["admin", "inventory-transactions"],
     queryFn: () => getInventoryTransactionsAdmin(createClient()),
   });
-  const isAllZostelView = locationId === ALL_ZOSTEL_VALUE;
-  const inventoryQuery = useQuery({
-    queryKey: ["admin", "inventory", locationId ?? "online"],
-    queryFn: () => getInventoryAdmin(createClient(), locationId),
-    enabled: !isAllZostelView,
-  });
-  const allZostelQuery = useQuery({
-    queryKey: ["admin", "all-zostel-inventory"],
-    queryFn: () => getAllZostelInventoryAdmin(createClient()),
-    enabled: isAllZostelView,
-  });
   // Only needed to know the full product-variant count, so a *partially*
   // stocked location (e.g. 2 of 4 products) can be detected too, not just
   // a location with zero rows.
@@ -593,20 +679,7 @@ export default function AdminInventoryPage() {
 
   const locations = locationsQuery.data ?? [];
   const activeZostelLocations = useMemo(() => locations.filter((l) => l.is_active), [locations]);
-  const rows = inventoryQuery.data ?? [];
   const totalVariantCount = (productsQuery.data ?? []).reduce((sum, product) => sum + product.product_variants.length, 0);
-  const missingCount = Math.max(0, totalVariantCount - rows.length);
-
-  const addMissing = useMutation({
-    mutationFn: () => addMissingInventoryRowsAdmin(createClient(), locationId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "inventory", locationId ?? "online"] }),
-  });
-
-  const locationOptions: FilterOption[] = [
-    { value: ONLINE_VALUE, label: "online / delivery" },
-    { value: ALL_ZOSTEL_VALUE, label: "all Zostel locations" },
-    ...locations.map((loc) => ({ value: loc.id, label: loc.name })),
-  ];
 
   // Scope options for the summary card, each flagged red when its own
   // stock is running low — 50 for any of the three aggregate scopes
@@ -648,6 +721,20 @@ export default function AdminInventoryPage() {
   // there's no single row to write a new quantity into, so those stay
   // read-only (edit the specific location instead).
   const isSingleLocationScope = summaryScope !== SUMMARY_ALL && summaryScope !== SUMMARY_ALL_ZOSTEL;
+  // The real pickup_locations id for the current scope, or null for the
+  // online pool — only meaningful (and only used) when isSingleLocationScope.
+  const scopeLocationId = summaryScope === SUMMARY_ONLINE ? null : summaryScope;
+  // aggregateByVariant collapses each single-location scope's rows to
+  // exactly one summary row per variant present there, so the gap against
+  // the full catalog is a direct missing-row count — same idea the old
+  // per-location table's "add missing" button used, just driven by this
+  // scope picker instead of a separate one.
+  const missingCount = isSingleLocationScope ? Math.max(0, totalVariantCount - summaryRows.length) : 0;
+
+  const addMissing = useMutation({
+    mutationFn: () => addMissingInventoryRowsAdmin(createClient(), scopeLocationId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] }),
+  });
 
   return (
     <div>
@@ -669,7 +756,19 @@ export default function AdminInventoryPage() {
               Transaction log below, for whatever scope is selected here.
             </p>
           </div>
-          <FilterDropdown options={scopeOptions} value={summaryScope} onChange={setSummaryScope} searchPlaceholder="Search…" />
+          <div className="flex items-center gap-2">
+            {isSingleLocationScope && missingCount > 0 && !fullInventoryQuery.isLoading && !productsQuery.isLoading && (
+              <button
+                type="button"
+                onClick={() => addMissing.mutate()}
+                disabled={addMissing.isPending}
+                className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
+              >
+                {addMissing.isPending ? "adding…" : `add ${missingCount} missing product${missingCount === 1 ? "" : "s"} (starts at 0)`}
+              </button>
+            )}
+            <FilterDropdown options={scopeOptions} value={summaryScope} onChange={setSummaryScope} searchPlaceholder="Search…" />
+          </div>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -778,136 +877,7 @@ export default function AdminInventoryPage() {
       </div>
 
       <TransactionLogSection products={productsQuery.data ?? []} locations={locations} />
-
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <FilterDropdown
-          options={locationOptions}
-          value={locationId ?? ONLINE_VALUE}
-          onChange={(v) => setLocationId(v === ONLINE_VALUE ? null : v)}
-          searchPlaceholder="Search locations…"
-        />
-        {!isAllZostelView && missingCount > 0 && !inventoryQuery.isLoading && !productsQuery.isLoading && (
-          <button
-            type="button"
-            onClick={() => addMissing.mutate()}
-            disabled={addMissing.isPending}
-            className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
-          >
-            {addMissing.isPending
-              ? "adding…"
-              : `add ${missingCount} missing product${missingCount === 1 ? "" : "s"} (starts at 0)`}
-          </button>
-        )}
-      </div>
-
-      {isAllZostelView ? (
-        <AllZostelInventoryTable rows={allZostelQuery.data ?? []} isLoading={allZostelQuery.isLoading} />
-      ) : (
-        <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-ink/10 text-[11px] uppercase tracking-label text-ink/50">
-                <th className="px-4 py-3">product</th>
-                <th className="px-4 py-3">variant</th>
-                <th className="px-4 py-3">quantity available</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inventoryQuery.isLoading ? (
-                <tr>
-                  <td colSpan={3} className="px-4 py-6 text-center text-ink/50">
-                    Loading…
-                  </td>
-                </tr>
-              ) : rows.length === 0 ? (
-                <tr>
-                  <td colSpan={3} className="px-4 py-6 text-center text-ink/50">
-                    No inventory rows for this location yet.
-                  </td>
-                </tr>
-              ) : (
-                rows.map((row) => (
-                  <tr key={row.id} className="border-b border-ink/5 last:border-0 hover:bg-cream/60">
-                    <td className="px-4 py-3 font-medium text-ink">{row.product_variants.products.name}</td>
-                    <td className="px-4 py-3 text-ink/60">{row.product_variants.variant_label}</td>
-                    <td className="px-4 py-3">
-                      <QuantityCell row={row} />
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 }
 
-// Every active Zostel property's own stock, grouped by location, all
-// editable in one place — the alternative to stepping through the
-// dropdown one property at a time.
-function AllZostelInventoryTable({ rows, isLoading }: { rows: InventoryWithVariantAndLocation[]; isLoading: boolean }) {
-  const byLocation = useMemo(() => {
-    const groups = new Map<string, { name: string; city: string; rows: InventoryWithVariantAndLocation[] }>();
-    for (const row of rows) {
-      const key = row.location_id ?? "";
-      const existing = groups.get(key);
-      if (existing) {
-        existing.rows.push(row);
-      } else {
-        groups.set(key, { name: row.pickup_locations?.name ?? "Unknown", city: row.pickup_locations?.city ?? "", rows: [row] });
-      }
-    }
-    return [...groups.values()].sort((a, b) => a.name.localeCompare(b.name));
-  }, [rows]);
-
-  if (isLoading) {
-    return (
-      <div className="rounded-2xl border border-ink/10 bg-white px-4 py-6 text-center text-sm text-ink/50">Loading…</div>
-    );
-  }
-
-  if (byLocation.length === 0) {
-    return (
-      <div className="rounded-2xl border border-ink/10 bg-white px-4 py-6 text-center text-sm text-ink/50">
-        No Zostel inventory yet.
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {byLocation.map((location) => (
-        <div key={location.name} className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
-          <div className="border-b border-ink/10 bg-cream/60 px-4 py-2.5">
-            <p className="text-sm font-semibold text-ink">
-              {location.name}
-              {location.city ? <span className="font-normal text-ink/50"> — {location.city}</span> : null}
-            </p>
-          </div>
-          <table className="w-full text-left text-sm">
-            <thead>
-              <tr className="border-b border-ink/10 text-[11px] uppercase tracking-label text-ink/50">
-                <th className="px-4 py-2.5">product</th>
-                <th className="px-4 py-2.5">variant</th>
-                <th className="px-4 py-2.5">quantity available</th>
-              </tr>
-            </thead>
-            <tbody>
-              {location.rows.map((row) => (
-                <tr key={row.id} className="border-b border-ink/5 last:border-0 hover:bg-cream/60">
-                  <td className="px-4 py-2.5 font-medium text-ink">{row.product_variants.products.name}</td>
-                  <td className="px-4 py-2.5 text-ink/60">{row.product_variants.variant_label}</td>
-                  <td className="px-4 py-2.5">
-                    <QuantityCell row={row} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ))}
-    </div>
-  );
-}
