@@ -19,8 +19,28 @@ import { motion, useInView, useReducedMotion } from "motion/react";
 /** One curve for the whole page. Slow out, no overshoot, never springy. */
 export const EASE = [0.22, 0.61, 0.36, 1] as const;
 
+/**
+ * `prefers-reduced-motion`, but safe to branch on during render.
+ *
+ * WHY THIS IS NOT JUST `useReducedMotion()`: that hook reads the media
+ * query synchronously, so on the server it is always false (there is no
+ * `window` to ask) while on the client's very first render — the hydration
+ * render — it is already true for anyone who has reduced motion turned on.
+ * Every component that branches on it then renders different attributes on
+ * the two passes, and React reports a hydration mismatch and gives up on
+ * patching that subtree. It is invisible to everyone else, which is exactly
+ * why it survived this long.
+ *
+ * So: report "not reduced" for the first render on both sides, and tell the
+ * truth from the effect onward. The cost is that a reduced-motion visitor
+ * gets one frame of the animated markup before it settles; the alternative
+ * is a broken hydration boundary on every page they load.
+ */
 export function useCalmMotion() {
-  return !!useReducedMotion();
+  const reduced = useReducedMotion();
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+  return hydrated && !!reduced;
 }
 
 /**
@@ -274,7 +294,10 @@ export function CountUp({
         transition={{ duration: 0.5, ease: EASE }}
         style={{ display: "inline-block" }}
       >
-        {shown}
+        {/* Regrouped, because the target was parsed by stripping the
+            separators out of the source string — without this a figure
+            written "20,000+" would land as a bare "20000+". */}
+        {shown.toLocaleString("en-US")}
       </motion.span>
       {/* The suffix lands only once the number has arrived — a small beat
           that makes the figure feel finished rather than merely stopped. */}

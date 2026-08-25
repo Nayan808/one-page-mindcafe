@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
+import { useCalmMotion } from "@/components/motion/primitives";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzTeaser } from "@/lib/api";
@@ -36,7 +37,7 @@ export function FeelzTeaserSection() {
   const products = teaserQuery.data ?? [];
   const [lightboxProduct, setLightboxProduct] = useState<TeaserProduct | null>(null);
 
-  const reduced = !!useReducedMotion();
+  const reduced = useCalmMotion();
 
   // The scroll-linked ambient drift that used to live here (two glow fields
   // and the thread) is gone along with the layers it moved, so the section

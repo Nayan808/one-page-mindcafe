@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Laptop, Lock, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getSiteSetting } from "@/lib/api";
+import { CounsellingHeroBackdrop } from "@/components/counselling/CounsellingHeroBackdrop";
 
 // Static hero (spec 4.4) — no DB call needed except the session price,
 // which is admin-configurable (site_settings.counselling_session_price)
@@ -17,8 +18,16 @@ export function CounsellingHero() {
   });
 
   return (
-    <section className="relative overflow-hidden bg-white text-ink">
-      <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
+    // `-mt-[84px]` lifts the section up under the sticky glass navbar, the
+    // same way the Feelz and homepage heroes do, so the artwork has no top
+    // edge either. The 84px comes straight back as top padding on the copy
+    // below, so the content itself does not move. The deeper bottom padding
+    // is what gives the dissolve room to run all the way out to the page's
+    // white inside this section, rather than handing a colour to the next
+    // one.
+    <section className="relative -mt-[84px] overflow-hidden bg-white text-ink">
+      <CounsellingHeroBackdrop>
+      <div className="relative z-10 mx-auto max-w-2xl px-4 pb-36 pt-[164px] text-center sm:px-6 sm:pb-44">
         <span className="rounded-full border border-ink/20 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/70">
           certified professionals, private &amp; confidential
         </span>
@@ -62,6 +71,7 @@ export function CounsellingHero() {
           )}
         </div>
       </div>
+      </CounsellingHeroBackdrop>
     </section>
   );
 }

@@ -14,6 +14,7 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { Modal } from "@/components/Modal";
 import { moodStyleFor } from "@/lib/moodStyles";
+import { FeelzHeroBackdrop } from "@/components/feelz/FeelzHeroBackdrop";
 import { formatInr } from "@/lib/utils";
 import type { ProductWithVariants } from "@/types/domain";
 
@@ -109,8 +110,13 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="relative overflow-hidden bg-white">
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
+    // `-mt-[84px]` lifts the section up under the sticky glass navbar, the
+    // same way the homepage hero does, so the artwork has no top edge
+    // either. The 84px is handed straight back as top padding on the copy
+    // below, so nothing on the page actually moves.
+    <section ref={timelineRef} className="relative -mt-[84px] overflow-hidden bg-white">
+      <FeelzHeroBackdrop>
+      <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 pb-12 pt-[132px] text-center sm:px-6">
         <TimelineContent
           as="div"
           animationNum={0}
@@ -223,9 +229,26 @@ export function Hero() {
           ))}
         </TimelineContent>
       </div>
+      </FeelzHeroBackdrop>
 
-      <div className="bg-white">
-      <div id="mood-picks" className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
+      <div className="relative bg-white">
+      {/* The artwork's warmth carried a little further down the page than
+          the artwork itself reaches. Without this the dissolve above lands
+          on white and stops dead, which is exactly the "picture sitting on
+          a page" reading we are trying to avoid — the colour should run out
+          gradually, well into the section below. */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 sm:h-80"
+        style={{
+          // Opens on the exact cream the hero's dissolve closes on, so
+          // there is no step where the two sections meet — the colour just
+          // keeps going and runs out somewhere around "Our Strips".
+          background:
+            "linear-gradient(to bottom, rgb(247,242,240) 0%, rgba(247,242,240,0.62) 30%, rgba(250,247,246,0.28) 62%, rgba(255,255,255,0) 100%)",
+        }}
+        aria-hidden
+      />
+      <div id="mood-picks" className="relative mx-auto max-w-5xl px-4 pb-16 sm:px-6">
         <div className="text-center">
           <div className="mx-auto flex w-fit items-center gap-3">
             <span className="h-px w-10 bg-ink/20" aria-hidden />

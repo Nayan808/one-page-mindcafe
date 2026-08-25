@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { ClipboardList, Phone, PenTool, Rocket, Star, TrendingUp } from "lucide-react";
+import { BarChart3, ClipboardList, Handshake, Phone, PenTool, Rocket, Star, TrendingUp, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getRecentReviews } from "@/lib/api";
 import { BusinessLeadForm } from "@/components/BusinessLeadForm";
 import { Reveal } from "@/components/Reveal";
+import { CountUp } from "@/components/motion/primitives";
+import { BusinessHeroBackdrop } from "@/components/business/BusinessHeroBackdrop";
 
 // Copy and imagery sourced from mindcafe.app/businesses (the same company's
 // live corporate-wellness page) rather than invented — stats, the offering
@@ -30,7 +32,15 @@ const OFFERINGS = [
   },
 ];
 
-const STATS = ["20,000+ people served", "20+ organisations partnered", "20,000+ sessions completed", "96% satisfaction"];
+// Split into figure + label rather than one sentence, so the number can be
+// the thing you actually see. Same four stats, same wording — only the
+// shape changed.
+const STATS = [
+  { Icon: Users, figure: "20,000+", label: "people served" },
+  { Icon: Handshake, figure: "20+", label: "organisations partnered" },
+  { Icon: BarChart3, figure: "20,000+", label: "sessions completed" },
+  { Icon: Star, figure: "96%", label: "satisfaction" },
+];
 
 const ORG_TYPES = [
   {
@@ -173,39 +183,59 @@ function CorporateTestimonials() {
 export default function BusinessPage() {
   return (
     <div>
-      <section className="relative overflow-hidden bg-white text-ink">
-        <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <span className="rounded-full border border-ink/20 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/70">
-            Build Healthier Teams
-          </span>
-          <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
-            Improve <span className="font-tagline italic text-brand">team performance.</span>
-          </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm text-ink/60 sm:text-base">
-            For companies, universities, startups, and institutions seeking structured mental wellness solutions
-            through counselling, workshops, and performance tools.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <a href="#get-in-touch" className="pill-btn">
-              Partner With Us →
-            </a>
-            <a href="#whats-included" className="pill-btn-outline">
-              Explore Offerings
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-white">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-        <div className="grid gap-4 sm:grid-cols-4">
-          {STATS.map((stat) => (
-            <div key={stat} className="rounded-xl border border-ink/25 bg-white p-4 text-center">
-              <p className="font-display text-sm font-bold text-ink sm:text-base">{stat}</p>
+      {/* `-mt-[84px]` lifts the section up under the sticky glass navbar, the
+          same way the other artwork heroes do, so the artwork has no top
+          edge. The 84px comes straight back as top padding on the copy. */}
+      <section className="relative -mt-[84px] overflow-hidden bg-white text-ink">
+        <BusinessHeroBackdrop>
+        <div className="relative z-10 mx-auto max-w-6xl px-4 pb-24 pt-[164px] sm:px-6 sm:pb-28">
+          <div className="mx-auto max-w-2xl text-center">
+            <span className="rounded-full border border-ink/20 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/70">
+              Build Healthier Teams
+            </span>
+            <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
+              Improve <span className="font-tagline italic text-brand">team performance.</span>
+            </h1>
+            <p className="mx-auto mt-4 max-w-lg text-sm text-ink/60 sm:text-base">
+              For companies, universities, startups, and institutions seeking structured mental wellness solutions
+              through counselling, workshops, and performance tools.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <a href="#get-in-touch" className="pill-btn">
+                Partner With Us →
+              </a>
+              <a href="#whats-included" className="pill-btn-outline">
+                Explore Offerings
+              </a>
             </div>
-          ))}
+          </div>
+
+          {/* The stats sit on the artwork at the foot of the hero rather than
+              in a white band below it. Translucent glass so the room stays
+              visible through them — they read as resting on the desk, which
+              is the whole reason the artwork is there. The figure leads and
+              the label follows underneath; the sentence-per-card version
+              gave the number no more weight than the words around it. */}
+          <ul className="mx-auto mt-20 grid max-w-5xl grid-cols-2 gap-3 sm:mt-24 sm:grid-cols-4 sm:gap-4">
+            {STATS.map((stat, index) => (
+              <li
+                key={stat.label}
+                className="flex items-center gap-3 rounded-2xl border border-white/70 bg-white/70 px-4 py-3.5 shadow-[0_12px_32px_-24px_rgba(17,17,16,0.55)] backdrop-blur-md"
+              >
+                <stat.Icon className="h-5 w-5 shrink-0 text-brand" strokeWidth={1.6} aria-hidden />
+                <div className="min-w-0 text-left">
+                  <CountUp
+                    value={stat.figure}
+                    delay={0.12 * index}
+                    className="font-display block text-lg font-bold leading-none text-ink sm:text-xl"
+                  />
+                  <p className="mt-1 text-[11px] leading-tight text-ink/55">{stat.label}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-        </div>
+        </BusinessHeroBackdrop>
       </section>
 
       <section className="bg-white">

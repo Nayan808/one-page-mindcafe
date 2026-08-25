@@ -3,11 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { JourneyStrip } from "@/components/hero/JourneyStrip";
 import { HeroLightFlow } from "@/components/hero/HeroLightFlow";
 import { SettledWord, UnsettledWord } from "@/components/hero/FloatingWords";
+import { useCalmMotion } from "@/components/motion/primitives";
 
 // Homepage hero built ON the cinematic artwork (public/homepage/hero-artwork.png)
 // rather than attempting to recreate it.
@@ -68,7 +69,7 @@ const CALM = [
 ];
 
 export function HomeHero() {
-  const prefersReduced = useReducedMotion();
+  const prefersReduced = useCalmMotion();
   const reduced = !!prefersReduced;
 
   // Pointer parallax, desktop only. Written to a ref and applied via
