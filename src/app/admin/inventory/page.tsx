@@ -558,13 +558,7 @@ function QuantityCell({ row }: { row: { id: string; quantity_available: number }
   const save = useMutation({
     mutationFn: (quantity: number) => updateInventoryQuantityAdmin(createClient(), row.id, quantity),
     onSuccess: () => {
-      // Every view that shows this same quantity — the single-location
-      // table, the cross-location summary, and the "all Zostel" list —
-      // needs to pick up the change, not just whichever one this cell
-      // happens to live in.
-      queryClient.invalidateQueries({ queryKey: ["admin", "inventory"] });
       queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["admin", "all-zostel-inventory"] });
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 1800);
     },
@@ -600,6 +594,103 @@ function QuantityCell({ row }: { row: { id: string; quantity_available: number }
       )}
       {!save.isError && !justSaved && row.quantity_available === 0 && (
         <span className="text-xs font-medium text-red-600">out of stock</span>
+      )}
+    </div>
+  );
+}
+
+// Splits a new aggregate total back across the real per-location rows it's
+// made of, proportionally to each location's current share — a location
+// holding 40% of current stock absorbs 40% of the change. Uses largest-
+// remainder apportionment (floor every exact share, then hand the leftover
+// units to the rows with the biggest fractional share) so the distributed
+// quantities always sum to exactly newTotal and never go negative. Falls
+// back to an even split when every row is currently at 0 (nothing to be
+// proportional to).
+function distributeProportionally(rows: { id: string; quantity_available: number }[], newTotal: number): { id: string; quantity: number }[] {
+  if (rows.length === 0) return [];
+  const target = Math.max(0, newTotal);
+  const oldTotal = rows.reduce((sum, r) => sum + r.quantity_available, 0);
+
+  const exactShares =
+    oldTotal === 0
+      ? rows.map(() => target / rows.length)
+      : rows.map((r) => (r.quantity_available / oldTotal) * target);
+
+  const floored = exactShares.map(Math.floor);
+  let remaining = target - floored.reduce((sum, v) => sum + v, 0);
+  const byRemainderDesc = exactShares
+    .map((share, i) => ({ i, fraction: share - floored[i] }))
+    .sort((a, b) => b.fraction - a.fraction);
+
+  const quantities = [...floored];
+  for (const { i } of byRemainderDesc) {
+    if (remaining <= 0) break;
+    quantities[i] += 1;
+    remaining--;
+  }
+
+  return rows.map((r, i) => ({ id: r.id, quantity: quantities[i] }));
+}
+
+// Editable "remaining stock" cell for an aggregate scope ("all" / "all
+// Zostel") — there's no single row backing the number shown, so saving a
+// new total distributes it across every real underlying row via
+// distributeProportionally above, then writes each one individually.
+function AggregateQuantityCell({ rows }: { rows: FullInventoryRow[] }) {
+  const queryClient = useQueryClient();
+  const total = rows.reduce((sum, r) => sum + r.quantityAvailable, 0);
+  const [value, setValue] = useState(String(total));
+  const [justSaved, setJustSaved] = useState(false);
+
+  useEffect(() => {
+    setValue(String(total));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [total]);
+
+  const save = useMutation({
+    mutationFn: async (newTotal: number) => {
+      const sb = createClient();
+      const distributed = distributeProportionally(
+        rows.map((r) => ({ id: r.id, quantity_available: r.quantityAvailable })),
+        newTotal,
+      );
+      await Promise.all(distributed.map((d) => updateInventoryQuantityAdmin(sb, d.id, d.quantity)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] });
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1800);
+    },
+  });
+
+  const dirty = Number(value) !== total && value !== "";
+
+  return (
+    <div className="flex items-center gap-2">
+      <input
+        type="number"
+        min="0"
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+          save.reset();
+        }}
+        className="input !w-24 !py-1.5 text-sm"
+      />
+      <button
+        type="button"
+        onClick={() => save.mutate(Number(value))}
+        disabled={!dirty || save.isPending || rows.length === 0}
+        className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
+      >
+        {save.isPending ? "saving…" : "save"}
+      </button>
+      {justSaved && <span className="text-xs font-medium text-emerald-700">✓ saved</span>}
+      {save.isError && (
+        <span className="text-xs font-medium text-red-600">
+          {save.error instanceof Error ? save.error.message : "Failed to save"}
+        </span>
       )}
     </div>
   );
@@ -706,9 +797,20 @@ export default function AdminInventoryPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [full, activeZostelLocations]);
 
-  const summaryRows: SummaryRow[] = useMemo(() => {
-    return aggregateByVariant(full.filter((r) => inScope(r.locationId, summaryScope)));
-  }, [full, summaryScope]);
+  const scopedFullRows = useMemo(() => full.filter((r) => inScope(r.locationId, summaryScope)), [full, summaryScope]);
+  const summaryRows: SummaryRow[] = useMemo(() => aggregateByVariant(scopedFullRows), [scopedFullRows]);
+  // The real per-location rows behind each summary row, for the current
+  // scope — AggregateQuantityCell needs these (not just the total) to
+  // know what to distribute a new aggregate number across.
+  const rowsByVariant = useMemo(() => {
+    const map = new Map<string, FullInventoryRow[]>();
+    for (const r of scopedFullRows) {
+      const existing = map.get(r.variantId);
+      if (existing) existing.push(r);
+      else map.set(r.variantId, [r]);
+    }
+    return map;
+  }, [scopedFullRows]);
 
   const loggedByVariant = useMemo(
     () => aggregateTransactionsByVariant(transactionsQuery.data ?? [], summaryScope),
@@ -753,7 +855,9 @@ export default function AdminInventoryPage() {
                 ? AGGREGATE_LOW_STOCK_FLOOR
                 : LOCATION_LOW_STOCK_FLOOR}{" "}
               units left on some product. &quot;Logged net&quot; and &quot;gap&quot; compare live stock against the
-              Transaction log below, for whatever scope is selected here.
+              Transaction log below, for whatever scope is selected here. Remaining stock is editable at every
+              scope — editing &quot;all&quot; or &quot;all Zostel&quot; splits the new number across each real
+              location proportionally to its current share, rather than writing one row directly.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -818,7 +922,7 @@ export default function AdminInventoryPage() {
                           {isSingleLocationScope ? (
                             <QuantityCell row={{ id: summary.inventoryRowId, quantity_available: summary.totalRemaining }} />
                           ) : (
-                            summary.totalRemaining
+                            <AggregateQuantityCell rows={rowsByVariant.get(summary.variantId) ?? []} />
                           )}
                         </td>
                         <td className="px-4 py-3 text-ink/70">{formatInr(stockValue)}</td>
