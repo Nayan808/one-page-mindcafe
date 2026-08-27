@@ -110,7 +110,24 @@ export function Hero() {
 
   return (
     <section ref={timelineRef} className="relative overflow-hidden bg-white">
-      <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
+      {/* This wrapper — not the outer <section> — owns the background image.
+          The section also contains the "Our Strips" grid below, so an
+          absolutely-positioned image/overlay placed directly on the section
+          would stretch to cover the section's full height (hero + grid
+          combined) instead of just the hero banner. Scoping it to a div
+          sized by just the hero content keeps the photo confined to this
+          banner only. */}
+      <div className="relative overflow-hidden text-[#f6efe4]" style={{ backgroundColor: "#150c1c" }}>
+        <Image src="/feelz-hero.png" alt="" fill priority sizes="100vw" className="object-cover opacity-70" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(21,12,28,0.55) 0%, rgba(21,12,28,0.72) 55%, rgba(21,12,28,0.92) 100%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
         <TimelineContent
           as="div"
           animationNum={0}
@@ -149,7 +166,7 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mx-auto mt-6 max-w-3xl text-5xl leading-[1.05] font-bold tracking-tight text-ink sm:text-7xl xl:text-8xl"
+          className="font-display mx-auto mt-6 max-w-3xl text-5xl leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-7xl xl:text-8xl"
         >
           <span className="relative block h-[1.15em] overflow-hidden text-center">
             <AnimatePresence mode="popLayout">
@@ -179,7 +196,7 @@ export function Hero() {
           animationNum={3}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-ink/70 sm:text-xl"
+          className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-[#f4ead9]/70 sm:text-xl"
         >
           Fast-dissolving mood strips: Focus, Extrovert, Joy &amp; Rest, on demand. No water, no sugar, made in
           India.
@@ -192,16 +209,10 @@ export function Hero() {
           customVariants={revealVariants}
           className="mt-8 flex flex-wrap items-center justify-center gap-3"
         >
-          <button
-            onClick={() => scrollTo("mood-picks")}
-            className="inline-flex items-center justify-center gap-1.5 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90"
-          >
+          <button onClick={() => scrollTo("mood-picks")} className="btn-cine-primary">
             Shop Feelz ↓
           </button>
-          <button
-            onClick={() => scrollTo("zostel-locations")}
-            className="inline-flex items-center justify-center gap-2 rounded-full border border-ink/30 bg-transparent px-5 py-2.5 text-sm font-medium text-ink transition hover:bg-ink/5"
-          >
+          <button onClick={() => scrollTo("zostel-locations")} className="btn-cine-secondary">
             <span className="relative h-5 w-5 shrink-0">
               <Image src="/press/zostel-star.png" alt="" fill className="object-contain" />
             </span>
@@ -222,6 +233,7 @@ export function Hero() {
             </span>
           ))}
         </TimelineContent>
+        </div>
       </div>
 
       <div className="bg-white">

@@ -173,23 +173,32 @@ function CorporateTestimonials() {
 export default function BusinessPage() {
   return (
     <div>
-      <section className="relative overflow-hidden bg-white text-ink">
-        <div className="relative mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <span className="rounded-full border border-ink/20 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/70">
+      <section className="relative overflow-hidden text-[#f6efe4]" style={{ backgroundColor: "#150c1c" }}>
+        <Image src="/business-hero.jpg" alt="" fill priority sizes="100vw" className="object-cover opacity-70" />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(21,12,28,0.55) 0%, rgba(21,12,28,0.72) 55%, rgba(21,12,28,0.92) 100%)",
+          }}
+          aria-hidden
+        />
+        <div className="relative mx-auto max-w-2xl px-4 py-24 text-center sm:px-6 sm:py-28">
+          <span className="rounded-full border border-[#f4ead9]/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-[#f4ead9]/80">
             Build Healthier Teams
           </span>
-          <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
-            Improve <span className="font-tagline italic text-brand">team performance.</span>
+          <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] text-[#f6efe4] sm:text-6xl">
+            Improve <span className="font-tagline italic text-brand-blush">team performance.</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm text-ink/60 sm:text-base">
+          <p className="mx-auto mt-4 max-w-lg text-sm text-[#f4ead9]/70 sm:text-base">
             For companies, universities, startups, and institutions seeking structured mental wellness solutions
             through counselling, workshops, and performance tools.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <a href="#get-in-touch" className="pill-btn">
+            <a href="#get-in-touch" className="btn-cine-primary">
               Partner With Us →
             </a>
-            <a href="#whats-included" className="pill-btn-outline">
+            <a href="#whats-included" className="btn-cine-secondary">
               Explore Offerings
             </a>
           </div>
