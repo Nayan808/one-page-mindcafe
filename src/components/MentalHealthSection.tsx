@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
+import { motion } from "motion/react";
+import { EASE, useCalmMotion } from "@/components/motion/primitives";
 
 // Homepage-only editorial break between the hero and the Feelz product
 // teaser. Deliberately not about Mindcafe's own products or verticals —
@@ -12,21 +14,21 @@ import Link from "next/link";
 // format on purpose — general, non-clinical statements, no invented
 // statistics.
 //
-// Strikeout reveal instead of tap-to-flip: the myth text renders normally
-// (full-weight ink, not dimmed), and the strike itself is a bar that
-// visibly grows across it — an animated `background-size` on the inline
-// text span rather than a plain text-decoration-color fade (too subtle
-// to read as motion) or an absolutely-positioned "drawn line" overlay
-// (breaks on wrapped text). Backgrounds on inline elements paint
-// per line-fragment, so when the myth wraps to two lines, each line
-// grows its own bar to 100% of that line's own width at the same rate —
-// both lines finish together with no JS text-measurement needed. All
-// four cards fire together the moment the section scrolls into view, off
-// one shared IntersectionObserver on the grid rather than per-card
-// observers. Once a card's strike finishes, its reality appears
-// underneath. The single "consult an expert" link at the end is the one
-// deliberate promotional exception, a soft bridge out of the myths into
-// real support.
+// The interaction is built around a metaphor that's actually about mental
+// health, not a generic UI trick: a myth is something UNCLEAR — so it
+// renders soft-focus and muted — and tapping it is the act of bringing it
+// into clarity. The strike-through still grows across it (an animated
+// `background-size` on the inline text span, since a plain text-decoration
+// fade reads as too subtle, and an absolutely-positioned "drawn line"
+// overlay breaks on wrapped text), but now alongside the blur lifting and
+// the ink darkening to full weight — the text visibly comes into focus as
+// it's corrected. The reality that follows rises in with the same
+// blur-clear motion (same EASE curve, same shape) as the homepage hero's
+// "Understanding / Healing / Clarity" words settling into place — the same
+// idea, reused, rather than a one-off animation invented for this card.
+// Each card is independent, so reading one doesn't spoil the others. The
+// single "consult an expert" link at the end is the one deliberate
+// promotional exception, a soft bridge out of the myths into real support.
 const MYTHS = [
   {
     myth: "Only “serious” problems count as mental health issues.",
@@ -46,62 +48,73 @@ const MYTHS = [
   },
 ];
 
-function MythCard({ myth, reality, start }: { myth: string; reality: string; start: boolean }) {
+function MythCard({ myth, reality }: { myth: string; reality: string }) {
+  const calm = useCalmMotion();
+  const [struck, setStruck] = useState(false);
   const [revealed, setRevealed] = useState(false);
 
   return (
-    <div className="relative flex min-h-[16rem] flex-col items-center gap-3 rounded-3xl border border-ink/10 bg-white p-7 text-center">
+    <button
+      type="button"
+      onClick={() => setStruck(true)}
+      disabled={struck}
+      aria-label={struck ? undefined : `Bring into focus: ${myth}`}
+      className="relative flex w-full min-h-[16rem] flex-col items-center gap-3 rounded-3xl border border-ink/10 bg-white p-7 text-center transition-shadow enabled:cursor-pointer enabled:hover:shadow-[0_10px_28px_-18px_rgba(17,17,16,0.35)] disabled:cursor-default"
+    >
       <span className="text-[10px] font-semibold uppercase tracking-label text-ink/35">Myth</span>
 
       <div className="flex flex-1 items-center justify-center">
-        <p className="font-tagline text-xl italic leading-snug text-ink sm:text-2xl">
-          <span
-            onTransitionEnd={(e) => {
-              if (e.propertyName === "background-size") setRevealed(true);
-            }}
-            className={`bg-gradient-to-r from-ink to-ink bg-center bg-no-repeat transition-[background-size] duration-[900ms] ease-in-out ${
-              start ? "bg-[length:100%_2px]" : "bg-[length:0%_2px]"
-            }`}
+        <p className="font-tagline text-xl italic leading-snug sm:text-2xl">
+          {/* Two nested spans, not one — Framer Motion takes over this
+              element's own `transition` CSS property to run the `filter`
+              animation, which silently breaks a plain CSS transition
+              declared on the same element. Splitting the blur (outer,
+              Framer-driven) from the strike/color (inner, plain CSS)
+              keeps both animations — and the onTransitionEnd this relies
+              on to reveal the reality — working independently. */}
+          <motion.span
+            animate={calm ? undefined : { filter: struck ? "blur(0px)" : "blur(3px)" }}
+            transition={{ duration: 0.9, ease: EASE }}
+            className="inline-block"
           >
-            {myth}
-          </span>
+            <span
+              onTransitionEnd={(e) => {
+                if (e.propertyName === "background-size") setRevealed(true);
+              }}
+              className={`bg-gradient-to-r from-ink to-ink bg-center bg-no-repeat transition-[background-size,color] duration-[900ms] ease-in-out ${
+                struck ? "bg-[length:100%_2px] text-ink" : "bg-[length:0%_2px] text-ink/45"
+              }`}
+            >
+              {myth}
+            </span>
+          </motion.span>
         </p>
       </div>
 
       <div className="min-h-[4.5rem]">
-        {revealed && (
-          <>
+        {revealed ? (
+          <motion.div
+            initial={calm ? false : { opacity: 0, y: 10, filter: "blur(5px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: 0.75, ease: EASE }}
+          >
             <span className="text-[10px] font-semibold uppercase tracking-label text-brand">Reality</span>
             <p className="mt-1 text-base font-medium leading-relaxed text-ink sm:text-lg">{reality}</p>
-          </>
+          </motion.div>
+        ) : (
+          !struck && (
+            <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink/40">
+              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand/50" aria-hidden />
+              Tap to bring this into focus
+            </span>
+          )
         )}
       </div>
-    </div>
+    </button>
   );
 }
 
 export function MentalHealthSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [start, setStart] = useState(false);
-
-  useEffect(() => {
-    const node = containerRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStart(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.3 },
-    );
-
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-
   return (
     <section className="bg-white">
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
@@ -112,9 +125,9 @@ export function MentalHealthSection() {
           </h2>
         </div>
 
-        <div ref={containerRef} className="mt-12 grid gap-5 sm:grid-cols-2">
+        <div className="mt-12 grid gap-5 sm:grid-cols-2">
           {MYTHS.map((item) => (
-            <MythCard key={item.myth} myth={item.myth} reality={item.reality} start={start} />
+            <MythCard key={item.myth} myth={item.myth} reality={item.reality} />
           ))}
         </div>
 
