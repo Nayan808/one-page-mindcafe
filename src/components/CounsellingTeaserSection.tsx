@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getActiveExperts } from "@/lib/api";
 import { motion } from "motion/react";
 import { EASE, MaskLine, RiseIn, useCalmMotion } from "@/components/motion/primitives";
+import type { Expert } from "@/types/domain";
 
 function initialsFor(name: string): string {
   return name
@@ -16,6 +17,73 @@ function initialsFor(name: string): string {
     .slice(0, 2)
     .join("")
     .toUpperCase();
+}
+
+function ExpertCard({ expert, index, calm }: { expert: Expert; index: number; calm: boolean }) {
+  const base = index * 0.13;
+  return (
+    <motion.div
+      initial={calm ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.25 }}
+      transition={{ duration: 0.8, delay: base, ease: EASE }}
+    >
+      <Link
+        href={`/book-appointment?expert=${expert.id}`}
+        className="group block overflow-hidden rounded-3xl border border-ink/10 bg-white text-left shadow-sm transition-all duration-500 ease-out hover:-translate-y-1 hover:border-ink/20 hover:shadow-[0_18px_40px_-24px_rgba(77,42,57,0.35)]"
+      >
+        {/* The portrait WIPES in — clip-path opening downward — rather than
+            fading. A face fading up reads as a placeholder loading; a wipe
+            reads as a considered reveal, and it lets the card content
+            follow after the person has arrived. */}
+        <motion.div
+          className="relative aspect-square w-full overflow-hidden bg-ink/5"
+          initial={calm ? false : { clipPath: "inset(0 0 100% 0)" }}
+          animate={{ clipPath: "inset(0 0 0% 0)" }}
+          transition={{ duration: 1.1, delay: base + 0.1, ease: EASE }}
+        >
+          {expert.photo_url ? (
+            <Image
+              src={expert.photo_url}
+              alt={expert.name}
+              fill
+              sizes="(min-width: 1024px) 22vw, 45vw"
+              className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.035]"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-cream text-2xl font-bold text-ink">
+              {initialsFor(expert.name)}
+            </div>
+          )}
+          <span className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-cream transition-transform duration-500 group-hover:scale-110">
+            <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+          </span>
+        </motion.div>
+
+        {/* Name, then credential — the person before the label. */}
+        <div className="p-4 text-center">
+          <RiseIn delay={base + 0.62} y={8} blur={3} duration={0.7} amount={0.2}>
+            <h3 className="font-display text-sm font-bold text-ink">{expert.name}</h3>
+          </RiseIn>
+          {expert.certifications.length > 0 && (
+            <RiseIn delay={base + 0.76} y={6} blur={2} duration={0.7} amount={0.2}>
+              <p className="mt-0.5 truncate text-xs text-ink/60">{expert.certifications[0]}</p>
+            </RiseIn>
+          )}
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
+// A role reads as "professional support" (structured, credentialed) vs
+// "mind & wellbeing guide" (spiritual/lifestyle) by its own certification
+// text — there's no separate admin field for this split, so it's inferred
+// from the same role string the card already shows, rather than adding a
+// new column just for a homepage grouping.
+function isWellbeingGuide(expert: Expert): boolean {
+  const role = expert.certifications[0] ?? "";
+  return /spiritual|wellbeing|lifestyle|guide|coach|influencer/i.test(role);
 }
 
 // Homepage teaser for the counselling vertical — mirrors FeelzTeaserSection's
@@ -32,7 +100,9 @@ export function CounsellingTeaserSection() {
     queryKey: ["experts", "counselling-teaser"],
     queryFn: () => getActiveExperts(createClient()),
   });
-  const experts = (expertsQuery.data ?? []).slice(0, 4);
+  const experts = expertsQuery.data ?? [];
+  const professional = experts.filter((e) => !isWellbeingGuide(e)).slice(0, 4);
+  const guides = experts.filter(isWellbeingGuide).slice(0, 4);
   const calm = useCalmMotion();
 
   return (
@@ -57,68 +127,32 @@ export function CounsellingTeaserSection() {
           </RiseIn>
         </div>
 
-        {experts.length > 0 && (
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {experts.map((expert, index) => {
-              const base = index * 0.13;
-              return (
-                <motion.div
-                  key={expert.id}
-                  initial={calm ? false : { opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, amount: 0.25 }}
-                  transition={{ duration: 0.8, delay: base, ease: EASE }}
-                >
-                  <Link
-                    href={`/book-appointment?expert=${expert.id}`}
-                    className="group block overflow-hidden rounded-3xl border border-ink/10 bg-white text-left shadow-sm transition-all duration-500 ease-out hover:-translate-y-1 hover:border-ink/20 hover:shadow-[0_18px_40px_-24px_rgba(77,42,57,0.35)]"
-                  >
-                    {/* The portrait WIPES in — clip-path opening downward —
-                        rather than fading. A face fading up reads as a
-                        placeholder loading; a wipe reads as a considered
-                        reveal, and it lets the card content follow after
-                        the person has arrived. */}
-                    <motion.div
-                      className="relative aspect-square w-full overflow-hidden bg-ink/5"
-                      initial={calm ? false : { clipPath: "inset(0 0 100% 0)" }}
-                      animate={{ clipPath: "inset(0 0 0% 0)" }}
-                      transition={{ duration: 1.1, delay: base + 0.1, ease: EASE }}
-                    >
-                      {expert.photo_url ? (
-                        <Image
-                          src={expert.photo_url}
-                          alt={expert.name}
-                          fill
-                          sizes="(min-width: 1024px) 22vw, 45vw"
-                          className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.035]"
-                        />
-                      ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-cream text-2xl font-bold text-ink">
-                          {initialsFor(expert.name)}
-                        </div>
-                      )}
-                      <span className="absolute right-2.5 top-2.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-cream transition-transform duration-500 group-hover:scale-110">
-                        <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
-                      </span>
-                    </motion.div>
+        {professional.length > 0 && (
+          <div className="mt-12">
+            <RiseIn y={8} amount={0.6} className="text-center">
+              <h3 className="font-display text-lg font-bold text-ink">Professional Support</h3>
+              <p className="mt-1 text-xs text-ink/50">
+                Certified psychologists &amp; counsellors for structured mental-health support.
+              </p>
+            </RiseIn>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {professional.map((expert, index) => (
+                <ExpertCard key={expert.id} expert={expert} index={index} calm={calm} />
+              ))}
+            </div>
+          </div>
+        )}
 
-                    {/* Name, then credential — the person before the label. */}
-                    <div className="p-4 text-center">
-                      <RiseIn delay={base + 0.62} y={8} blur={3} duration={0.7} amount={0.2}>
-                        <h3 className="font-display text-sm font-bold text-ink">{expert.name}</h3>
-                      </RiseIn>
-                      {expert.certifications.length > 0 && (
-                        <RiseIn delay={base + 0.76} y={6} blur={2} duration={0.7} amount={0.2}>
-                          <p className="mt-0.5 truncate text-xs text-ink/60">
-                            {expert.certifications[0]}
-                          </p>
-                        </RiseIn>
-                      )}
-                    </div>
-                  </Link>
-                </motion.div>
-              );
-            })}
+        {guides.length > 0 && (
+          <div className="mt-12">
+            <RiseIn y={8} amount={0.6} className="text-center">
+              <h3 className="font-display text-lg font-bold text-ink">Mind &amp; Wellbeing Guides</h3>
+            </RiseIn>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {guides.map((expert, index) => (
+                <ExpertCard key={expert.id} expert={expert} index={index} calm={calm} />
+              ))}
+            </div>
           </div>
         )}
 

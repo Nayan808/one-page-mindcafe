@@ -91,7 +91,7 @@ export function FeelzTeaserSection() {
           <h2 className="font-display mt-7 text-[2.4rem] font-bold leading-[1.08] tracking-tight text-ink sm:text-6xl lg:text-[4.1rem]">
             <span className="block overflow-hidden pb-[0.08em]">
               <motion.span className="block" variants={reduced ? undefined : maskLine}>
-                Mood strips,
+                Elevate your Mood
               </motion.span>
             </span>
             <span className="block overflow-hidden pb-[0.08em]">
@@ -99,7 +99,7 @@ export function FeelzTeaserSection() {
                 className="font-tagline block italic text-[#8a5f7d]"
                 variants={reduced ? undefined : maskLine}
               >
-                on demand
+                with Feelz
               </motion.span>
             </span>
           </h2>

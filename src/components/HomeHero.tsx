@@ -278,17 +278,17 @@ export function HomeHero() {
             className="text-[10.5px] font-semibold uppercase tracking-[0.22em] text-[#c9b3a0]"
             {...rise(T.eyebrow, 8)}
           >
-            You don&apos;t have to figure it out alone.
+            For your mind. For your everyday.
           </motion.p>
 
           <h1 className="font-display mt-6 text-[2rem] font-bold leading-[1.12] tracking-tight text-[#f6efe4] sm:text-[2.6rem] lg:text-[3.15rem]">
-            {["Mindcafe that", "cares for your"].map((line, i) => (
+            {["Better days begin", "with a healthier"].map((line, i) => (
               <motion.span key={line} className="block" {...rise(T.headline + i * 0.105)}>
                 {line}
               </motion.span>
             ))}
             <motion.span className="block" {...rise(T.headline + 0.21)}>
-              <span className="font-tagline italic text-[#d9bff0]">brain.</span>
+              <span className="font-tagline italic text-[#d9bff0]">mind.</span>
             </motion.span>
           </h1>
 
@@ -304,8 +304,8 @@ export function HomeHero() {
             className="mt-6 max-w-sm text-[13.5px] leading-relaxed text-[#e8dcd2]/70"
             {...rise(T.paragraph, 12)}
           >
-            Feelz mood strips for the day-to-day. 1:1 counselling with certified experts for
-            everything else.
+            Science-backed wellness, human support, and everyday tools to help you understand,
+            care for, and strengthen your mental wellbeing.
           </motion.p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -320,7 +320,7 @@ export function HomeHero() {
             </motion.span>
             <motion.span {...rise(T.ctas + 0.084, 10)}>
               <Link href="/book-appointment" className="btn-cine-secondary group">
-                Book Consultation
+                Talk to an Expert
                 <ArrowRight
                   className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5"
                   aria-hidden

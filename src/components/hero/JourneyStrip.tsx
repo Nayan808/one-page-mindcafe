@@ -9,23 +9,23 @@ import { motion } from "motion/react";
 const STAGES = [
   {
     key: "thoughts",
-    label: "Thoughts",
-    copy: ["It's okay to feel", "overwhelmed."],
+    label: "Understand your mind",
+    copy: ["Know what's affecting how you think,", "feel and function."],
   },
   {
     key: "understanding",
-    label: "Understanding",
-    copy: ["Talk it out. Make", "sense of it."],
+    label: "Build healthier habits",
+    copy: ["Everyday tools designed to", "support your mental wellbeing."],
   },
   {
     key: "healing",
-    label: "Healing",
-    copy: ["Find support.", "Feel lighter."],
+    label: "Get professional support",
+    copy: ["Talk to qualified experts when", "you need more than self-help."],
   },
   {
     key: "clarity",
-    label: "Clarity",
-    copy: ["Move forward", "with strength."],
+    label: "Feel better, sustainably",
+    copy: ["Small interventions that fit", "into real life."],
   },
 ] as const;
 

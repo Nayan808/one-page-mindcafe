@@ -102,10 +102,10 @@ export function ZostelLocationsSection() {
       <p className="mt-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">Available Now</p>
 
       <h2 className="font-display mx-auto mt-4 max-w-2xl text-4xl font-bold leading-[1.1] text-ink sm:text-5xl">
-        Find Feelz at Zostel Locations Across India.
+        Feelz travels with you
       </h2>
       <p className="mx-auto mt-3 max-w-xl text-sm text-ink/60 sm:text-base">
-        Search your city or Zostel property to check if we&apos;re there yet.
+        Forgot to pack your Feelz? Find us at Zostel.
       </p>
 
       <div className="relative mx-auto mt-6 max-w-sm">

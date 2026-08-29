@@ -5,19 +5,11 @@ import Image from "next/image";
 import { Modal } from "@/components/Modal";
 
 const STEPS = [
-  { title: "The Box", description: "Sleek. Pocket-ready. Always within reach.", src: "/how-it-works/step-1.webp" },
-  { title: "Open Box", description: "Open and take out a strip with ease.", src: "/how-it-works/step-2.webp" },
-  {
-    title: "The Strip",
-    description: "Tear the inner packaging, take out the ultra-thin, fast-dissolving strip, designed for real life.",
-    src: "/how-it-works/step-3.webp",
-  },
-  {
-    title: "On Your Tongue",
-    description: "Place the strip on your tongue. Let it dissolve. No water. No tablets. Just pure support.",
-    src: "/how-it-works/step-4.webp",
-  },
-  { title: "Anywhere You Go", description: "From pocket to peace of mind.", src: "/how-it-works/step-5.webp" },
+  { title: "Pick your Feelz", description: "", src: "/how-it-works/step-1.webp" },
+  { title: "Open the pack", description: "", src: "/how-it-works/step-2.webp" },
+  { title: "Place the strip on your tongue", description: "", src: "/how-it-works/step-3.webp" },
+  { title: "Let it dissolve", description: "", src: "/how-it-works/step-4.webp" },
+  { title: "Get on with your day", description: "", src: "/how-it-works/step-5.webp" },
 ];
 
 // Alternating tilt per card so the row reads as pinned-up photo prints
@@ -43,7 +35,7 @@ export function HowItWorksSection() {
             <span className="h-px w-10 bg-ink/20" aria-hidden />
           </div>
           <h2 className="font-display mt-4 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
-            How Feelz Works
+            Wellness, without the routine
           </h2>
         </div>
 
@@ -94,9 +86,9 @@ export function HowItWorksSection() {
                       </button>
                     </div>
 
-                    <p className="mt-3 text-center text-xs leading-snug text-ink/60 sm:text-sm">
-                      {step.description}
-                    </p>
+                    {step.description && (
+                      <p className="mt-3 text-center text-xs leading-snug text-ink/60 sm:text-sm">{step.description}</p>
+                    )}
                   </div>
                 </div>
               );
@@ -117,7 +109,7 @@ export function HowItWorksSection() {
             <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
               <Image src={detailStep.src} alt={detailStep.title} fill sizes="28rem" className="object-cover" />
             </div>
-            <p className="mt-3 text-sm text-ink/70">{detailStep.description}</p>
+            {detailStep.description && <p className="mt-3 text-sm text-ink/70">{detailStep.description}</p>}
           </>
         )}
       </Modal>

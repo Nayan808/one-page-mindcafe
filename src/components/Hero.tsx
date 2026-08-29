@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
-import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Check, Loader2, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
@@ -20,21 +19,6 @@ import type { ProductWithVariants } from "@/types/domain";
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-
-// Cycles through each word on a timer — new word slides up from below as
-// the old one slides up and out, rather than a typewriter effect.
-function useSlideCycle(words: string[], intervalMs = 1800) {
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => setIndex((i) => (i + 1) % words.length), intervalMs);
-    return () => clearInterval(timer);
-  }, [words.length, intervalMs]);
-
-  return words[index];
-}
-
-const HERO_CYCLE_WORDS = ["Tear it.", "Place it.", "Feel it."];
 
 const MOOD_GRID = [
   { key: "extrovert", label: "Extrovert", src: "/products/extrovert.png" },
@@ -69,7 +53,6 @@ export function Hero() {
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [detailKey, setDetailKey] = useState<string | null>(null);
-  const cycleWord = useSlideCycle(HERO_CYCLE_WORDS);
 
   const catalogQuery = useQuery({
     queryKey: queryKeys.feelzCatalog(),
@@ -168,24 +151,11 @@ export function Hero() {
           customVariants={revealVariants}
           className="font-display mx-auto mt-6 max-w-3xl text-5xl leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-7xl xl:text-8xl"
         >
-          <span className="relative block h-[1.15em] overflow-hidden text-center">
-            <AnimatePresence mode="popLayout">
-              <motion.span
-                key={cycleWord}
-                initial={{ y: "100%", opacity: 0 }}
-                animate={{ y: "0%", opacity: 1 }}
-                exit={{ y: "-100%", opacity: 0 }}
-                transition={{ duration: 0.4, ease: "easeInOut" }}
-                className="block"
-              >
-                {cycleWord}
-              </motion.span>
-            </AnimatePresence>
-          </span>
+          <span className="block text-center">Feelz better.</span>
           <span className="block text-center">
-            in{" "}
+            Wherever{" "}
             <span className="bg-gradient-to-r from-brand via-brand-blush to-brand-navy bg-clip-text text-transparent">
-              sixty seconds
+              the day takes you
             </span>
             .
           </span>
@@ -198,8 +168,8 @@ export function Hero() {
           customVariants={revealVariants}
           className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-[#f4ead9]/70 sm:text-xl"
         >
-          Fast-dissolving mood strips: Focus, Extrovert, Joy &amp; Rest, on demand. No water, no sugar, made in
-          India.
+          Fast-dissolving Nutraceutical strips designed to support focus, confidence, inner happiness, and rest —
+          anytime, anywhere.
         </TimelineContent>
 
         <TimelineContent
@@ -285,7 +255,7 @@ export function Hero() {
                   />
 
                   <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/95 via-ink/75 to-ink/10 p-4 text-left opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-label text-cream/60">What It Does</p>
+                    <p className="text-[10px] font-semibold uppercase tracking-label text-cream/60">For:</p>
                     <p className="mt-1 text-xs leading-snug text-cream/95 sm:text-[13px]">{style.description}</p>
                     <p className="mt-2 text-[10px] leading-snug text-cream/55">{style.ingredients.join(" · ")}</p>
                   </div>
@@ -382,7 +352,7 @@ export function Hero() {
             <p className="font-tagline mt-3 text-sm italic text-ink/60">{style.tagline}</p>
 
             <div className="mt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">What It Does</p>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">For:</p>
               <p className="mt-1 text-sm text-ink/80">{style.description}</p>
             </div>
 

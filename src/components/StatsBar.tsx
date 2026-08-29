@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getSiteSetting } from "@/lib/api";
 import { CountUp, DrawLine, RiseIn } from "@/components/motion/primitives";
 
-const DEFAULT_CHIPS = ["10 strips per box", "4 moods"];
+const DEFAULT_CHIPS = ["4 moods", "10 strips per box"];
 
 // Splits a leading number off a chip string ("10 strips per box" -> "10" +
 // "strips per box") so it can be shown as a large stat figure with a small

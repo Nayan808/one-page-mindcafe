@@ -36,19 +36,22 @@ import { EASE, useCalmMotion } from "@/components/motion/primitives";
 const MYTHS = [
   {
     myth: "Only “serious” problems count as mental health issues.",
-    reality: "Stress, burnout, and feeling low count too. You don't need a diagnosis to deserve support.",
+    reality:
+      "Stress, burnout, anxiety, overthinking, and feeling low deserve attention too. You don't need a diagnosis to seek support.",
   },
   {
-    myth: "Needing help means you're weak.",
-    reality: "Asking for support takes more self-awareness than pushing through alone.",
+    myth: "Therapy is only for when things get really bad.",
+    reality:
+      "Counselling can help you understand patterns, manage everyday challenges, and build healthier ways of coping — before a crisis.",
   },
   {
-    myth: "You should be able to just snap out of it.",
-    reality: "Minds need real care and time to heal, the same way bodies do.",
+    myth: "Talking about your mental health makes you weaker.",
+    reality: "Recognising what you're experiencing takes self-awareness. Asking for support is a practical step, not a weakness.",
   },
   {
-    myth: "Talking about it makes it worse.",
-    reality: "Naming what you feel is often the first step to feeling lighter.",
+    myth: "I should be able to figure it out on my own.",
+    reality:
+      "You don't have to solve everything alone. The right support can help you see situations differently and make more informed choices.",
   },
 ];
 
@@ -135,7 +138,7 @@ export function MentalHealthSection() {
 
         <div className="mt-12 text-center">
           <Link href="/book-appointment" className="pill-btn">
-            Consult an Expert
+            Get on a Free Discovery Call
           </Link>
         </div>
       </div>
