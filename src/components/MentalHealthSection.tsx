@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { EASE, useCalmMotion } from "@/components/motion/primitives";
@@ -14,21 +15,24 @@ import { EASE, useCalmMotion } from "@/components/motion/primitives";
 // format on purpose — general, non-clinical statements, no invented
 // statistics.
 //
-// The interaction is built around a metaphor that's actually about mental
-// health, not a generic UI trick: a myth is something UNCLEAR — so it
-// renders soft-focus and muted — and tapping it is the act of bringing it
-// into clarity. The strike-through still grows across it (an animated
-// `background-size` on the inline text span, since a plain text-decoration
-// fade reads as too subtle, and an absolutely-positioned "drawn line"
-// overlay breaks on wrapped text), but now alongside the blur lifting and
-// the ink darkening to full weight — the text visibly comes into focus as
-// it's corrected. The reality that follows rises in with the same
-// blur-clear motion (same EASE curve, same shape) as the homepage hero's
-// "Understanding / Healing / Clarity" words settling into place — the same
-// idea, reused, rather than a one-off animation invented for this card.
-// Each card is independent, so reading one doesn't spoil the others. The
-// single "consult an expert" link at the end is the one deliberate
-// promotional exception, a soft bridge out of the myths into real support.
+// The myth itself is always fully legible — no blur, no dimming — since
+// the point isn't to obscure it, it's to correct it. The mindcafe logo is
+// the one idle affordance (sitting by the "tap to reveal" hint, gently
+// pulsing) and, on tap, becomes the thing that DOES the correcting: it
+// slides left-to-right across the myth's own line, drawing the strike
+// underneath it as it travels — the logo is the pen, not just a static
+// icon. `left: 0% -> 100%` on an absolutely-positioned span works
+// per-line because it's positioned against the myth's own <p>, and the
+// underlying `background-size` bar grows on the exact same duration/
+// easing so the line reads as something the logo is actively drawing
+// rather than a coincidence. Once the logo finishes its pass
+// (onAnimationComplete — a real Framer Motion callback, not a CSS
+// transitionend that can silently not fire), the reality rises in with
+// the same blur-clear motion as the homepage hero's "Understanding /
+// Healing / Clarity" words settling into place. Each card is
+// independent, so reading one doesn't spoil the others. The single
+// "consult an expert" link at the end is the one deliberate promotional
+// exception, a soft bridge out of the myths into real support.
 const MYTHS = [
   {
     myth: "Only “serious” problems count as mental health issues.",
@@ -64,30 +68,26 @@ function MythCard({ myth, reality }: { myth: string; reality: string }) {
       <span className="text-[10px] font-semibold uppercase tracking-label text-ink/35">Myth</span>
 
       <div className="flex flex-1 items-center justify-center">
-        <p className="font-tagline text-xl italic leading-snug sm:text-2xl">
-          {/* Two nested spans, not one — Framer Motion takes over this
-              element's own `transition` CSS property to run the `filter`
-              animation, which silently breaks a plain CSS transition
-              declared on the same element. Splitting the blur (outer,
-              Framer-driven) from the strike/color (inner, plain CSS)
-              keeps both animations — and the onTransitionEnd this relies
-              on to reveal the reality — working independently. */}
-          <motion.span
-            animate={calm ? undefined : { filter: struck ? "blur(0px)" : "blur(3px)" }}
-            transition={{ duration: 0.9, ease: EASE }}
-            className="inline-block"
-          >
-            <span
-              onTransitionEnd={(e) => {
-                if (e.propertyName === "background-size") setRevealed(true);
-              }}
-              className={`bg-gradient-to-r from-ink to-ink bg-center bg-no-repeat transition-[background-size,color] duration-[900ms] ease-in-out ${
-                struck ? "bg-[length:100%_2px] text-ink" : "bg-[length:0%_2px] text-ink/45"
-              }`}
+        <p className="relative font-tagline text-xl italic leading-snug text-ink sm:text-2xl">
+          {struck && (
+            <motion.span
+              className="pointer-events-none absolute -top-1.5 left-0 h-4 w-4 -translate-x-1/2"
+              initial={{ left: "0%" }}
+              animate={{ left: "100%" }}
+              transition={{ duration: 0.9, ease: EASE }}
+              onAnimationComplete={() => setRevealed(true)}
+              aria-hidden
             >
-              {myth}
-            </span>
-          </motion.span>
+              <Image src="/mindcafe-icon.png" alt="" fill className="object-contain drop-shadow" />
+            </motion.span>
+          )}
+          <span
+            className={`bg-gradient-to-r from-ink to-ink bg-center bg-no-repeat transition-[background-size] duration-[900ms] ease-in-out ${
+              struck ? "bg-[length:100%_2px]" : "bg-[length:0%_2px]"
+            }`}
+          >
+            {myth}
+          </span>
         </p>
       </div>
 
@@ -104,7 +104,9 @@ function MythCard({ myth, reality }: { myth: string; reality: string }) {
         ) : (
           !struck && (
             <span className="inline-flex items-center gap-1.5 text-xs font-medium text-ink/40">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand/50" aria-hidden />
+              <span className="relative h-4 w-4 shrink-0 animate-pulse">
+                <Image src="/mindcafe-icon.png" alt="" fill className="object-contain" />
+              </span>
               Tap to bring this into focus
             </span>
           )
