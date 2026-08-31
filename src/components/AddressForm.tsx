@@ -12,8 +12,12 @@ import { useDebouncedValue } from "@/lib/useDebouncedValue";
 // 10-digit form every downstream consumer (Shiprocket's billing_phone,
 // tel: links) actually needs, rather than storing whatever format someone
 // happened to type.
-function normalizePhone(raw: string): string {
+export function normalizePhone(raw: string): string {
   return raw.replace(/\D/g, "").slice(-10);
+}
+
+export function isValidIndianMobile(phone: string): boolean {
+  return /^[6-9]\d{9}$/.test(phone);
 }
 
 export const addressSchema = z.object({
@@ -25,7 +29,7 @@ export const addressSchema = z.object({
   phone: z
     .string()
     .transform(normalizePhone)
-    .refine((val) => /^[6-9]\d{9}$/.test(val), { message: "Enter a valid 10-digit mobile number" }),
+    .refine(isValidIndianMobile, { message: "Enter a valid 10-digit mobile number" }),
   line1: z.string().min(1, "Required"),
   line2: z.string().optional(),
   city: z.string().min(1, "Required"),

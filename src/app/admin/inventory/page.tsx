@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Pencil, Trash2, X as XIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import {
+  addInventoryRowAdmin,
   addMissingInventoryRowsAdmin,
   createInventoryTransactionAdmin,
   deleteInventoryTransactionAdmin,
@@ -776,11 +777,13 @@ function aggregateByVariant(rows: FullInventoryRow[]): SummaryRow[] {
 function InventoryHealthSection({
   full,
   locations,
+  products,
   totalVariantCount,
   isLoading,
 }: {
   full: FullInventoryRow[];
   locations: PickupLocation[];
+  products: ProductWithVariants[];
   totalVariantCount: number;
   isLoading: boolean;
 }) {
@@ -794,25 +797,65 @@ function InventoryHealthSection({
   const missingThreshold = allSummary.filter((s) => s.reorderThreshold === null);
   const outOfStockRows = full.filter((r) => r.quantityAvailable === 0);
 
-  // Missing product rows per place — the online pool plus every active
-  // Zostel — each compared against the full catalog's variant count so a
-  // *partially* stocked location (2 of 4 products) is caught too, not
-  // just one with zero rows.
-  const missingByPlace = useMemo(() => {
-    const places: { key: string; label: string; locationId: string | null; missing: number }[] = [];
-    const onlinePresent = full.filter((r) => r.locationId === null).length;
-    places.push({
-      key: "online",
-      label: "Online / delivery",
-      locationId: null,
-      missing: Math.max(0, totalVariantCount - onlinePresent),
-    });
-    for (const loc of activeLocations) {
-      const present = full.filter((r) => r.locationId === loc.id).length;
-      places.push({ key: loc.id, label: loc.name, locationId: loc.id, missing: Math.max(0, totalVariantCount - present) });
+  const [missingLocationFilter, setMissingLocationFilter] = useState("");
+  const [missingProductFilter, setMissingProductFilter] = useState("");
+
+  // Every (variant × place) pair that has NO inventory row at all — the
+  // online pool plus every active Zostel, each compared against the full
+  // product catalog so a *partially* stocked location (2 of 4 products)
+  // is caught too, not just one with zero rows entirely. One row per
+  // missing pair (not just a per-location count), so exactly which
+  // product is missing at exactly which place is visible directly,
+  // without a separate lookup — and each is fixable inline with a real
+  // starting quantity, not just the bulk button's blind 0.
+  const missingRows = useMemo(() => {
+    const places: { locationId: string | null; label: string }[] = [
+      { locationId: null, label: "Online / delivery" },
+      ...activeLocations.map((l) => ({ locationId: l.id, label: l.name })),
+    ];
+    const presentKey = (variantId: string, locationId: string | null) => `${variantId}|${locationId ?? "null"}`;
+    const present = new Set(full.map((r) => presentKey(r.variantId, r.locationId)));
+
+    const rows: {
+      key: string;
+      variantId: string;
+      productName: string;
+      variantLabel: string;
+      locationId: string | null;
+      locationLabel: string;
+    }[] = [];
+    for (const place of places) {
+      for (const product of products) {
+        for (const variant of product.product_variants) {
+          if (present.has(presentKey(variant.id, place.locationId))) continue;
+          rows.push({
+            key: presentKey(variant.id, place.locationId),
+            variantId: variant.id,
+            productName: product.name,
+            variantLabel: variant.variant_label,
+            locationId: place.locationId,
+            locationLabel: place.label,
+          });
+        }
+      }
     }
-    return places.filter((p) => p.missing > 0);
-  }, [full, activeLocations, totalVariantCount]);
+    return rows;
+  }, [full, activeLocations, products]);
+
+  const missingLocationOptions: FilterOption[] = useMemo(() => {
+    const seen = new Map<string, string>();
+    for (const r of missingRows) seen.set(r.locationId ?? "", r.locationLabel);
+    return [{ value: "", label: "all locations" }, ...[...seen.entries()].map(([value, label]) => ({ value, label }))];
+  }, [missingRows]);
+
+  const filteredMissingRows = useMemo(() => {
+    const q = missingProductFilter.trim().toLowerCase();
+    return missingRows.filter((r) => {
+      if (missingLocationFilter && (r.locationId ?? "") !== missingLocationFilter) return false;
+      if (q && !`${r.productName} ${r.variantLabel}`.toLowerCase().includes(q)) return false;
+      return true;
+    });
+  }, [missingRows, missingLocationFilter, missingProductFilter]);
 
   const addMissing = useMutation({
     mutationFn: (locationId: string | null) => addMissingInventoryRowsAdmin(createClient(), locationId),
@@ -823,7 +866,7 @@ function InventoryHealthSection({
     return <div className="rounded-2xl border border-ink/10 bg-white px-4 py-6 text-center text-sm text-ink/50">Loading…</div>;
   }
 
-  const nothingMissing = missingThreshold.length === 0 && missingByPlace.length === 0 && outOfStockRows.length === 0;
+  const nothingMissing = missingThreshold.length === 0 && missingRows.length === 0 && outOfStockRows.length === 0;
 
   return (
     <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
@@ -864,70 +907,154 @@ function InventoryHealthSection({
           and nothing is at zero.
         </div>
       ) : (
-        <div className="grid gap-4 border-t border-ink/10 p-4 lg:grid-cols-3">
-          {missingThreshold.length > 0 && (
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">
-                Missing reorder threshold ({missingThreshold.length})
-              </p>
-              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-                {missingThreshold.map((s) => (
-                  <div key={s.variantId} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
-                    <span className="min-w-0 truncate text-xs text-ink">
-                      {s.productName}
-                      {s.variantLabel !== s.productName && <span className="text-ink/50"> — {s.variantLabel}</span>}
-                    </span>
-                    <ReorderThresholdCell summary={s} />
+        <div className="space-y-6 border-t border-ink/10 p-4">
+          {(missingThreshold.length > 0 || outOfStockRows.length > 0) && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {missingThreshold.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">
+                    Missing reorder threshold ({missingThreshold.length})
+                  </p>
+                  <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                    {missingThreshold.map((s) => (
+                      <div key={s.variantId} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
+                        <span className="min-w-0 truncate text-xs text-ink">
+                          {s.productName}
+                          {s.variantLabel !== s.productName && <span className="text-ink/50"> — {s.variantLabel}</span>}
+                        </span>
+                        <ReorderThresholdCell summary={s} />
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {outOfStockRows.length > 0 && (
+                <div>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">
+                    Out of stock ({outOfStockRows.length})
+                  </p>
+                  <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                    {outOfStockRows.map((r) => (
+                      <div key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
+                        <span className="min-w-0 truncate text-xs text-ink">
+                          {r.productName}
+                          {r.variantLabel !== r.productName && <span className="text-ink/50"> — {r.variantLabel}</span>}
+                          <span className="text-ink/40"> · {locations.find((l) => l.id === r.locationId)?.name ?? "Online"}</span>
+                        </span>
+                        <QuantityCell row={{ id: r.id, quantity_available: r.quantityAvailable }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
-          {missingByPlace.length > 0 && (
+          {/* Full-width, every missing (product × place) pair spelled out
+              directly rather than collapsed into a per-location count —
+              each is fixable right here with a real starting quantity,
+              not just the bulk "add at 0" button (still offered per
+              location too, for clearing a big gap in one click). */}
+          {missingRows.length > 0 && (
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">Locations missing products</p>
-              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-                {missingByPlace.map((p) => (
-                  <div key={p.key} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
-                    <span className="min-w-0 truncate text-xs text-ink">
-                      {p.label} <span className="text-ink/50">— {p.missing} missing</span>
-                    </span>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-label text-ink/50">
+                  Missing product rows ({filteredMissingRows.length}
+                  {filteredMissingRows.length !== missingRows.length ? ` of ${missingRows.length}` : ""})
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    type="text"
+                    value={missingProductFilter}
+                    onChange={(e) => setMissingProductFilter(e.target.value)}
+                    placeholder="search product…"
+                    className="input !w-40 !py-1.5 text-xs"
+                  />
+                  <select
+                    value={missingLocationFilter}
+                    onChange={(e) => setMissingLocationFilter(e.target.value)}
+                    className="input !w-auto !py-1.5 text-xs"
+                  >
+                    {missingLocationOptions.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  {missingLocationFilter !== "" && (
                     <button
                       type="button"
-                      onClick={() => addMissing.mutate(p.locationId)}
+                      onClick={() => addMissing.mutate(missingLocationFilter || null)}
                       disabled={addMissing.isPending}
-                      className="pill-btn-outline shrink-0 !py-1 text-[11px] disabled:opacity-40"
+                      className="pill-btn-outline shrink-0 !py-1.5 text-[11px] disabled:opacity-40"
                     >
-                      {addMissing.isPending ? "adding…" : "add (starts at 0)"}
+                      {addMissing.isPending ? "adding…" : "add all here (start at 0)"}
                     </button>
-                  </div>
-                ))}
+                  )}
+                </div>
               </div>
-            </div>
-          )}
 
-          {outOfStockRows.length > 0 && (
-            <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">
-                Out of stock ({outOfStockRows.length})
-              </p>
-              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
-                {outOfStockRows.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
-                    <span className="min-w-0 truncate text-xs text-ink">
-                      {r.productName}
-                      {r.variantLabel !== r.productName && <span className="text-ink/50"> — {r.variantLabel}</span>}
-                      <span className="text-ink/40"> · {locations.find((l) => l.id === r.locationId)?.name ?? "Online"}</span>
-                    </span>
-                    <QuantityCell row={{ id: r.id, quantity_available: r.quantityAvailable }} />
-                  </div>
-                ))}
+              <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
+                {filteredMissingRows.length === 0 ? (
+                  <p className="py-4 text-center text-xs text-ink/40">No missing rows match this filter.</p>
+                ) : (
+                  filteredMissingRows.map((r) => <MissingRowEntry key={r.key} row={r} />)
+                )}
               </div>
             </div>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// One missing (product × place) pair, with its own starting-quantity
+// input — inserts a real inventory row via addInventoryRowAdmin rather
+// than the bulk button's blind 0.
+function MissingRowEntry({
+  row,
+}: {
+  row: { variantId: string; productName: string; variantLabel: string; locationId: string | null; locationLabel: string };
+}) {
+  const queryClient = useQueryClient();
+  const [value, setValue] = useState("0");
+
+  const add = useMutation({
+    mutationFn: (quantity: number) => addInventoryRowAdmin(createClient(), row.variantId, row.locationId, quantity),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] }),
+  });
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
+      <span className="min-w-0 truncate text-xs text-ink">
+        {row.productName}
+        {row.variantLabel !== row.productName && <span className="text-ink/50"> — {row.variantLabel}</span>}
+        <span className="text-ink/40"> · {row.locationLabel}</span>
+      </span>
+      <div className="flex shrink-0 items-center gap-2">
+        <input
+          type="number"
+          min="0"
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            add.reset();
+          }}
+          className="input !w-20 !py-1 text-xs"
+        />
+        <button
+          type="button"
+          onClick={() => add.mutate(Number(value) || 0)}
+          disabled={add.isPending}
+          className="pill-btn-outline shrink-0 !py-1 text-[11px] disabled:opacity-40"
+        >
+          {add.isPending ? "adding…" : "add"}
+        </button>
+        {add.isSuccess && <span className="text-[11px] font-medium text-emerald-700">✓</span>}
+        {add.isError && <span className="text-[11px] font-medium text-red-600">failed</span>}
+      </div>
     </div>
   );
 }
@@ -1186,6 +1313,7 @@ export default function AdminInventoryPage() {
       <InventoryHealthSection
         full={full}
         locations={locations}
+        products={productsQuery.data ?? []}
         totalVariantCount={totalVariantCount}
         isLoading={fullInventoryQuery.isLoading || productsQuery.isLoading}
       />

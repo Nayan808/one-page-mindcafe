@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
+import { useGuestPhone } from "@/contexts/GuestPhoneContext";
 import { createClient } from "@/lib/supabase/client";
 import {
   checkPincodeServiceability,
@@ -40,6 +41,10 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const { user, profile } = useAuth();
   const { cartId, items, subtotal } = useCartContext();
   const { addresses, addAddress } = useAddresses(user?.id ?? null);
+  // Captured once via Feelz's phone-only AuthModal popup (FeelzPhoneForm)
+  // before the customer could even add to cart — pre-fills the guest
+  // contact fields below so it's never asked for twice.
+  const { guestPhone: capturedGuestPhone } = useGuestPhone();
 
   const [mode, setMode] = useState<Mode>("delivery");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -55,8 +60,19 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [pickupSlot, setPickupSlot] = useState("");
 
   const [guestName, setGuestName] = useState("");
-  const [guestPhone, setGuestPhone] = useState("");
+  const [guestPhone, setGuestPhone] = useState(capturedGuestPhone ?? "");
   const [guestEmail, setGuestEmail] = useState("");
+
+  // Covers the case where capturedGuestPhone resolves (from its cookie)
+  // after this component's own first render — e.g. a hard reload landing
+  // directly on checkout, where GuestPhoneProvider's mount effect and this
+  // component's initial render race. A plain useState initializer alone
+  // would miss that update; only backfills an empty field, never
+  // overwrites something the customer already typed.
+  useEffect(() => {
+    if (capturedGuestPhone && !guestPhone) setGuestPhone(capturedGuestPhone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [capturedGuestPhone]);
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
@@ -338,7 +354,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                 </button>
               </div>
             ) : (
-              <AddressForm onSubmit={handleAddAddress} isSubmitting={addAddress.isPending} />
+              <AddressForm
+                onSubmit={handleAddAddress}
+                isSubmitting={addAddress.isPending}
+                defaultValues={!user && capturedGuestPhone ? { phone: capturedGuestPhone } : undefined}
+              />
             ))}
 
           {serviceability === "checking" && <p className="text-sm text-ink/60">Checking serviceability…</p>}

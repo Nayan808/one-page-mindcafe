@@ -792,6 +792,15 @@ export async function addMissingInventoryRowsAdmin(sb: Sb, locationId: string | 
   return missing.length;
 }
 
+// Single-row counterpart to addMissingInventoryRowsAdmin above — used by
+// the inventory health dashboard's per-product missing list, where an
+// admin picks a specific product/location gap and enters a real starting
+// count instead of the bulk button's blind 0.
+export async function addInventoryRowAdmin(sb: Sb, variantId: string, locationId: string | null, quantity: number): Promise<void> {
+  const { error } = await sb.from("inventory").insert({ variant_id: variantId, location_id: locationId, quantity_available: quantity });
+  throwOnError("addInventoryRowAdmin", error);
+}
+
 // --- Serviceable pincodes -------------------------------------------------
 
 export async function getPincodesAdmin(sb: Sb) {

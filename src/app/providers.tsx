@@ -6,6 +6,7 @@ import { createQueryClient } from "@/lib/query/queryClient";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthModalProvider } from "@/contexts/AuthModalContext";
 import { CartProvider } from "@/contexts/CartContext";
+import { GuestPhoneProvider } from "@/contexts/GuestPhoneContext";
 import { ScrollRestoreOnAuthReturn } from "@/components/ScrollRestoreOnAuthReturn";
 
 export function Providers({ children }: { children: ReactNode }) {
@@ -16,12 +17,17 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AuthModalProvider>
-          <CartProvider>
-            <ScrollRestoreOnAuthReturn />
-            {children}
-          </CartProvider>
-        </AuthModalProvider>
+        {/* Above AuthModalProvider — the modal's Feelz-only phone form
+            (FeelzPhoneForm) and Hero.tsx's add-to-cart gate both read
+            this, so it has to be an ancestor of both. */}
+        <GuestPhoneProvider>
+          <AuthModalProvider>
+            <CartProvider>
+              <ScrollRestoreOnAuthReturn />
+              {children}
+            </CartProvider>
+          </AuthModalProvider>
+        </GuestPhoneProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

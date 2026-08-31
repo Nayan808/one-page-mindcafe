@@ -10,6 +10,7 @@ import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
+import { useGuestPhone } from "@/contexts/GuestPhoneContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { Modal } from "@/components/Modal";
 import { moodStyleFor } from "@/lib/moodStyles";
@@ -49,6 +50,7 @@ export function Hero() {
   const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
+  const { guestPhone } = useGuestPhone();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -63,7 +65,12 @@ export function Hero() {
     const variant = product?.product_variants[0];
     if (!variant || !isReady || !cartId) return;
 
-    if (!user) {
+    // Feelz doesn't require a real account — a guest who's already given
+    // their phone number this session (via AuthModal's Feelz-only
+    // FeelzPhoneForm, opened below) skips straight through. Only someone
+    // with neither a logged-in account nor a captured guest phone gets
+    // stopped here.
+    if (!user && !guestPhone) {
       openAuthModal();
       return;
     }
