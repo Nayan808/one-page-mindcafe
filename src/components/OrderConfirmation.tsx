@@ -113,6 +113,12 @@ export function OrderConfirmation({
             {order.fulfillment_type === "takeaway" ? `Takeaway (${order.pickup_locations?.name ?? "Zostel"})` : "Delivery"}
           </span>
         </div>
+        {order.fulfillment_type === "delivery" && order.estimated_delivery && (
+          <div className="flex justify-between gap-3">
+            <span className="shrink-0">Estimated delivery</span>
+            <span className="text-right">{order.estimated_delivery}</span>
+          </div>
+        )}
         <div className="flex justify-between">
           <span>Payment</span>
           <span className="capitalize">{order.payment_status}</span>

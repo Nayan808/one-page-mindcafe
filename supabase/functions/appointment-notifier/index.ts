@@ -23,7 +23,7 @@
 // enforcement boundary stopping status from reaching 'confirmed' unpaid
 // in the first place.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL, type SendEmailResult } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 // No review-request CTA on 'completed' — a finished counselling session
@@ -78,7 +78,8 @@ const EXPERT_MESSAGES: Record<string, { heading: string; body: string; cta: { la
 
 type AppointmentRecord = {
   id: string;
-  user_id: string;
+  user_id: string | null;
+  guest_email: string | null;
   expert_id: string | null;
   status: string;
   payment_status: string;
@@ -136,9 +137,25 @@ Deno.serve(async (req) => {
 
   const customerMessage = CUSTOMER_MESSAGES[messageKey];
   if (customerMessage) {
-    const { data: authUser } = await sb.auth.admin.getUserById(record.user_id);
-    const email = authUser?.user?.email;
-    if (email) {
+    // Same guest_email-first pattern as order-status-notifier's
+    // resolveCustomerEmail — an account's email always wins when there is
+    // one, guest_email is what a guest booking actually has.
+    let email: string | null = record.guest_email;
+    if (record.user_id) {
+      const { data: authUser } = await sb.auth.admin.getUserById(record.user_id);
+      email = authUser?.user?.email ?? null;
+    }
+
+    if (!email) {
+      await sb
+        .from("appointments")
+        .update({
+          last_notification_status: "no_email",
+          last_notification_error: "No email on file for this booking",
+          last_notification_at: new Date().toISOString(),
+        })
+        .eq("id", record.id);
+    } else {
       const { text, html } = renderEmail({
         heading: customerMessage.heading,
         paragraphs: [
@@ -149,7 +166,18 @@ Deno.serve(async (req) => {
         ],
         cta: hasMeetLink ? { label: "join the meeting", url: record.meet_link! } : customerMessage.cta,
       });
-      await sendEmail(email, `Your counselling booking: ${customerMessage.heading}`, text, html);
+      const result: SendEmailResult = await sendEmail(email, `Your counselling booking: ${customerMessage.heading}`, text, html);
+      // Tracked the same way orders are — a guest has no account/dashboard
+      // to fall back on, so this email is their only way to know what
+      // happened to their booking.
+      await sb
+        .from("appointments")
+        .update({
+          last_notification_status: result.ok ? "sent" : "failed",
+          last_notification_error: result.ok ? null : result.reason,
+          last_notification_at: new Date().toISOString(),
+        })
+        .eq("id", record.id);
       sentAny = true;
     }
   }

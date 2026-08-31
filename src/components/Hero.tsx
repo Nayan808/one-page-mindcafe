@@ -8,9 +8,6 @@ import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthModal } from "@/contexts/AuthModalContext";
-import { useGuestPhone } from "@/contexts/GuestPhoneContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { Modal } from "@/components/Modal";
 import { moodStyleFor } from "@/lib/moodStyles";
@@ -48,9 +45,6 @@ const revealVariants = {
 export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
-  const { user } = useAuth();
-  const { openAuthModal } = useAuthModal();
-  const { guestPhone } = useGuestPhone();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -65,15 +59,10 @@ export function Hero() {
     const variant = product?.product_variants[0];
     if (!variant || !isReady || !cartId) return;
 
-    // Feelz doesn't require a real account — a guest who's already given
-    // their phone number this session (via AuthModal's Feelz-only
-    // FeelzPhoneForm, opened below) skips straight through. Only someone
-    // with neither a logged-in account nor a captured guest phone gets
-    // stopped here.
-    if (!user && !guestPhone) {
-      openAuthModal();
-      return;
-    }
+    // No login gate at all — Feelz never requires an account or any
+    // pre-collected contact info to add to cart. Guest checkout is fully
+    // supported end-to-end (see /checkout, FulfillmentAndPayment.tsx),
+    // which is the only place name/phone/email actually get collected.
 
     setPendingKey(moodKey);
     setErrorKey(null);

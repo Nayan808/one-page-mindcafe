@@ -186,6 +186,12 @@ Deno.serve(async (req) => {
   let pickupSlot: string | null = null;
   let deliveryFee = 0;
   let freeDeliveryApplied = false;
+  // Shiprocket's own delivery estimate ("5-7 days" style string) from the
+  // same serviceability check that sets deliveryFee — previously computed
+  // and discarded; now persisted so it can actually reach the customer
+  // (order confirmation, order-status-notifier emails) instead of only
+  // flashing on screen once during the pincode check at checkout.
+  let estimatedDelivery: string | null = null;
 
   if (fulfillment.type === "delivery") {
     let pincode: string;
@@ -245,6 +251,7 @@ Deno.serve(async (req) => {
     }
     if (!serviceability.serviceable) return jsonResponse({ error: "This pincode isn't serviceable yet" }, 400);
     deliveryFee = serviceability.deliveryFee;
+    estimatedDelivery = serviceability.etd;
 
     // deliveryFee above stays the real Shiprocket cost (recorded on the
     // order below for accounting) — this only decides whether the
@@ -328,6 +335,7 @@ Deno.serve(async (req) => {
       payment_method: "razorpay",
       subtotal,
       delivery_fee: deliveryFee,
+      estimated_delivery: estimatedDelivery,
       discount_amount: discountAmount,
       coupon_code: appliedCouponCode,
       total,

@@ -384,7 +384,7 @@ export async function getAppointmentsAdmin(
   // nested select above — same two-query merge pattern as
   // getExpertAppointments in lib/api.ts.
   const appointments = (data as unknown as AppointmentWithExpert[]) ?? [];
-  const userIds = [...new Set(appointments.map((a) => a.user_id))];
+  const userIds = [...new Set(appointments.map((a) => a.user_id).filter((id): id is string => id !== null))];
   const profileById = new Map<string, { full_name: string | null; phone: string | null }>();
   if (userIds.length > 0) {
     const { data: profiles, error: profilesError } = await sb.from("profiles").select("id, full_name, phone").in("id", userIds);
@@ -393,7 +393,14 @@ export async function getAppointmentsAdmin(
   }
 
   return {
-    appointments: appointments.map((a) => ({ ...a, profiles: profileById.get(a.user_id) ?? null })) as AppointmentWithDetails[],
+    appointments: appointments.map((a) => ({
+      ...a,
+      profiles: a.user_id
+        ? (profileById.get(a.user_id) ?? null)
+        : a.guest_name
+          ? { full_name: a.guest_name, phone: a.guest_phone }
+          : null,
+    })) as AppointmentWithDetails[],
     total: count ?? 0,
   };
 }

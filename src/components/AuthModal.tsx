@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Modal } from "@/components/Modal";
 import { AuthForm } from "@/components/AuthForm";
-import { FeelzPhoneForm } from "@/components/FeelzPhoneForm";
 
 export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   // Google sign-in redirects away to Google and back — without returnTo it
@@ -23,15 +22,6 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   // at mount) since it can only be read client-side.
   const pathname = usePathname();
   const [returnTo, setReturnTo] = useState(pathname);
-  // Feelz gets its own lightweight phone-only identity instead of the
-  // full Google/email-OTP flow every other page uses — no account, no
-  // OTP, just a validated 10-digit number (see FeelzPhoneForm.tsx). This
-  // is the one shared modal instance (AuthModalContext.tsx), so every
-  // trigger site-wide — the header's Log In button, this add-to-cart
-  // gate, a cart-drawer prompt — automatically gets the right form just
-  // by which page it was opened from, with no special-casing at each
-  // call site.
-  const isFeelz = pathname === "/feelz";
 
   useEffect(() => {
     if (!isOpen) return;
@@ -48,21 +38,15 @@ export function AuthModal({ isOpen, onClose }: { isOpen: boolean; onClose: () =>
   }, [isOpen, pathname]);
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isFeelz ? "Enter your number" : "Sign in"} panelClassName="!bg-white">
+    <Modal isOpen={isOpen} onClose={onClose} title="Sign in" panelClassName="!bg-white">
       <div className="mb-4 flex flex-col items-center text-center">
         <Image src="/mindcafe-icon.png" alt="Mindcafe" width={40} height={40} />
-        <p className="mt-3 text-sm text-ink/60">
-          {isFeelz ? "Order Feelz in seconds — no account needed." : "Sign in to shop Feelz, book counselling, and track your orders."}
-        </p>
+        <p className="mt-3 text-sm text-ink/60">Sign in to shop Feelz, book counselling, and track your orders.</p>
       </div>
       {/* Remount on every open so a half-finished code step from a previous
           visit doesn't linger — Modal keeps children mounted and just
           toggles aria-hidden rather than unmounting on close. */}
-      {isFeelz ? (
-        <FeelzPhoneForm key={String(isOpen)} onSuccess={onClose} />
-      ) : (
-        <AuthForm key={String(isOpen)} returnTo={returnTo} onSuccess={onClose} />
-      )}
+      <AuthForm key={String(isOpen)} returnTo={returnTo} onSuccess={onClose} />
     </Modal>
   );
 }

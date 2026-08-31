@@ -1021,9 +1021,32 @@ function MissingRowEntry({
   const queryClient = useQueryClient();
   const [value, setValue] = useState("0");
 
+  // Unlike the automatic order-sale reconciliation elsewhere on this page
+  // (deliberately kept OUT of the log), this one genuinely belongs there —
+  // an admin manually entering a real starting count for a missing row is
+  // exactly the kind of stock event the Transaction Log exists to record.
+  // Logging it here means this row starts life already reconciled instead
+  // of immediately reading as "not logged" in the summary table above.
+  // Skipped for a starting quantity of 0 — no real movement to log.
   const add = useMutation({
-    mutationFn: (quantity: number) => addInventoryRowAdmin(createClient(), row.variantId, row.locationId, quantity),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] }),
+    mutationFn: async (quantity: number) => {
+      const sb = createClient();
+      await addInventoryRowAdmin(sb, row.variantId, row.locationId, quantity);
+      if (quantity > 0) {
+        await createInventoryTransactionAdmin(sb, {
+          transactionDate: toLocalDateInputValue(new Date()),
+          transactionType: "received",
+          variantId: row.variantId,
+          locationId: row.locationId,
+          quantity,
+          notes: "Initial stock — added from Inventory Health",
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory-transactions"] });
+    },
   });
 
   return (

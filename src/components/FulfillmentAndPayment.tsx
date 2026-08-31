@@ -15,7 +15,7 @@ import {
 } from "@/lib/api";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useAddresses } from "@/lib/query/hooks";
-import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
+import { AddressForm, isValidIndianMobile, normalizePhone, type AddressFormValues } from "@/components/AddressForm";
 import { formatInr } from "@/lib/utils";
 import type { PickupLocation } from "@/types/domain";
 
@@ -41,10 +41,12 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const { user, profile } = useAuth();
   const { cartId, items, subtotal } = useCartContext();
   const { addresses, addAddress } = useAddresses(user?.id ?? null);
-  // Captured once via Feelz's phone-only AuthModal popup (FeelzPhoneForm)
-  // before the customer could even add to cart — pre-fills the guest
-  // contact fields below so it's never asked for twice.
-  const { guestPhone: capturedGuestPhone } = useGuestPhone();
+  // A guest's phone number is remembered (cookie, 30 days — see
+  // guestPhone.ts) the moment they successfully place an order, so a
+  // return visit within that window pre-fills this field instead of
+  // asking again. Nothing captures it before checkout — there's no login
+  // or contact-info gate anywhere upstream of this component.
+  const { guestPhone: capturedGuestPhone, setGuestPhone: rememberGuestPhone } = useGuestPhone();
 
   const [mode, setMode] = useState<Mode>("delivery");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -191,7 +193,16 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     serviceability !== "error" &&
     serviceability.serviceable;
   const hasDeliveryTarget = user ? Boolean(selectedAddressId) || Boolean(guestAddress) : Boolean(guestAddress);
-  const hasGuestContact = user || (guestName.trim() && guestPhone.trim() && guestEmail.trim());
+  // Delivery's guest phone comes from guestAddress (AddressForm), which
+  // already enforces this same 10-digit format via its own Zod schema —
+  // only takeaway's separate guestPhone field (a plain input, no
+  // validation of its own) needs the check here.
+  const normalizedGuestPhone = normalizePhone(guestPhone);
+  const hasGuestContact =
+    user ||
+    (mode === "takeaway"
+      ? guestName.trim() && isValidIndianMobile(normalizedGuestPhone) && guestEmail.trim()
+      : guestName.trim() && guestPhone.trim() && guestEmail.trim());
 
   const canPay =
     items.length > 0 &&
@@ -204,6 +215,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     setError(null);
 
     const sb = createClient();
+
+    if (!user) {
+      const phoneToRemember = mode === "takeaway" ? normalizedGuestPhone : guestAddress?.phone;
+      if (phoneToRemember) rememberGuestPhone(phoneToRemember);
+    }
 
     try {
       const result = await checkout(sb, {
@@ -219,7 +235,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         guest: user
           ? undefined
           : mode === "takeaway"
-            ? { name: guestName.trim(), phone: guestPhone.trim(), email: guestEmail.trim() || undefined }
+            ? { name: guestName.trim(), phone: normalizedGuestPhone, email: guestEmail.trim() || undefined }
             : { name: guestAddress!.full_name, phone: guestAddress!.phone, email: guestEmail.trim() || undefined },
       });
 
@@ -237,7 +253,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         prefill: {
           name: profile?.full_name ?? guestName ?? undefined,
           email: user?.email ?? guestEmail ?? undefined,
-          contact: profile?.phone ?? guestPhone ?? undefined,
+          contact: profile?.phone ?? normalizedGuestPhone ?? undefined,
         },
         onSuccess: () => onOrderPlaced(result.order_id),
         onDismiss: () => {
@@ -278,12 +294,19 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             placeholder="Full name"
             className="input"
           />
-          <input
-            value={guestPhone}
-            onChange={(event) => setGuestPhone(event.target.value)}
-            placeholder="Phone"
-            className="input"
-          />
+          <div>
+            <input
+              type="tel"
+              inputMode="numeric"
+              value={guestPhone}
+              onChange={(event) => setGuestPhone(event.target.value)}
+              placeholder="10-digit mobile number"
+              className="input w-full"
+            />
+            {guestPhone.trim().length > 0 && !isValidIndianMobile(normalizedGuestPhone) && (
+              <p className="mt-1 text-xs font-medium text-red-600">Enter a valid 10-digit mobile number.</p>
+            )}
+          </div>
           <input
             value={guestEmail}
             onChange={(event) => setGuestEmail(event.target.value)}

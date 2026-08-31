@@ -17,9 +17,9 @@ export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        {/* Above AuthModalProvider — the modal's Feelz-only phone form
-            (FeelzPhoneForm) and Hero.tsx's add-to-cart gate both read
-            this, so it has to be an ancestor of both. */}
+        {/* Remembers a guest's phone number (30-day cookie) once they
+            place their first order, so FulfillmentAndPayment.tsx can
+            pre-fill it on a return visit instead of asking again. */}
         <GuestPhoneProvider>
           <AuthModalProvider>
             <CartProvider>

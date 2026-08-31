@@ -2,27 +2,44 @@
 // different provider (SendGrid, Postmark, SES, ...) in this one place —
 // every function that sends email goes through here.
 //
-// Silently no-ops (logs a warning, doesn't throw) when EMAIL_PROVIDER_API_KEY
-// isn't set, so a missing secret never turns into a failed order/booking —
-// notifications are best-effort, not load-bearing.
+// Still never THROWS — a missing secret or a Resend error must never turn
+// into a failed order/booking, notifications stay best-effort — but it now
+// reports what happened via the return value instead of swallowing it
+// silently, so a caller that matters (order-status-notifier,
+// appointment-notifier) can record the outcome somewhere an admin can
+// actually see it. This is what makes a guest checkout/booking's *only*
+// notification channel — there's no account/dashboard to fall back on —
+// no longer a silent single point of failure.
 const FROM_ADDRESS = "Mindcafe <notifications@mindcafe.app>";
 
 export const SITE_URL = Deno.env.get("SITE_URL") ?? "https://mindcafe.app";
 
-export async function sendEmail(to: string, subject: string, text: string, html?: string): Promise<void> {
+export type SendEmailResult = { ok: true } | { ok: false; reason: string };
+
+export async function sendEmail(to: string, subject: string, text: string, html?: string): Promise<SendEmailResult> {
   const apiKey = Deno.env.get("EMAIL_PROVIDER_API_KEY");
   if (!apiKey) {
     console.warn("EMAIL_PROVIDER_API_KEY not set — skipping notification email to", to);
-    return;
+    return { ok: false, reason: "Email provider not configured" };
   }
 
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: FROM_ADDRESS, to, subject, text, ...(html ? { html } : {}) }),
-  });
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: FROM_ADDRESS, to, subject, text, ...(html ? { html } : {}) }),
+    });
 
-  if (!res.ok) console.error("Email send failed", await res.text());
+    if (!res.ok) {
+      const body = await res.text();
+      console.error("Email send failed", body);
+      return { ok: false, reason: `Resend error ${res.status}: ${body.slice(0, 300)}` };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("Email send threw", err);
+    return { ok: false, reason: err instanceof Error ? err.message : "Unknown error sending email" };
+  }
 }
 
 function escapeHtml(value: string): string {

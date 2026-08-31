@@ -16,8 +16,14 @@
 // pickup_code, since that's the customer's only proof-of-purchase at the
 // pickup point if they've closed the confirmation tab. 'delivered' is the
 // only status with a review-request CTA — nothing else invites a review.
+//
+// Every customer-facing send attempt writes its outcome back onto the
+// order row (last_notification_status/_error/_at) — a guest has no
+// account/dashboard to fall back on, so this email genuinely is their
+// only channel; a silent failure here used to be invisible to everyone,
+// including the admin. See _shared/email.ts's SendEmailResult.
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { sendEmail, renderEmail, SITE_URL } from "../_shared/email.ts";
+import { sendEmail, renderEmail, SITE_URL, type SendEmailResult } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
 const STATUS_MESSAGES: Record<string, string> = {
@@ -30,6 +36,12 @@ const STATUS_MESSAGES: Record<string, string> = {
   delivered: "Your order has been delivered.",
   cancelled: "Your order was cancelled.",
 };
+
+// Only shown for statuses where "when will it arrive" is still a live
+// question — already-resolved statuses (delivered/cancelled/picked_up)
+// don't need it, and takeaway orders never have one at all (estimated_
+// delivery is a Shiprocket/delivery-only concept — see create-order.ts).
+const SHOW_ETD_FOR = new Set(["confirmed", "packed", "shipped", "out_for_delivery"]);
 
 const REFUND_MESSAGES: Record<string, string> = {
   refund_required: "We're processing a refund for this order — it'll reach you shortly.",
@@ -44,6 +56,7 @@ type OrderRecord = {
   pickup_code: string | null;
   order_number: string;
   total: number;
+  estimated_delivery: string | null;
 };
 
 type DbWebhookPayload = {
@@ -70,6 +83,37 @@ async function resolveCustomerEmail(
     email = authUser?.user?.email ?? null;
   }
   return { email, order_number: order.order_number };
+}
+
+async function recordNotificationOutcome(
+  sb: ReturnType<typeof serviceRoleClient>,
+  orderId: string,
+  status: "sent" | "no_email" | "failed",
+  error: string | null,
+): Promise<void> {
+  await sb
+    .from("orders")
+    .update({ last_notification_status: status, last_notification_error: error, last_notification_at: new Date().toISOString() })
+    .eq("id", orderId);
+}
+
+async function sendCustomerEmail(
+  sb: ReturnType<typeof serviceRoleClient>,
+  orderId: string,
+  subject: string,
+  paragraphs: string[],
+  cta: { label: string; url: string },
+): Promise<boolean> {
+  const { email, order_number } = await resolveCustomerEmail(sb, orderId);
+  if (!email) {
+    await recordNotificationOutcome(sb, orderId, "no_email", "No email on file for this order (guest checkout without one, or account has none)");
+    return false;
+  }
+
+  const { text, html } = renderEmail({ heading: `Order ${order_number}`, paragraphs, cta });
+  const result: SendEmailResult = await sendEmail(email, subject, text, html);
+  await recordNotificationOutcome(sb, orderId, result.ok ? "sent" : "failed", result.ok ? null : result.reason);
+  return result.ok;
 }
 
 Deno.serve(async (req) => {
@@ -112,40 +156,41 @@ Deno.serve(async (req) => {
       paragraphs: [`A new ${record.fulfillment_type} order was confirmed and paid — total ₹${record.total}.`],
       cta: { label: "view in admin", url: `${SITE_URL}/admin/orders` },
     });
+    // Not tracked via recordNotificationOutcome — that's reserved for the
+    // customer-facing send below, since the admin has other ways to
+    // notice a new order (the admin panel itself) and isn't depending on
+    // this email the way a guest depends on theirs.
     await sendEmail(adminEmail, `New order: ${record.order_number}`, text, html);
     sentAny = true;
   }
 
   if (statusChanged && STATUS_MESSAGES[record.status]) {
-    const { email, order_number } = await resolveCustomerEmail(sb, record.id);
-    if (email) {
-      const paragraphs = [STATUS_MESSAGES[record.status]];
-      if (record.status === "ready_for_pickup" && record.pickup_code) {
-        paragraphs.push(`Show code ${record.pickup_code} at pickup (or the QR code on your confirmation page).`);
-      }
-
-      const cta =
-        record.status === "delivered"
-          ? { label: "leave a review", url: `${SITE_URL}/reviews` }
-          : { label: "view your order", url: `${SITE_URL}/account` };
-
-      const { text, html } = renderEmail({ heading: `Order ${order_number}`, paragraphs, cta });
-      await sendEmail(email, `Order ${order_number}: ${STATUS_MESSAGES[record.status]}`, text, html);
-      sentAny = true;
+    const paragraphs = [STATUS_MESSAGES[record.status]];
+    if (record.status === "ready_for_pickup" && record.pickup_code) {
+      paragraphs.push(`Show code ${record.pickup_code} at pickup (or the QR code on your confirmation page).`);
     }
+    if (SHOW_ETD_FOR.has(record.status) && record.estimated_delivery) {
+      paragraphs.push(`Estimated delivery: ${record.estimated_delivery}.`);
+    }
+
+    const cta =
+      record.status === "delivered"
+        ? { label: "leave a review", url: `${SITE_URL}/reviews` }
+        : { label: "view your order", url: `${SITE_URL}/account` };
+
+    const sent = await sendCustomerEmail(sb, record.id, `Order ${record.order_number}: ${STATUS_MESSAGES[record.status]}`, paragraphs, cta);
+    sentAny = sentAny || sent;
   }
 
   if (paymentChanged && REFUND_MESSAGES[record.payment_status]) {
-    const { email, order_number } = await resolveCustomerEmail(sb, record.id);
-    if (email) {
-      const { text, html } = renderEmail({
-        heading: `Order ${order_number}: refund update`,
-        paragraphs: [REFUND_MESSAGES[record.payment_status]],
-        cta: { label: "view your order", url: `${SITE_URL}/account` },
-      });
-      await sendEmail(email, `Order ${order_number}: refund update`, text, html);
-      sentAny = true;
-    }
+    const sent = await sendCustomerEmail(
+      sb,
+      record.id,
+      `Order ${record.order_number}: refund update`,
+      [REFUND_MESSAGES[record.payment_status]],
+      { label: "view your order", url: `${SITE_URL}/account` },
+    );
+    sentAny = sentAny || sent;
   }
 
   return jsonResponse(sentAny ? { sent: true } : { skipped: true });

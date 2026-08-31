@@ -263,6 +263,7 @@ export interface Database {
           tracking_url: string | null;
           subtotal: number;
           delivery_fee: number;
+          estimated_delivery: string | null;
           total: number;
           notes: string | null;
           guest_name: string | null;
@@ -277,6 +278,9 @@ export interface Database {
           discount_amount: number;
           pickup_code: string | null;
           pickup_code_collected_at: string | null;
+          last_notification_status: string | null;
+          last_notification_error: string | null;
+          last_notification_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -464,7 +468,10 @@ export interface Database {
       appointments: {
         Row: {
           id: string;
-          user_id: string;
+          user_id: string | null;
+          guest_name: string | null;
+          guest_phone: string | null;
+          guest_email: string | null;
           expert_id: string | null;
           therapy_category: string;
           scheduled_at: string | null;
@@ -488,10 +495,12 @@ export interface Database {
           intake_concern: string | null;
           intake_answers: Json | null;
           intake_completed_at: string | null;
+          last_notification_status: string | null;
+          last_notification_error: string | null;
+          last_notification_at: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["appointments"]["Row"]> & {
-          user_id: string;
           therapy_category: string;
         };
         Update: Partial<Database["public"]["Tables"]["appointments"]["Row"]>;

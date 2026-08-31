@@ -19,6 +19,10 @@ type RequestBody = {
   scheduled_at?: string;
   notes?: string;
   coupon_code?: string;
+  // Same shape and same validation as create-order's guest checkout —
+  // name + phone required, email optional (used only for the
+  // confirmation/status emails if given, see appointment-notifier).
+  guest?: { name: string; phone: string; email?: string };
 };
 
 Deno.serve(async (req) => {
@@ -32,21 +36,25 @@ Deno.serve(async (req) => {
     return jsonResponse({ error: "Invalid JSON body" }, 400);
   }
 
-  const { therapy_category, expert_id, scheduled_at, notes, coupon_code } = body ?? ({} as RequestBody);
+  const { therapy_category, expert_id, scheduled_at, notes, coupon_code, guest } = body ?? ({} as RequestBody);
 
   if (!therapy_category || !VALID_CATEGORIES.includes(therapy_category)) {
     return jsonResponse({ error: "Invalid therapy_category" }, 400);
   }
 
-  // The caller authenticates as themself via the JWT supabase.functions.invoke
-  // already attaches — booking always happens on the signed-in user's own
-  // account, there's no guest-appointment path.
+  // Same guest-checkout pattern as create-order: the caller authenticates
+  // as themself via the JWT supabase.functions.invoke attaches when
+  // there's a session, but booking without one is fully supported too —
+  // name + phone are the only required guest fields, mirroring
+  // appointments' own appointments_guest_needs_contact check constraint.
   const callerClient = userScopedClient(req);
   const {
     data: { user },
   } = await callerClient.auth.getUser();
 
-  if (!user) return jsonResponse({ error: "Sign in required to book a session" }, 401);
+  if (!user && (!guest?.name || !guest?.phone)) {
+    return jsonResponse({ error: "Name and phone number are required to book without an account" }, 400);
+  }
 
   const sb = serviceRoleClient();
 
@@ -95,7 +103,10 @@ Deno.serve(async (req) => {
   const { data: appointment, error: insertError } = await sb
     .from("appointments")
     .insert({
-      user_id: user.id,
+      user_id: user?.id ?? null,
+      guest_name: user ? null : guest!.name,
+      guest_phone: user ? null : guest!.phone,
+      guest_email: user ? null : (guest!.email ?? null),
       therapy_category,
       expert_id: expert_id ?? null,
       scheduled_at: scheduled_at ?? null,

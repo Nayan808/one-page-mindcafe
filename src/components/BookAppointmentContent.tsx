@@ -6,7 +6,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAuthModal } from "@/contexts/AuthModalContext";
 import {
   getActiveExperts,
   getSiteSetting,
@@ -19,6 +18,7 @@ import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useCreateAppointment, useAppointmentTracking } from "@/lib/query/hooks";
 import { ExpertCard } from "@/components/ExpertCard";
 import { AppointmentIntakeForm } from "@/components/AppointmentIntakeForm";
+import { isValidIndianMobile, normalizePhone } from "@/components/AddressForm";
 import { formatInr } from "@/lib/utils";
 import { generateTimeSlots, toLocalDateInputValue, MAX_BOOKING_DAYS_AHEAD } from "@/lib/timeSlots";
 
@@ -98,6 +98,13 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
   const { user, profile } = useAuth();
   const router = useRouter();
   const createAppointment = useCreateAppointment();
+
+  // No account required — matches Feelz's own guest checkout. Only shown
+  // (and only required) when nobody's signed in; empty for a logged-in
+  // user, whose contact details come from their profile instead.
+  const [guestName, setGuestName] = useState("");
+  const [guestPhone, setGuestPhone] = useState("");
+  const [guestEmail, setGuestEmail] = useState("");
 
   // Defaults to "other" (no specific category picked) rather than nothing,
   // so this step never actually blocks booking — picking a category is a
@@ -204,8 +211,16 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
     }
   }
 
+  // Same 10-digit-mobile rule used everywhere else a phone number is
+  // collected this session (AddressForm, Feelz guest checkout) — an
+  // unverified guest phone is still the ONLY way to reach someone who
+  // books without an account, so it has to actually be a real number,
+  // not just a non-empty string.
+  const normalizedGuestPhone = normalizePhone(guestPhone);
+  const hasGuestContact = Boolean(user) || (guestName.trim() && isValidIndianMobile(normalizedGuestPhone));
+
   async function handleSubmit() {
-    if (!user || !category || !expertId) return;
+    if (!category || !expertId || !hasGuestContact) return;
     setError(null);
     try {
       const scheduledAt =
@@ -216,6 +231,9 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         scheduledAt,
         notes: notes.trim() || undefined,
         couponCode: couponCode.trim() || undefined,
+        guest: user
+          ? undefined
+          : { name: guestName.trim(), phone: normalizedGuestPhone, email: guestEmail.trim() || undefined },
       });
 
       if (!result.requiresPayment) {
@@ -230,9 +248,9 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         razorpayOrderId: result.razorpayOrderId,
         name: "Mindcafe Counselling",
         prefill: {
-          name: profile?.full_name ?? undefined,
-          email: user.email ?? undefined,
-          contact: profile?.phone ?? undefined,
+          name: profile?.full_name ?? guestName.trim() ?? undefined,
+          email: user?.email ?? guestEmail.trim() ?? undefined,
+          contact: profile?.phone ?? normalizedGuestPhone ?? undefined,
         },
         onSuccess: () => router.push(`/book-appointment?confirmed=${result.appointmentId}`),
         onDismiss: () => setError("Payment was cancelled. Your booking is saved as pending payment."),
@@ -445,9 +463,44 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         </div>
       )}
 
+      {category && !user && (
+        <div>
+          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">4. Your details</h2>
+          <p className="mt-1 text-xs text-ink/50">No account needed — just enough to confirm and email your booking.</p>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <input
+              value={guestName}
+              onChange={(event) => setGuestName(event.target.value)}
+              placeholder="Full name"
+              className="input"
+            />
+            <div>
+              <input
+                type="tel"
+                inputMode="numeric"
+                value={guestPhone}
+                onChange={(event) => setGuestPhone(event.target.value)}
+                placeholder="10-digit mobile number"
+                className="input w-full"
+              />
+              {guestPhone.trim().length > 0 && !isValidIndianMobile(normalizedGuestPhone) && (
+                <p className="mt-1 text-xs font-medium text-red-600">Enter a valid 10-digit mobile number.</p>
+              )}
+            </div>
+            <input
+              type="email"
+              value={guestEmail}
+              onChange={(event) => setGuestEmail(event.target.value)}
+              placeholder="Email (optional — for booking updates)"
+              className="input sm:col-span-2"
+            />
+          </div>
+        </div>
+      )}
+
       {category && (
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">4. Payment</h2>
+          <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">5. Payment</h2>
           <div className="mt-3">
             <label className="mb-1 block text-sm text-ink/70">Coupon code (optional)</label>
             <div className="flex gap-2">
@@ -503,7 +556,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       <button
         type="button"
         onClick={handleSubmit}
-        disabled={!category || !expertId || createAppointment.isPending}
+        disabled={!category || !expertId || !hasGuestContact || createAppointment.isPending}
         className="pill-btn w-full"
       >
         {createAppointment.isPending ? "Processing…" : total === 0 ? "Confirm Free Session" : "Pay & Request This Session"}
@@ -514,32 +567,19 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
 function BookAppointmentInner() {
   const { status } = useAuth();
-  const { openAuthModal } = useAuthModal();
   const searchParams = useSearchParams();
   const confirmedId = searchParams.get("confirmed");
   const initialCategory = searchParams.get("category");
   const initialExpertId = searchParams.get("expert");
 
-  // Same sign-in popup used everywhere else on the site (Header's "log
-  // in"), not a dedicated /login page redirect — booking a session
-  // shouldn't feel like it's bouncing you off to a different flow.
-  useEffect(() => {
-    if (status === "unauthenticated") openAuthModal();
-  }, [status, openAuthModal]);
-
-  if (status === "unauthenticated") {
-    return (
-      <div className="mx-auto max-w-sm px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-3xl font-bold text-ink">Sign in to book a session</h1>
-        <p className="mt-2 text-sm text-ink/60">Sign in to book counselling with one of our experts.</p>
-        <button type="button" onClick={openAuthModal} className="pill-btn mt-6">
-          Sign In
-        </button>
-      </div>
-    );
-  }
-
-  if (status !== "authenticated") {
+  // No account required — booking works fully as a guest (name + phone,
+  // collected inline in BookingForm), matching Feelz's own guest
+  // checkout. "loading" is the only status that blocks rendering, and
+  // only briefly, while AuthContext figures out whether there's a
+  // session at all; "unauthenticated" proceeds straight to the same
+  // booking form everyone else sees; a logged-in "Log In" link is still
+  // available in the header for anyone who wants one, never forced here.
+  if (status === "loading") {
     return <div className="px-4 py-16 text-center text-sm text-ink/60">Loading…</div>;
   }
 

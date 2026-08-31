@@ -358,6 +358,11 @@ export type BookAppointmentInput = {
   scheduledAt?: string;
   notes?: string;
   couponCode?: string;
+  /** Omit when signed in. Required to book without an account — name and
+   * phone are the only mandatory fields, matching orders' guest checkout
+   * (see create-appointment-order and the appointments_guest_needs_contact
+   * check constraint). */
+  guest?: { name: string; phone: string; email?: string };
 };
 
 export type BookAppointmentResponse =
@@ -387,6 +392,7 @@ export async function bookAppointment(sb: Sb, input: BookAppointmentInput): Prom
       scheduled_at: input.scheduledAt,
       notes: input.notes,
       coupon_code: input.couponCode || undefined,
+      guest: input.guest,
     },
   });
   if (error) {
@@ -491,19 +497,29 @@ export async function getExpertAppointments(sb: Sb, expertId: string): Promise<A
     .order("created_at", { ascending: false });
   throwOnError("getExpertAppointments", error);
 
-  const userIds = [...new Set((appointments ?? []).map((a) => a.user_id))];
-  if (userIds.length === 0) return [];
+  const userIds = [...new Set((appointments ?? []).map((a) => a.user_id).filter((id): id is string => id !== null))];
 
-  const { data: profiles, error: profilesError } = await sb
-    .from("profiles")
-    .select("id, full_name, phone")
-    .in("id", userIds);
-  throwOnError("getExpertAppointments (profiles)", profilesError);
+  const profileById = new Map<string, { full_name: string | null; phone: string | null }>();
+  if (userIds.length > 0) {
+    const { data: profiles, error: profilesError } = await sb
+      .from("profiles")
+      .select("id, full_name, phone")
+      .in("id", userIds);
+    throwOnError("getExpertAppointments (profiles)", profilesError);
+    for (const p of profiles ?? []) profileById.set(p.id, { full_name: p.full_name, phone: p.phone });
+  }
 
-  const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
+  // A guest booking (no account) has no profiles row to join — its own
+  // guest_name/guest_phone columns are the only place that info lives, so
+  // they're used directly instead of leaving the expert with a blank
+  // customer name.
   return (appointments ?? []).map((a) => ({
     ...a,
-    profiles: profileById.get(a.user_id) ? { full_name: profileById.get(a.user_id)!.full_name, phone: profileById.get(a.user_id)!.phone } : null,
+    profiles: a.user_id
+      ? (profileById.get(a.user_id) ?? null)
+      : a.guest_name
+        ? { full_name: a.guest_name, phone: a.guest_phone }
+        : null,
   })) as unknown as AppointmentWithCustomer[];
 }
 
@@ -571,7 +587,7 @@ export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: str
   const [appointmentsRes, blockedRes] = await Promise.all([
     sb
       .from("appointments")
-      .select("id, user_id, scheduled_at")
+      .select("id, user_id, guest_name, scheduled_at")
       .eq("expert_id", expertId)
       .neq("status", "cancelled")
       .neq("payment_status", "failed")
@@ -585,7 +601,7 @@ export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: str
   const appointments = appointmentsRes.data ?? [];
   // appointments.user_id has no FK to public.profiles (only to
   // auth.users) — same two-query merge pattern as getExpertAppointments.
-  const userIds = [...new Set(appointments.map((a) => a.user_id))];
+  const userIds = [...new Set(appointments.map((a) => a.user_id).filter((id): id is string => id !== null))];
   const nameById = new Map<string, string | null>();
   if (userIds.length > 0) {
     const { data: profiles, error: profilesError } = await sb.from("profiles").select("id, full_name").in("id", userIds);
@@ -598,7 +614,7 @@ export async function getSlotAvailability(sb: Sb, expertId: string, dateStr: str
     if (!a.scheduled_at) continue;
     booked.set(toHHMM(a.scheduled_at), {
       appointmentId: a.id,
-      customerName: nameById.get(a.user_id) ?? null,
+      customerName: (a.user_id ? nameById.get(a.user_id) : a.guest_name) ?? null,
       scheduledAt: a.scheduled_at,
     });
   }

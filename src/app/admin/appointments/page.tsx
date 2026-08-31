@@ -159,6 +159,22 @@ export default function AdminAppointmentsPage() {
       ),
     },
     {
+      key: "notification",
+      label: "email",
+      render: (a) =>
+        a.last_notification_status === "sent" ? (
+          <span className="text-xs font-medium text-emerald-700">✓ sent</span>
+        ) : a.last_notification_status === "failed" ? (
+          <span className="text-xs font-medium text-red-600" title={a.last_notification_error ?? undefined}>
+            ✗ failed
+          </span>
+        ) : a.last_notification_status === "no_email" ? (
+          <span className="text-xs font-medium text-amber-600">no email on file</span>
+        ) : (
+          <span className="text-xs text-ink/30">—</span>
+        ),
+    },
+    {
       key: "details",
       label: "",
       render: (a) => (
