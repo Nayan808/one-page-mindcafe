@@ -50,12 +50,12 @@ export function CounsellingHero() {
         </span>
 
         <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-6xl">
-          When You Need More <span className="font-tagline italic text-brand-blush">than Self-Help</span>
+          You don&apos;t have to <span className="font-tagline italic text-brand-blush">figure it all out alone.</span>
         </h1>
 
         <p className="mx-auto mt-4 max-w-lg text-sm text-[#f4ead9]/70 sm:text-base">
-          Talk to qualified mental-health professionals for confidential, one-on-one support tailored to what
-          you&apos;re going through.
+          Private, one-on-one support from qualified mental-health professionals, when you need space to
+          understand what you&apos;re feeling, work through challenges, and move forward.
         </p>
 
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

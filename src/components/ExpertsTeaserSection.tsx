@@ -4,22 +4,50 @@ import { useState } from "react";
 import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getActiveExperts } from "@/lib/api";
+import { getActiveExperts, getSiteSetting } from "@/lib/api";
 import { ExpertCard } from "@/components/ExpertCard";
 import { Reveal } from "@/components/Reveal";
+import { isWellbeingGuideRole } from "@/lib/expertCategories";
+import type { Expert } from "@/types/domain";
 
-// Spec 4.4 "Experts teaser: pull 3–4 rows from experts where
-// is_active = true". Renders nothing if the table is ever empty (e.g. a
-// fresh environment before seeding) rather than showing a broken section.
+function ExpertGroup({ title, description, experts, sessionPrice }: { title: string; description?: string; experts: Expert[]; sessionPrice?: number }) {
+  if (experts.length === 0) return null;
+  return (
+    <div className="mt-10 first:mt-0">
+      <div className="text-center">
+        <h3 className="font-display text-lg font-bold text-ink">{title}</h3>
+        {description && <p className="mt-1 text-xs text-ink/50">{description}</p>}
+      </div>
+      <div className="mt-6 flex flex-wrap justify-center gap-5">
+        {experts.map((expert) => (
+          <div key={expert.id} className="w-full sm:w-[calc(50%-0.625rem)] lg:w-[calc(25%-0.9375rem)]">
+            <ExpertCard expert={expert} bookHref={`/book-appointment?expert=${expert.id}`} sessionPrice={sessionPrice} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// Spec 4.4 "Experts teaser: pull rows from experts where is_active =
+// true". Renders nothing if the table is ever empty (e.g. a fresh
+// environment before seeding) rather than showing a broken section.
 export function ExpertsTeaserSection() {
   const [query, setQuery] = useState("");
-  const [showAll, setShowAll] = useState(false);
 
   const expertsQuery = useQuery({
     queryKey: ["experts", "teaser"],
     queryFn: () => getActiveExperts(createClient()),
   });
   const experts = expertsQuery.data ?? [];
+
+  // Same single site-wide rate CounsellingHero already shows — there's no
+  // per-expert price field, so this is passed to every card rather than
+  // inventing one.
+  const priceQuery = useQuery({
+    queryKey: ["site-settings", "counselling_session_price"],
+    queryFn: () => getSiteSetting<number>(createClient(), "counselling_session_price"),
+  });
 
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -31,10 +59,8 @@ export function ExpertsTeaserSection() {
       )
     : experts;
 
-  const isSearching = q.length > 0;
-  const visibleExperts = isSearching || showAll ? filtered : filtered.slice(0, 4);
-  const canExpand = !isSearching && !showAll && filtered.length > 4;
-  const canCollapse = !isSearching && showAll && filtered.length > 4;
+  const professional = filtered.filter((e) => !isWellbeingGuideRole(e.certifications[0]));
+  const guides = filtered.filter((e) => isWellbeingGuideRole(e.certifications[0]));
 
   if (!expertsQuery.isLoading && experts.length === 0) return null;
 
@@ -42,8 +68,8 @@ export function ExpertsTeaserSection() {
     <section className="bg-white">
       <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Meet the Experts</p>
-        <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">Certified counsellors</h2>
+        <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">Meet the Experts</h2>
+        <p className="mt-2 text-sm text-ink/60">Choose the kind of support that feels right for you.</p>
       </div>
 
       <div className="mx-auto mt-6 max-w-sm">
@@ -59,33 +85,19 @@ export function ExpertsTeaserSection() {
         </div>
       </div>
 
-      {visibleExperts.length > 0 ? (
-        <div className="mt-10 flex flex-wrap justify-center gap-5">
-          {visibleExperts.map((expert) => (
-            <div key={expert.id} className="w-full sm:w-[calc(50%-0.625rem)] lg:w-[calc(25%-0.9375rem)]">
-              <ExpertCard expert={expert} bookHref={`/book-appointment?expert=${expert.id}`} />
-            </div>
-          ))}
-        </div>
-      ) : (
+      {professional.length === 0 && guides.length === 0 ? (
         <p className="mt-10 text-center text-sm text-ink/50">No experts match &ldquo;{query}&rdquo;.</p>
+      ) : (
+        <>
+          <ExpertGroup
+            title="Qualified mental-health professionals"
+            description="For structured, professional counselling and mental-health support."
+            experts={professional}
+            sessionPrice={priceQuery.data ?? undefined}
+          />
+          <ExpertGroup title="Wellness Guides" experts={guides} sessionPrice={priceQuery.data ?? undefined} />
+        </>
       )}
-
-      {canExpand ? (
-        <div className="mt-8 text-center">
-          <button type="button" onClick={() => setShowAll(true)} className="pill-btn-outline">
-            See All Experts
-          </button>
-        </div>
-      ) : null}
-
-      {canCollapse ? (
-        <div className="mt-8 text-center">
-          <button type="button" onClick={() => setShowAll(false)} className="pill-btn-outline">
-            Show Less
-          </button>
-        </div>
-      ) : null}
       </Reveal>
     </section>
   );

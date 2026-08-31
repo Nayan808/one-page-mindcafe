@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getActiveExperts } from "@/lib/api";
 import { motion } from "motion/react";
 import { EASE, MaskLine, RiseIn, useCalmMotion } from "@/components/motion/primitives";
+import { isWellbeingGuideRole } from "@/lib/expertCategories";
 import type { Expert } from "@/types/domain";
 
 function initialsFor(name: string): string {
@@ -76,16 +77,6 @@ function ExpertCard({ expert, index, calm }: { expert: Expert; index: number; ca
   );
 }
 
-// A role reads as "professional support" (structured, credentialed) vs
-// "mind & wellbeing guide" (spiritual/lifestyle) by its own certification
-// text — there's no separate admin field for this split, so it's inferred
-// from the same role string the card already shows, rather than adding a
-// new column just for a homepage grouping.
-function isWellbeingGuide(expert: Expert): boolean {
-  const role = expert.certifications[0] ?? "";
-  return /spiritual|wellbeing|lifestyle|guide|coach|influencer/i.test(role);
-}
-
 // Homepage teaser for the counselling vertical — mirrors FeelzTeaserSection's
 // role (a taste, not the full page) so the homepage isn't Feelz-only. Full
 // detail (full expert directory, emotional checklist, FAQs) stays on
@@ -101,8 +92,8 @@ export function CounsellingTeaserSection() {
     queryFn: () => getActiveExperts(createClient()),
   });
   const experts = expertsQuery.data ?? [];
-  const professional = experts.filter((e) => !isWellbeingGuide(e)).slice(0, 4);
-  const guides = experts.filter(isWellbeingGuide).slice(0, 4);
+  const professional = experts.filter((e) => !isWellbeingGuideRole(e.certifications[0])).slice(0, 4);
+  const guides = experts.filter((e) => isWellbeingGuideRole(e.certifications[0])).slice(0, 4);
   const calm = useCalmMotion();
 
   return (
@@ -146,7 +137,7 @@ export function CounsellingTeaserSection() {
         {guides.length > 0 && (
           <div className="mt-12">
             <RiseIn y={8} amount={0.6} className="text-center">
-              <h3 className="font-display text-lg font-bold text-ink">Mind &amp; Wellbeing Guides</h3>
+              <h3 className="font-display text-lg font-bold text-ink">Wellness Guides</h3>
             </RiseIn>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {guides.map((expert, index) => (

@@ -10,6 +10,7 @@ import {
   deleteInventoryTransactionAdmin,
   getFullInventoryAdmin,
   getInventoryTransactionsAdmin,
+  getOrderStockMovementAdmin,
   getPickupLocationsAdmin,
   getProductsAdmin,
   updateInventoryQuantityAdmin,
@@ -17,6 +18,7 @@ import {
   updateVariantAdmin,
   type FullInventoryRow,
   type InventoryTransactionWithVariant,
+  type OrderStockMovementRow,
 } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
@@ -729,6 +731,20 @@ function aggregateTransactionsByVariant(transactions: InventoryTransactionWithVa
   return map;
 }
 
+// Real units sold via actual orders (online or takeaway), within scope —
+// stock this order already took from inventory.quantity_available but
+// that the manual log was never told about (see getOrderStockMovementAdmin).
+// Folded into the log comparison below as implicit "out" movement so a
+// routine sale doesn't read as a discrepancy.
+function aggregateOrderSalesByVariant(rows: OrderStockMovementRow[], scope: string): Map<string, number> {
+  const map = new Map<string, number>();
+  for (const r of rows) {
+    if (!inScope(r.locationId, scope)) continue;
+    map.set(r.variantId, (map.get(r.variantId) ?? 0) + r.quantity);
+  }
+  return map;
+}
+
 function aggregateByVariant(rows: FullInventoryRow[]): SummaryRow[] {
   const byVariant = new Map<string, SummaryRow>();
   for (const row of rows) {
@@ -750,6 +766,172 @@ function aggregateByVariant(rows: FullInventoryRow[]): SummaryRow[] {
   return [...byVariant.values()].sort((a, b) => a.productName.localeCompare(b.productName));
 }
 
+// Everything above (summary table, transaction log) is for working the
+// day-to-day. This is the opposite: a status check across the whole
+// catalog, plus a short list of concrete gaps worth fixing — a variant
+// with no reorder threshold, a location that's missing product rows
+// entirely, a variant sitting at zero somewhere. Each gap is fixable
+// inline (reusing ReorderThresholdCell/QuantityCell/addMissing exactly as
+// they work above) rather than just being a read-only warning.
+function InventoryHealthSection({
+  full,
+  locations,
+  totalVariantCount,
+  isLoading,
+}: {
+  full: FullInventoryRow[];
+  locations: PickupLocation[];
+  totalVariantCount: number;
+  isLoading: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const activeLocations = useMemo(() => locations.filter((l) => l.is_active), [locations]);
+  const allSummary = useMemo(() => aggregateByVariant(full), [full]);
+
+  const totalUnits = allSummary.reduce((sum, s) => sum + s.totalRemaining, 0);
+  const totalValue = allSummary.reduce((sum, s) => sum + s.totalRemaining * s.price, 0);
+  const lowStock = allSummary.filter((s) => s.reorderThreshold !== null && s.totalRemaining <= s.reorderThreshold);
+  const missingThreshold = allSummary.filter((s) => s.reorderThreshold === null);
+  const outOfStockRows = full.filter((r) => r.quantityAvailable === 0);
+
+  // Missing product rows per place — the online pool plus every active
+  // Zostel — each compared against the full catalog's variant count so a
+  // *partially* stocked location (2 of 4 products) is caught too, not
+  // just one with zero rows.
+  const missingByPlace = useMemo(() => {
+    const places: { key: string; label: string; locationId: string | null; missing: number }[] = [];
+    const onlinePresent = full.filter((r) => r.locationId === null).length;
+    places.push({
+      key: "online",
+      label: "Online / delivery",
+      locationId: null,
+      missing: Math.max(0, totalVariantCount - onlinePresent),
+    });
+    for (const loc of activeLocations) {
+      const present = full.filter((r) => r.locationId === loc.id).length;
+      places.push({ key: loc.id, label: loc.name, locationId: loc.id, missing: Math.max(0, totalVariantCount - present) });
+    }
+    return places.filter((p) => p.missing > 0);
+  }, [full, activeLocations, totalVariantCount]);
+
+  const addMissing = useMutation({
+    mutationFn: (locationId: string | null) => addMissingInventoryRowsAdmin(createClient(), locationId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] }),
+  });
+
+  if (isLoading) {
+    return <div className="rounded-2xl border border-ink/10 bg-white px-4 py-6 text-center text-sm text-ink/50">Loading…</div>;
+  }
+
+  const nothingMissing = missingThreshold.length === 0 && missingByPlace.length === 0 && outOfStockRows.length === 0;
+
+  return (
+    <div className="overflow-hidden rounded-2xl border border-ink/10 bg-white">
+      <div className="border-b border-ink/10 bg-cream/60 px-4 py-3">
+        <p className="text-sm font-semibold text-ink">Inventory health</p>
+        <p className="mt-0.5 text-xs text-ink/50">
+          A whole-catalog status check, separate from the working tables above — the KPIs on the left are read-only
+          totals; the lists on the right are gaps worth fixing, each fixable right here.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
+        <div className="rounded-xl border border-ink/10 p-3 text-center">
+          <p className="font-display text-2xl font-bold text-ink">{formatInr(totalValue)}</p>
+          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">stock value</p>
+        </div>
+        <div className="rounded-xl border border-ink/10 p-3 text-center">
+          <p className="font-display text-2xl font-bold text-ink">{totalUnits}</p>
+          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">units in stock</p>
+        </div>
+        <div className={`rounded-xl border p-3 text-center ${lowStock.length > 0 ? "border-red-200 bg-red-50" : "border-ink/10"}`}>
+          <p className={`font-display text-2xl font-bold ${lowStock.length > 0 ? "text-red-700" : "text-ink"}`}>{lowStock.length}</p>
+          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">low stock</p>
+        </div>
+        <div
+          className={`rounded-xl border p-3 text-center ${outOfStockRows.length > 0 ? "border-amber-200 bg-amber-50" : "border-ink/10"}`}
+        >
+          <p className={`font-display text-2xl font-bold ${outOfStockRows.length > 0 ? "text-amber-700" : "text-ink"}`}>
+            {outOfStockRows.length}
+          </p>
+          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">out of stock (by location)</p>
+        </div>
+      </div>
+
+      {nothingMissing ? (
+        <div className="border-t border-ink/10 p-4 text-center text-xs text-ink/50">
+          Nothing missing — every product has a reorder threshold set, every active location has full stock rows,
+          and nothing is at zero.
+        </div>
+      ) : (
+        <div className="grid gap-4 border-t border-ink/10 p-4 lg:grid-cols-3">
+          {missingThreshold.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">
+                Missing reorder threshold ({missingThreshold.length})
+              </p>
+              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                {missingThreshold.map((s) => (
+                  <div key={s.variantId} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
+                    <span className="min-w-0 truncate text-xs text-ink">
+                      {s.productName}
+                      {s.variantLabel !== s.productName && <span className="text-ink/50"> — {s.variantLabel}</span>}
+                    </span>
+                    <ReorderThresholdCell summary={s} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {missingByPlace.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">Locations missing products</p>
+              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                {missingByPlace.map((p) => (
+                  <div key={p.key} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
+                    <span className="min-w-0 truncate text-xs text-ink">
+                      {p.label} <span className="text-ink/50">— {p.missing} missing</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => addMissing.mutate(p.locationId)}
+                      disabled={addMissing.isPending}
+                      className="pill-btn-outline shrink-0 !py-1 text-[11px] disabled:opacity-40"
+                    >
+                      {addMissing.isPending ? "adding…" : "add (starts at 0)"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {outOfStockRows.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">
+                Out of stock ({outOfStockRows.length})
+              </p>
+              <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                {outOfStockRows.map((r) => (
+                  <div key={r.id} className="flex items-center justify-between gap-2 rounded-lg border border-ink/10 p-2">
+                    <span className="min-w-0 truncate text-xs text-ink">
+                      {r.productName}
+                      {r.variantLabel !== r.productName && <span className="text-ink/50"> — {r.variantLabel}</span>}
+                      <span className="text-ink/40"> · {locations.find((l) => l.id === r.locationId)?.name ?? "Online"}</span>
+                    </span>
+                    <QuantityCell row={{ id: r.id, quantity_available: r.quantityAvailable }} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminInventoryPage() {
   const queryClient = useQueryClient();
   const [summaryScope, setSummaryScope] = useState<string>(SUMMARY_ALL);
@@ -762,6 +944,11 @@ export default function AdminInventoryPage() {
   const transactionsQuery = useQuery({
     queryKey: ["admin", "inventory-transactions"],
     queryFn: () => getInventoryTransactionsAdmin(createClient()),
+  });
+  // Real order-driven stock movement — see getOrderStockMovementAdmin.
+  const orderSalesQuery = useQuery({
+    queryKey: ["admin", "order-stock-movement"],
+    queryFn: () => getOrderStockMovementAdmin(createClient()),
   });
   // Only needed to know the full product-variant count, so a *partially*
   // stocked location (e.g. 2 of 4 products) can be detected too, not just
@@ -816,6 +1003,10 @@ export default function AdminInventoryPage() {
     () => aggregateTransactionsByVariant(transactionsQuery.data ?? [], summaryScope),
     [transactionsQuery.data, summaryScope],
   );
+  const orderSalesByVariant = useMemo(
+    () => aggregateOrderSalesByVariant(orderSalesQuery.data ?? [], summaryScope),
+    [orderSalesQuery.data, summaryScope],
+  );
 
   // Remaining stock is only directly editable here when the scope maps to
   // exactly one underlying row per variant — a specific Zostel or the
@@ -855,7 +1046,9 @@ export default function AdminInventoryPage() {
                 ? AGGREGATE_LOW_STOCK_FLOOR
                 : LOCATION_LOW_STOCK_FLOOR}{" "}
               units left on some product. &quot;Logged net&quot; and &quot;gap&quot; compare live stock against the
-              Transaction log below, for whatever scope is selected here. Remaining stock is editable at every
+              Transaction log below (real order sales are folded in automatically so a routine sale never shows as
+              a discrepancy — only genuine gaps do), for whatever scope is selected here. Remaining stock is
+              editable at every
               scope — editing &quot;all&quot; or &quot;all Zostel&quot; splits the new number across each real
               location proportionally to its current share, rather than writing one row directly.
             </p>
@@ -907,7 +1100,15 @@ export default function AdminInventoryPage() {
                     const stockValue = summary.totalRemaining * summary.price;
                     const isLow = summary.reorderThreshold !== null && summary.totalRemaining <= summary.reorderThreshold;
                     const logged = loggedByVariant.get(summary.variantId);
-                    const loggedNet = logged ? logged.in - logged.out : null;
+                    // Real order sales count as "out" the log was never
+                    // told about — folded in here so a routine sale isn't
+                    // mistaken for a discrepancy (see
+                    // aggregateOrderSalesByVariant). Only applied once
+                    // there's an actual manual log entry to compare
+                    // against; a variant with none stays "not logged"
+                    // rather than fabricating a comparison out of nothing.
+                    const realSold = orderSalesByVariant.get(summary.variantId) ?? 0;
+                    const loggedNet = logged ? logged.in - (logged.out + realSold) : null;
                     const gap = loggedNet === null ? null : summary.totalRemaining - loggedNet;
                     return (
                       <tr key={summary.variantId} className="border-b border-ink/5 last:border-0 hover:bg-cream/60">
@@ -981,6 +1182,13 @@ export default function AdminInventoryPage() {
       </div>
 
       <TransactionLogSection products={productsQuery.data ?? []} locations={locations} />
+
+      <InventoryHealthSection
+        full={full}
+        locations={locations}
+        totalVariantCount={totalVariantCount}
+        isLoading={fullInventoryQuery.isLoading || productsQuery.isLoading}
+      />
     </div>
   );
 }

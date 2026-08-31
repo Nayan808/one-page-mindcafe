@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Bodoni_Moda, Inter } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
@@ -48,6 +49,22 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       className={`${display.variable} ${serifItalic.variable} ${serifDisplay.variable} ${body.variable} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col bg-cream text-ink">
+        {/* Google tag (gtag.js). next/script's afterInteractive strategy
+            injects this at runtime after the page is interactive, rather
+            than blocking first paint — Next manages the actual DOM
+            injection point itself regardless of where this is written in
+            the JSX (confirmed: moving it into a literal <head> had no
+            effect on where it lands), so this is the standard next/script
+            placement, not a plain <script> that needs to sit in <head>. */}
+        <Script src="https://www.googletagmanager.com/gtag/js?id=G-KR5X0X6734" strategy="afterInteractive" />
+        <Script id="gtag-init" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-KR5X0X6734');
+          `}
+        </Script>
         <AppLoadingOverlay />
         <Providers>
           <AnnouncementBar />

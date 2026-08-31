@@ -2,9 +2,21 @@ import { CalendarCheck, ListChecks, UserCheck } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 
 const STEPS = [
-  { title: "Pick a category", description: "Individual, family, child & adolescent, or specialized support.", Icon: ListChecks },
-  { title: "Choose your expert", description: "Browse certified counsellors and pick who feels right.", Icon: UserCheck },
-  { title: "Book a session", description: "Set a time that works for you: private, at your pace.", Icon: CalendarCheck },
+  {
+    title: "Tell us what you're looking for",
+    description: "Choose the kind of support that feels closest to what you're going through.",
+    Icon: ListChecks,
+  },
+  {
+    title: "Find someone who fits",
+    description: "Browse qualified professionals by specialty, approach and experience.",
+    Icon: UserCheck,
+  },
+  {
+    title: "Take the first step",
+    description: "Choose a convenient time and have your private session online.",
+    Icon: CalendarCheck,
+  },
 ];
 
 // Same connected-step visual language as Feelz's HowItWorksSection, but
@@ -22,7 +34,7 @@ export function CounsellingHowItWorks() {
           <span className="h-px w-10 bg-ink/20" aria-hidden />
         </div>
         <h2 className="font-display mt-4 text-3xl font-bold uppercase tracking-[0.3em] text-ink sm:text-4xl">
-          How Counselling Works
+          A simple place to start.
         </h2>
       </div>
 

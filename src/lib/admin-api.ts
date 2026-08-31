@@ -642,6 +642,36 @@ export type InventoryTransactionWithVariant = InventoryTransaction & {
   pickup_locations: { name: string } | null;
 };
 
+export type OrderStockMovementRow = { variantId: string; locationId: string | null; quantity: number };
+
+// Real stock movement from actual orders — every order past 'placed' has
+// already had its items decremented from inventory.quantity_available
+// (see confirm_order_and_decrement_stock / confirm_cash_order), but that
+// decrement never touches the manual Transaction Log, so a real online or
+// takeaway sale silently drifts live stock away from whatever the log
+// last claimed. This feeds the inventory summary's "gap vs. log" column
+// so a routine sale is folded into the comparison as movement the log
+// implicitly accounts for, instead of surfacing as a false discrepancy —
+// without writing anything into inventory_transactions itself, so the
+// manual ledger stays exactly what an admin typed into it, nothing more.
+// 'cancelled' is excluded too: a cancelled order's stock has already been
+// restocked (admin_cancel_order), so it nets to zero movement anyway.
+export async function getOrderStockMovementAdmin(sb: Sb): Promise<OrderStockMovementRow[]> {
+  const { data, error } = await sb
+    .from("orders")
+    .select("location_id, order_items(variant_id, quantity)")
+    .not("status", "in", "(placed,cancelled)");
+  throwOnError("getOrderStockMovementAdmin", error);
+
+  const rows: OrderStockMovementRow[] = [];
+  for (const order of (data ?? []) as unknown as { location_id: string | null; order_items: { variant_id: string; quantity: number }[] }[]) {
+    for (const item of order.order_items) {
+      rows.push({ variantId: item.variant_id, locationId: order.location_id, quantity: item.quantity });
+    }
+  }
+  return rows;
+}
+
 // Manual reconciliation ledger (see 20260806113057_inventory_transactions
 // migration) — an audit trail an admin fills in from the manufacturer's
 // receipt paperwork and Zostel shipment records, deliberately NOT wired to

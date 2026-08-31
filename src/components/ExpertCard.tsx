@@ -5,13 +5,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import type { Expert } from "@/types/domain";
+import { formatInr } from "@/lib/utils";
 
 export function ExpertCard({
   expert,
   bookHref,
   showViewDetails = true,
+  sessionPrice,
 }: {
-  expert: Pick<Expert, "id" | "name" | "photo_url" | "bio" | "specialties" | "rating" | "certifications"> &
+  expert: Pick<Expert, "id" | "name" | "photo_url" | "bio" | "specialties" | "rating" | "certifications" | "years_experience"> &
     Partial<Pick<Expert, "is_bookable">>;
   /** When set, also renders a "book with {name}" link (subject to
    * is_bookable) — omit on pages where selecting the card itself already
@@ -22,6 +24,13 @@ export function ExpertCard({
    * click handler (a selection toggle) elsewhere, so this link stops
    * propagation to avoid also toggling selection underneath the navigation. */
   showViewDetails?: boolean;
+  /** Per-session price to show on the card — there's no per-expert price
+   * field in the schema, only the single site-wide
+   * site_settings.counselling_session_price every expert actually charges,
+   * so this is passed in by whichever page already fetched that setting
+   * rather than faked per expert. Omitted entirely where a caller doesn't
+   * pass it, so this stays opt-in per page. */
+  sessionPrice?: number;
 }) {
   // A dead/unreachable photo_url (typo'd in the admin form, or hosted
   // somewhere that later 404s) used to render as a broken-image icon with
@@ -64,10 +73,27 @@ export function ExpertCard({
         </div>
       )}
 
-      {/* Bio and category tags deliberately left off the card — full bio,
-          specialties, and everything else live on the /experts/[id]
-          detail page ("view details" below), so the card itself stays
-          just a quick photo/name/role glance, not a mini profile. */}
+      {expert.years_experience && <p className="mt-1.5 text-xs text-ink/60">{expert.years_experience} experience</p>}
+
+      {expert.specialties.length > 0 && (
+        <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+          {expert.specialties.slice(0, 3).map((specialty) => (
+            <span key={specialty} className="rounded-full border border-ink/15 px-2 py-0.5 text-[10px] text-ink/60">
+              {specialty}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {sessionPrice != null && (
+        <p className="mt-2 text-sm font-semibold text-ink">
+          {formatInr(sessionPrice)} <span className="font-normal text-ink/50">/ session</span>
+        </p>
+      )}
+
+      {/* Full bio and everything else beyond the above lives on the
+          /experts/[id] detail page ("view profile" below), so the card
+          itself stays a quick glance, not a mini profile. */}
 
       {(showViewDetails || bookHref) && (
         <div className="mt-4 flex flex-wrap justify-center gap-2">
@@ -77,12 +103,12 @@ export function ExpertCard({
               onClick={(event) => event.stopPropagation()}
               className="pill-btn-outline !py-2 text-xs"
             >
-              View Details
+              View Profile
             </Link>
           )}
           {bookHref && expert.is_bookable !== false && (
             <Link href={bookHref} onClick={(event) => event.stopPropagation()} className="pill-btn !py-2 text-xs">
-              Book with {expert.name.split(" ")[0]}
+              Book a Session
             </Link>
           )}
         </div>
