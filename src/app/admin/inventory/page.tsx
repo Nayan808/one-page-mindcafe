@@ -1013,6 +1013,93 @@ function InventoryHealthSection({
 // One missing (product × place) pair, with its own starting-quantity
 // input — inserts a real inventory row via addInventoryRowAdmin rather
 // than the bulk button's blind 0.
+// A product missing its inventory row for the currently-scoped location,
+// shown as an extra row right inside the summary table (not just the
+// separate Inventory Health section below) — same insert-and-log
+// mutation as MissingRowEntry, styled to visually read as "not a real
+// row yet" (muted background, dashed left border) rather than blending
+// in with actual stock rows.
+function MissingSummaryTableRow({
+  variantId,
+  productName,
+  variantLabel,
+  price,
+  locationId,
+}: {
+  variantId: string;
+  productName: string;
+  variantLabel: string;
+  price: number;
+  locationId: string | null;
+}) {
+  const queryClient = useQueryClient();
+  const [value, setValue] = useState("0");
+
+  const add = useMutation({
+    mutationFn: async (quantity: number) => {
+      const sb = createClient();
+      await addInventoryRowAdmin(sb, variantId, locationId, quantity);
+      if (quantity > 0) {
+        await createInventoryTransactionAdmin(sb, {
+          transactionDate: toLocalDateInputValue(new Date()),
+          transactionType: "received",
+          variantId,
+          locationId,
+          quantity,
+          notes: "Initial stock — added from Inventory summary",
+        });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "inventory-transactions"] });
+    },
+  });
+
+  return (
+    <tr className="border-b border-dashed border-ink/15 bg-cream/40 last:border-0">
+      <td className="px-4 py-3 font-medium text-ink">
+        {productName}
+        {variantLabel !== productName && <span className="text-ink/50"> — {variantLabel}</span>}
+        <span className="ml-2 rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-label text-ink/50">
+          missing
+        </span>
+      </td>
+      <td className="px-4 py-3 text-ink/70">{formatInr(price)}</td>
+      <td className="px-4 py-3 text-ink/70">
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            min="0"
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              add.reset();
+            }}
+            className="input !w-24 !py-1.5 text-sm"
+          />
+          <button
+            type="button"
+            onClick={() => add.mutate(Number(value) || 0)}
+            disabled={add.isPending}
+            className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
+          >
+            {add.isPending ? "adding…" : "add"}
+          </button>
+        </div>
+        {add.isError && (
+          <p className="mt-1 text-xs text-red-600">{add.error instanceof Error ? add.error.message : "Failed to add"}</p>
+        )}
+      </td>
+      <td className="px-4 py-3 text-ink/30">—</td>
+      <td className="px-4 py-3 text-ink/30">—</td>
+      <td className="px-4 py-3 text-ink/30">—</td>
+      <td className="px-4 py-3 text-ink/30">—</td>
+      <td className="px-4 py-3 text-ink/30">—</td>
+    </tr>
+  );
+}
+
 function MissingRowEntry({
   row,
 }: {
@@ -1179,6 +1266,31 @@ export default function AdminInventoryPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin", "full-inventory"] }),
   });
 
+  // Products with no row at all for the current single-location scope —
+  // previously only visible by scrolling all the way to the separate
+  // "Inventory Health" section below. Shown as extra rows right in this
+  // table instead, each with its own inline starting-quantity entry, so
+  // "this location is missing product X" is visible in the same summary
+  // an admin is already looking at, not a separate lookup.
+  const missingInScope = useMemo(() => {
+    if (!isSingleLocationScope) return [];
+    const present = new Set(summaryRows.map((s) => s.variantId));
+    const rows: { variantId: string; productName: string; variantLabel: string; price: number }[] = [];
+    for (const product of productsQuery.data ?? []) {
+      for (const variant of product.product_variants) {
+        if (!present.has(variant.id)) {
+          rows.push({
+            variantId: variant.id,
+            productName: product.name,
+            variantLabel: variant.variant_label,
+            price: variant.price_override ?? product.price,
+          });
+        }
+      }
+    }
+    return rows;
+  }, [isSingleLocationScope, summaryRows, productsQuery.data]);
+
   return (
     <div>
       <AdminPageHeader
@@ -1238,7 +1350,7 @@ export default function AdminInventoryPage() {
                     Loading…
                   </td>
                 </tr>
-              ) : summaryRows.length === 0 ? (
+              ) : summaryRows.length === 0 && missingInScope.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="px-4 py-6 text-center text-ink/50">
                     No inventory in this scope.
@@ -1314,6 +1426,16 @@ export default function AdminInventoryPage() {
                       </tr>
                     );
                   })}
+                  {missingInScope.map((row) => (
+                    <MissingSummaryTableRow
+                      key={row.variantId}
+                      variantId={row.variantId}
+                      productName={row.productName}
+                      variantLabel={row.variantLabel}
+                      price={row.price}
+                      locationId={scopeLocationId}
+                    />
+                  ))}
                   <tr className="bg-cream/40 font-semibold text-ink">
                     <td className="px-4 py-3">TOTAL</td>
                     <td className="px-4 py-3" />

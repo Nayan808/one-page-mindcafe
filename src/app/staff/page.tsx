@@ -20,7 +20,15 @@ type StaffInventoryProduct = {
 type StaffInventoryData = {
   location: { id: string; name: string; city: string } | null;
   products: StaffInventoryProduct[];
-  totals: { unitsRemaining: number; unitsSold: number; revenue: number; commissionRate: number; commission: number };
+  totals: {
+    unitsRemaining: number;
+    unitsSold: number;
+    revenue: number;
+    commissionRate: number;
+    calculatedCommission: number;
+    commissionAdjustment: number;
+    commission: number;
+  };
 };
 
 type StaffHistoryOrder = {
@@ -388,6 +396,13 @@ export default function StaffDashboard() {
             <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">
               commission ({inventory ? `${Math.round(inventory.totals.commissionRate * 100)}%` : "10%"})
             </p>
+            {inventory && inventory.totals.commissionAdjustment !== 0 && (
+              <p className={`mt-1 text-[10px] font-medium ${inventory.totals.commissionAdjustment > 0 ? "text-emerald-700" : "text-red-600"}`}>
+                {formatInr(inventory.totals.calculatedCommission)} calculated{" "}
+                {inventory.totals.commissionAdjustment > 0 ? "+" : ""}
+                {formatInr(inventory.totals.commissionAdjustment)} adjustment
+              </p>
+            )}
           </div>
         </div>
         {inventory && <p className="mt-1.5 text-center text-[11px] text-ink/40">sold, revenue &amp; commission — {RANGE_LABELS[range]} · remaining is live</p>}

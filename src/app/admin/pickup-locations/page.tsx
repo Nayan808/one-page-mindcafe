@@ -3,14 +3,136 @@
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
-import { getPickupLocationsAdmin, createPickupLocationAdmin, updatePickupLocationAdmin, deletePickupLocationAdmin } from "@/lib/admin-api";
+import {
+  getPickupLocationsAdmin,
+  createPickupLocationAdmin,
+  updatePickupLocationAdmin,
+  deletePickupLocationAdmin,
+  getCommissionAdjustmentsAdmin,
+  createCommissionAdjustmentAdmin,
+  deleteCommissionAdjustmentAdmin,
+} from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
+import { formatInr } from "@/lib/utils";
 import type { PickupLocation } from "@/types/domain";
+
+function toLocalDateInputValue(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+// A manual +/- ₹ correction, bonus, or deduction on top of the calculated
+// percent × revenue commission /staff already shows — kept as a running
+// ledger (see 20260901000000_pickup_location_commission_adjustments.sql)
+// rather than a single overridable number, so a bonus doesn't erase a
+// prior correction and every entry stays auditable.
+function CommissionAdjustmentsSection({ locationId }: { locationId: string }) {
+  const queryClient = useQueryClient();
+  const confirmDialog = useConfirmDialog();
+  const adjustmentsQuery = useQuery({
+    queryKey: ["admin", "commission-adjustments", locationId],
+    queryFn: () => getCommissionAdjustmentsAdmin(createClient(), locationId),
+  });
+  const adjustments = adjustmentsQuery.data ?? [];
+  const total = adjustments.reduce((sum, a) => sum + Number(a.amount), 0);
+
+  const [amount, setAmount] = useState("");
+  const [reason, setReason] = useState("");
+  const [date, setDate] = useState(() => toLocalDateInputValue(new Date()));
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["admin", "commission-adjustments", locationId] });
+
+  const add = useMutation({
+    mutationFn: () =>
+      createCommissionAdjustmentAdmin(createClient(), {
+        locationId,
+        amount: Number(amount),
+        reason: reason.trim(),
+        adjustmentDate: date,
+      }),
+    onSuccess: () => {
+      setFormError(null);
+      setAmount("");
+      setReason("");
+      invalidate();
+    },
+    onError: (err) => setFormError(err instanceof Error ? err.message : "Failed to add adjustment"),
+  });
+
+  const remove = useMutation({
+    mutationFn: (id: string) => deleteCommissionAdjustmentAdmin(createClient(), id),
+    onSuccess: invalidate,
+  });
+
+  return (
+    <div className="rounded-lg border border-ink/15 bg-cream/60 p-3">
+      <p className="mb-1 text-xs font-medium text-ink/70">
+        Commission adjustments — one-off corrections/bonuses/deductions on top of the percent-based commission
+      </p>
+
+      {adjustments.length > 0 && (
+        <div className="mb-3 max-h-40 space-y-1.5 overflow-y-auto">
+          {adjustments.map((a) => (
+            <div key={a.id} className="flex items-center justify-between gap-2 rounded-md bg-white px-2.5 py-1.5 text-xs">
+              <div className="min-w-0">
+                <span className={Number(a.amount) < 0 ? "font-semibold text-red-600" : "font-semibold text-emerald-700"}>
+                  {Number(a.amount) >= 0 ? "+" : ""}
+                  {formatInr(Number(a.amount))}
+                </span>
+                <span className="ml-2 text-ink/50">{a.adjustment_date}</span>
+                <p className="truncate text-ink/70">{a.reason}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => remove.mutate(a.id)}
+                disabled={remove.isPending}
+                className="shrink-0 text-[11px] text-red-600 hover:text-red-700 disabled:opacity-40"
+              >
+                remove
+              </button>
+            </div>
+          ))}
+          <div className="flex items-center justify-between px-2.5 pt-1 text-xs font-semibold text-ink">
+            <span>Total adjustment</span>
+            <span>{total >= 0 ? "+" : ""}{formatInr(total)}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-2 sm:grid-cols-3">
+        <input
+          type="number"
+          step="0.01"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="Amount (₹, use − for deduction)"
+          className="input !py-1.5 text-xs sm:col-span-1"
+        />
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input !py-1.5 text-xs" />
+        <input
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason (e.g. correction for double-counted sale)"
+          className="input !py-1.5 text-xs sm:col-span-3"
+        />
+      </div>
+      {formError && <p className="mt-1.5 text-xs text-red-600">{formError}</p>}
+      <button
+        type="button"
+        onClick={() => add.mutate()}
+        disabled={!amount || Number(amount) === 0 || !reason.trim() || add.isPending}
+        className="pill-btn-outline mt-2 !py-1.5 text-xs disabled:opacity-40"
+      >
+        {add.isPending ? "adding…" : "add adjustment"}
+      </button>
+    </div>
+  );
+}
 
 type Form = { name: string; address: string; city: string; is_active: boolean; commission_percent: number };
 const EMPTY: Form = { name: "", address: "", city: "", is_active: true, commission_percent: 10 };
@@ -221,6 +343,8 @@ export default function AdminPickupLocationsPage() {
               )}
             </div>
           )}
+
+          {editing && <CommissionAdjustmentsSection locationId={editing.id} />}
 
           {saveError && <p className="text-sm text-red-600">{saveError}</p>}
           <button

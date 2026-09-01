@@ -115,6 +115,24 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["pickup_locations"]["Row"]>;
         Relationships: [];
       };
+      pickup_location_commission_adjustments: {
+        Row: {
+          id: string;
+          location_id: string;
+          amount: number;
+          reason: string;
+          adjustment_date: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["pickup_location_commission_adjustments"]["Row"]> & {
+          location_id: string;
+          amount: number;
+          reason: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["pickup_location_commission_adjustments"]["Row"]>;
+        Relationships: [];
+      };
       inventory: {
         Row: {
           id: string;

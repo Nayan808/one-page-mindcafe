@@ -217,8 +217,19 @@ Deno.serve(async (req) => {
       location = data ?? null;
     }
 
+    // Manual one-off corrections/bonuses/deductions (see /admin/pickup-
+    // locations) on top of the calculated percent × revenue commission
+    // above — same `since` window as everything else here, compared by
+    // adjustment_date since that's a plain date, not a timestamptz.
+    let adjustmentsQuery = sb.from("pickup_location_commission_adjustments").select("amount");
+    if (locationId !== null) adjustmentsQuery = adjustmentsQuery.eq("location_id", locationId);
+    if (body.since) adjustmentsQuery = adjustmentsQuery.gte("adjustment_date", body.since.slice(0, 10));
+    const { data: adjustmentRows } = await adjustmentsQuery;
+    const commissionAdjustment = (adjustmentRows ?? []).reduce((sum, a) => sum + Number(a.amount), 0);
+
     const totalRevenue = products.reduce((sum, p) => sum + p.revenue, 0);
-    const totalCommission = products.reduce((sum, p) => sum + p.commission, 0);
+    const calculatedCommission = products.reduce((sum, p) => sum + p.commission, 0);
+    const totalCommission = calculatedCommission + commissionAdjustment;
 
     return jsonResponse({
       location,
@@ -231,8 +242,18 @@ Deno.serve(async (req) => {
         // location (the master/combined view can span several different
         // rates now) — this is the blended effective rate either way:
         // exactly that location's own rate when scoped, a weighted
-        // average across locations when combined.
-        commissionRate: totalRevenue > 0 ? totalCommission / totalRevenue : 0,
+        // average across locations when combined. Computed off the
+        // calculated commission only — manual adjustments are a flat ₹
+        // correction, not part of the underlying rate.
+        commissionRate: totalRevenue > 0 ? calculatedCommission / totalRevenue : 0,
+        // What percent × revenue alone comes to, before adjustments.
+        calculatedCommission,
+        // The manual correction/bonus/deduction total for this scope —
+        // 0 when there aren't any, shown separately so it's never
+        // confused with the calculated figure above.
+        commissionAdjustment,
+        // calculatedCommission + commissionAdjustment — the actual
+        // amount owed.
         commission: totalCommission,
       },
     });

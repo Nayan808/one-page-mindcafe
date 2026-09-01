@@ -534,6 +534,44 @@ export async function deletePickupLocationAdmin(sb: Sb, id: string): Promise<voi
   throwOnError("deletePickupLocationAdmin", error);
 }
 
+// --- Pickup location commission adjustments ------------------------------
+// A manual +/- ₹ correction, bonus, or deduction on top of the calculated
+// percent × revenue commission /staff already shows — see
+// 20260901000000_pickup_location_commission_adjustments.sql. Kept as a
+// running ledger, not a single overridable field.
+
+export type CommissionAdjustment = Database["public"]["Tables"]["pickup_location_commission_adjustments"]["Row"];
+
+export async function getCommissionAdjustmentsAdmin(sb: Sb, locationId?: string): Promise<CommissionAdjustment[]> {
+  let query = sb.from("pickup_location_commission_adjustments").select("*");
+  if (locationId) query = query.eq("location_id", locationId);
+  const { data, error } = await query.order("adjustment_date", { ascending: false }).order("created_at", { ascending: false });
+  throwOnError("getCommissionAdjustmentsAdmin", error);
+  return data ?? [];
+}
+
+export async function createCommissionAdjustmentAdmin(
+  sb: Sb,
+  input: { locationId: string; amount: number; reason: string; adjustmentDate: string },
+): Promise<void> {
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  const { error } = await sb.from("pickup_location_commission_adjustments").insert({
+    location_id: input.locationId,
+    amount: input.amount,
+    reason: input.reason,
+    adjustment_date: input.adjustmentDate,
+    created_by: user?.id ?? null,
+  });
+  throwOnError("createCommissionAdjustmentAdmin", error);
+}
+
+export async function deleteCommissionAdjustmentAdmin(sb: Sb, id: string): Promise<void> {
+  const { error } = await sb.from("pickup_location_commission_adjustments").delete().eq("id", id);
+  throwOnError("deleteCommissionAdjustmentAdmin", error);
+}
+
 // --- Inventory (per-location stock) ---------------------------------------
 
 // location_id = null is the central/online pool (used for delivery
