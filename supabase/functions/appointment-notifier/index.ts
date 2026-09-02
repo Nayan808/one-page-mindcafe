@@ -26,8 +26,10 @@ import { serviceRoleClient } from "../_shared/supabaseClients.ts";
 import { sendEmail, renderEmail, SITE_URL, type SendEmailResult } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
 
-const FEEDBACK_FORM_URL = "https://forms.gle/jrABix6R8TdeBtDZ9";
-
+// No review-request CTA on 'completed' — a finished counselling session
+// isn't a delivered product, and the customer already gets asked for
+// feedback through other channels; the email just points back to their
+// bookings instead.
 const CUSTOMER_MESSAGES: Record<string, { heading: string; body: string; cta: { label: string; url: string } }> = {
   pending: {
     heading: "We've received your payment",
@@ -41,8 +43,8 @@ const CUSTOMER_MESSAGES: Record<string, { heading: string; body: string; cta: { 
   },
   completed: {
     heading: "Thanks for attending your session",
-    body: "We hope it was helpful. We'd really appreciate two minutes of your time to tell us how it went — you can book a follow-up session any time from your account.",
-    cta: { label: "share your feedback", url: FEEDBACK_FORM_URL },
+    body: "We hope it was helpful. You can book a follow-up session any time.",
+    cta: { label: "book another session", url: `${SITE_URL}/book-appointment` },
   },
   cancelled: {
     heading: "Your session was cancelled",

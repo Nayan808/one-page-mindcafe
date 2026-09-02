@@ -25,6 +25,7 @@ export type ContactMessage = Tables["contact_messages"]["Row"];
 export type ExpertBlockedSlot = Tables["expert_blocked_slots"]["Row"];
 export type AppointmentNote = Tables["appointment_notes"]["Row"];
 export type InventoryTransaction = Tables["inventory_transactions"]["Row"];
+export type MisplacedStockLog = Tables["misplaced_stock_logs"]["Row"];
 export type ExpertApplication = Tables["expert_applications"]["Row"];
 export type FeelzPreorder = Tables["feelz_preorders"]["Row"];
 export type Faq = Tables["faqs"]["Row"];

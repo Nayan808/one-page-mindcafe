@@ -22,6 +22,7 @@ import type {
   InventoryWithVariant,
   InventoryWithVariantAndLocation,
   Milestone,
+  MisplacedStockLog,
   NewsletterSubscriber,
   OrderWithItemDetailsAndLocation,
   PickupLocation,
@@ -789,6 +790,66 @@ export async function updateInventoryTransactionAdmin(
 export async function deleteInventoryTransactionAdmin(sb: Sb, id: string): Promise<void> {
   const { error } = await sb.from("inventory_transactions").delete().eq("id", id);
   throwOnError("deleteInventoryTransactionAdmin", error);
+}
+
+export type MisplacedStockLogWithVariant = MisplacedStockLog & {
+  product_variants: { variant_label: string; products: { name: string } };
+  pickup_locations: { name: string } | null;
+};
+
+// Manual log for stock that went missing or got misplaced at a place —
+// see 20260902000000_misplaced_stock_logs migration. Kept as its own
+// table rather than a 4th Transaction Log type, since a missing unit
+// isn't a received/shipped/sold movement. Most recent first.
+export async function getMisplacedStockLogsAdmin(sb: Sb): Promise<MisplacedStockLogWithVariant[]> {
+  const { data, error } = await sb
+    .from("misplaced_stock_logs")
+    .select("*, product_variants(variant_label, products(name)), pickup_locations:location_id(name)")
+    .order("log_date", { ascending: false })
+    .order("created_at", { ascending: false });
+  throwOnError("getMisplacedStockLogsAdmin", error);
+  return (data as unknown as MisplacedStockLogWithVariant[]) ?? [];
+}
+
+export async function createMisplacedStockLogAdmin(
+  sb: Sb,
+  input: { logDate: string; variantId: string; locationId: string | null; quantity: number; notes?: string },
+): Promise<void> {
+  const {
+    data: { user },
+  } = await sb.auth.getUser();
+  const { error } = await sb.from("misplaced_stock_logs").insert({
+    log_date: input.logDate,
+    variant_id: input.variantId,
+    location_id: input.locationId,
+    quantity: input.quantity,
+    notes: input.notes || null,
+    created_by: user?.id ?? null,
+  });
+  throwOnError("createMisplacedStockLogAdmin", error);
+}
+
+export async function updateMisplacedStockLogAdmin(
+  sb: Sb,
+  id: string,
+  input: { logDate: string; variantId: string; locationId: string | null; quantity: number; notes?: string },
+): Promise<void> {
+  const { error } = await sb
+    .from("misplaced_stock_logs")
+    .update({
+      log_date: input.logDate,
+      variant_id: input.variantId,
+      location_id: input.locationId,
+      quantity: input.quantity,
+      notes: input.notes || null,
+    })
+    .eq("id", id);
+  throwOnError("updateMisplacedStockLogAdmin", error);
+}
+
+export async function deleteMisplacedStockLogAdmin(sb: Sb, id: string): Promise<void> {
+  const { error } = await sb.from("misplaced_stock_logs").delete().eq("id", id);
+  throwOnError("deleteMisplacedStockLogAdmin", error);
 }
 
 // The real number of units sold online, straight from paid orders — not

@@ -631,6 +631,25 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["inventory_transactions"]["Row"]>;
         Relationships: [];
       };
+      misplaced_stock_logs: {
+        Row: {
+          id: string;
+          log_date: string;
+          variant_id: string;
+          location_id: string | null;
+          quantity: number;
+          notes: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["misplaced_stock_logs"]["Row"]> & {
+          log_date: string;
+          variant_id: string;
+          quantity: number;
+        };
+        Update: Partial<Database["public"]["Tables"]["misplaced_stock_logs"]["Row"]>;
+        Relationships: [];
+      };
       faqs: {
         Row: {
           id: string;

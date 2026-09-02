@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { ArrowRight, GraduationCap, Heart, Sparkles, User, type LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -37,7 +38,14 @@ export function TherapyCategoryPicker() {
     queryKey: ["therapy-categories"],
     queryFn: () => getTherapyCategories(createClient()),
   });
-  const categories = categoriesQuery.data ?? [];
+  // Individual support leads — getTherapyCategories() itself sorts
+  // alphabetically by title (shared by the admin table and the booking
+  // form's dropdown, so that global order is left alone), this just
+  // re-orders the copy shown specifically on this picker.
+  const categories = useMemo(() => {
+    const data = categoriesQuery.data ?? [];
+    return [...data].sort((a, b) => (a.slug === "individual" ? -1 : b.slug === "individual" ? 1 : 0));
+  }, [categoriesQuery.data]);
 
   if (!categoriesQuery.isLoading && categories.length === 0) return null;
 

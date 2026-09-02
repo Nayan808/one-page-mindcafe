@@ -10,6 +10,11 @@ import { Reveal } from "@/components/Reveal";
 import { isWellbeingGuideRole } from "@/lib/expertCategories";
 import type { Expert } from "@/types/domain";
 
+// Only this one expert's card shows a price — every other expert's price
+// is hidden, by explicit request rather than a data-driven rule (there's
+// no "show price" flag on the expert row, just this one name).
+const PRICE_VISIBLE_FOR = "Shivalika Srivastav";
+
 function ExpertGroup({ title, description, experts, sessionPrice }: { title: string; description?: string; experts: Expert[]; sessionPrice?: number }) {
   if (experts.length === 0) return null;
   return (
@@ -21,7 +26,11 @@ function ExpertGroup({ title, description, experts, sessionPrice }: { title: str
       <div className="mt-6 flex flex-wrap justify-center gap-5">
         {experts.map((expert) => (
           <div key={expert.id} className="w-full sm:w-[calc(50%-0.625rem)] lg:w-[calc(25%-0.9375rem)]">
-            <ExpertCard expert={expert} bookHref={`/book-appointment?expert=${expert.id}`} sessionPrice={sessionPrice} />
+            <ExpertCard
+              expert={expert}
+              bookHref={`/book-appointment?expert=${expert.id}`}
+              sessionPrice={expert.name === PRICE_VISIBLE_FOR ? sessionPrice : undefined}
+            />
           </div>
         ))}
       </div>
