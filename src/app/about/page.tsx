@@ -21,15 +21,27 @@ export default function AboutPage() {
           }}
           aria-hidden
         />
-        <div className="relative mx-auto max-w-2xl px-4 py-24 text-center sm:px-6 sm:py-28">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-[#f4ead9]/70">About Mindcafe</p>
-          <h1 className="font-display mx-auto mt-4 max-w-xl text-4xl font-bold leading-[1.15] text-[#f6efe4] sm:text-5xl">
-            A world where seeking support is as natural as offering a hand.
-          </h1>
-          <p className="mt-4 text-sm text-[#f4ead9]/70 sm:text-base">
-            Our mission: make mental wellness practical, accessible, and relevant, part of everyday life, not just
-            something for crisis moments.
-          </p>
+        <div
+          className="pointer-events-none absolute right-[8%] top-1/2 hidden -translate-y-1/2 lg:flex xl:right-[16%]"
+          aria-hidden
+        >
+          <div className="relative h-52 w-52 overflow-hidden rounded-full border border-[#f6efe4]/25 shadow-lg xl:h-[250px] xl:w-[250px]">
+            <Image src="/hero-badges/about.jpg" alt="" fill sizes="250px" className="object-cover" />
+          </div>
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-28">
+          <div className="max-w-xl">
+            <p className="text-[11px] font-semibold uppercase tracking-label text-[#f4ead9]/70">About Mindcafe</p>
+            <h1 className="font-display mt-4 text-4xl font-bold leading-[1.15] text-[#f6efe4] sm:text-5xl">
+              A world where seeking support is as natural as offering a hand.
+            </h1>
+            <div className="mt-6 h-px w-12 bg-[#f6efe4]/25" aria-hidden />
+            <p className="mt-6 text-sm text-[#f4ead9]/70 sm:text-base">
+              Our mission: make mental wellness practical, accessible, and relevant, part of everyday life, not just
+              something for crisis moments.
+            </p>
+          </div>
         </div>
       </section>
 

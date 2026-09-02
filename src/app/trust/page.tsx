@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   BarChart3,
   BookOpen,
@@ -141,26 +142,38 @@ const DIGITAL_TRUST_SECTIONS = [
 export default function TrustPage() {
   return (
     <div>
-      <section className="bg-ink text-cream">
-        <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <h1 className="font-display mx-auto max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
-            Our commitment to <span className="font-tagline italic text-brand">safety &amp; transparency.</span>
-          </h1>
-          <p className="mt-4 text-sm text-cream/70 sm:text-base">
-            At Mindcafe, we believe mental wellness products should be built on a foundation of safety,
-            responsibility, and transparency. Every step of product development, from ingredient selection to
-            manufacturing, is guided by recognised safety standards for nutraceutical products.
-          </p>
-          <div className="mx-auto mt-8 flex max-w-lg flex-wrap items-center justify-center gap-2">
-            {TRUST_PILLARS.map((pillar) => (
-              <span
-                key={pillar.label}
-                className="inline-flex items-center gap-1.5 rounded-full border border-cream/25 px-3.5 py-1.5 text-xs font-medium text-cream/80"
-              >
-                <pillar.Icon className="h-3.5 w-3.5" aria-hidden />
-                {pillar.label}
-              </span>
-            ))}
+      <section className="relative overflow-hidden bg-ink text-cream">
+        <div
+          className="pointer-events-none absolute right-[8%] top-1/2 hidden -translate-y-1/2 lg:flex xl:right-[16%]"
+          aria-hidden
+        >
+          <div className="relative h-52 w-52 overflow-hidden rounded-full border border-cream/25 shadow-lg xl:h-[250px] xl:w-[250px]">
+            <Image src="/hero-badges/trust.jpg" alt="" fill sizes="250px" className="object-cover" />
+          </div>
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-4 py-20 sm:px-6">
+          <div className="max-w-xl">
+            <h1 className="font-display text-4xl font-bold leading-[1.15] sm:text-5xl">
+              Our commitment to <span className="font-tagline italic text-brand">safety &amp; transparency.</span>
+            </h1>
+            <div className="mt-6 h-px w-12 bg-cream/25" aria-hidden />
+            <p className="mt-6 text-sm text-cream/70 sm:text-base">
+              At Mindcafe, we believe mental wellness products should be built on a foundation of safety,
+              responsibility, and transparency. Every step of product development, from ingredient selection to
+              manufacturing, is guided by recognised safety standards for nutraceutical products.
+            </p>
+            <div className="mt-8 flex max-w-lg flex-wrap items-center gap-2">
+              {TRUST_PILLARS.map((pillar) => (
+                <span
+                  key={pillar.label}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-cream/25 px-3.5 py-1.5 text-xs font-medium text-cream/80"
+                >
+                  <pillar.Icon className="h-3.5 w-3.5" aria-hidden />
+                  {pillar.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       </section>

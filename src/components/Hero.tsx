@@ -106,7 +106,17 @@ export function Hero() {
           }}
           aria-hidden
         />
-        <div className="relative z-10 mx-auto flex max-w-5xl flex-col items-center px-4 py-12 text-center sm:px-6">
+
+        <div
+          className="pointer-events-none absolute right-[8%] top-1/2 z-10 hidden -translate-y-1/2 lg:flex xl:right-[16%]"
+          aria-hidden
+        >
+          <div className="relative h-52 w-52 overflow-hidden rounded-full border border-[#f6efe4]/25 shadow-lg xl:h-[250px] xl:w-[250px]">
+            <Image src="/hero-badges/feelz-v2.jpg" alt="" fill sizes="250px" className="object-cover" />
+          </div>
+        </div>
+
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start px-4 py-12 sm:px-6">
         <TimelineContent
           as="div"
           animationNum={0}
@@ -126,7 +136,7 @@ export function Hero() {
           timelineRef={timelineRef}
           customVariants={revealVariants}
           onClick={() => scrollTo("products")}
-          className="mx-auto flex w-fit items-center gap-1 rounded-full border-4 border-ink/5 bg-white py-0.5 pl-0.5 pr-3 text-xs"
+          className="flex w-fit items-center gap-1 rounded-full border-4 border-ink/5 bg-white py-0.5 pl-0.5 pr-3 text-xs"
         >
           <span className="rounded-full bg-ink px-2 py-1 text-[11px] font-semibold uppercase tracking-label text-cream">
             new
@@ -145,10 +155,10 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mx-auto mt-6 max-w-3xl text-5xl leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-7xl xl:text-8xl"
+          className="font-display mt-6 max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-6xl xl:text-7xl"
         >
-          <span className="block text-center">Feelz better.</span>
-          <span className="block text-center">
+          <span className="block">Feelz better.</span>
+          <span className="block">
             Wherever{" "}
             <span className="bg-gradient-to-r from-brand via-brand-blush to-brand-navy bg-clip-text text-transparent">
               the day takes you
@@ -157,12 +167,14 @@ export function Hero() {
           </span>
         </TimelineContent>
 
+        <div className="mt-6 h-px w-12 bg-[#f6efe4]/25" aria-hidden />
+
         <TimelineContent
           as="p"
           animationNum={3}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-tagline mx-auto mt-6 max-w-xl text-lg italic text-[#f4ead9]/70 sm:text-xl"
+          className="font-tagline mt-6 max-w-xl text-lg italic text-[#f4ead9]/70 sm:text-xl"
         >
           Fast-dissolving Nutraceutical strips designed to support focus, confidence, inner happiness, and rest —
           anytime, anywhere.
@@ -173,7 +185,7 @@ export function Hero() {
           animationNum={4}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="mt-8 flex flex-wrap items-center justify-center gap-3"
+          className="mt-8 flex flex-wrap items-center gap-3"
         >
           <button onClick={() => scrollTo("mood-picks")} className="btn-cine-primary">
             Shop Feelz ↓
@@ -191,7 +203,7 @@ export function Hero() {
           animationNum={5}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="mx-auto mt-6 flex max-w-lg flex-wrap items-center justify-center gap-2"
+          className="mt-6 flex max-w-lg flex-wrap items-center gap-2"
         >
           {["FSSAI ✓", "No Sugar", "No Water Needed", "Made in India"].map((tag) => (
             <span key={tag} className="badge-pill">
