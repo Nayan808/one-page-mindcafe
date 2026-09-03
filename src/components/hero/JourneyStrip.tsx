@@ -1,119 +1,29 @@
 "use client";
 
 import { motion } from "motion/react";
+import { MOOD_STYLES } from "@/lib/moodStyles";
 
-// The four journey stages from the reference, previewing the homepage's
-// eventual CHAOS -> ... -> CLARITY arc. Icons are inline SVG (not an icon
-// font or images) so each one can carry its own slow, stage-appropriate
-// motion rather than looking like four unrelated animated glyphs.
-const STAGES = [
-  {
-    key: "thoughts",
-    label: "Understand your mind",
-    copy: ["Know what's affecting how you think,", "feel and function."],
-  },
-  {
-    key: "understanding",
-    label: "Build healthier habits",
-    copy: ["Everyday tools designed to", "support your mental wellbeing."],
-  },
-  {
-    key: "healing",
-    label: "Get professional support",
-    copy: ["Talk to qualified experts when", "you need more than self-help."],
-  },
-  {
-    key: "clarity",
-    label: "Feel better, sustainably",
-    copy: ["Small interventions that fit", "into real life."],
-  },
+// The four Feelz moods, previewed right in the homepage hero — the
+// taglines/gradients are the same ones already used on /feelz and the mood
+// cards (moodStyleFor), so a mood reads identically wherever it shows up.
+const MOODS = [
+  { key: "extrovert", label: "Extrovert" },
+  { key: "focus", label: "Focus" },
+  { key: "joy", label: "Joy" },
+  { key: "rest", label: "Rest" },
 ] as const;
 
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
-function Icon({ stage, reduced }: { stage: string; reduced: boolean }) {
-  const common = { fill: "none", strokeWidth: 1.1, strokeLinecap: "round" as const };
-
-  if (stage === "thoughts") {
-    // Tangled loops, drifting irregularly — emotional noise.
-    return (
-      <svg viewBox="0 0 32 32" className="h-7 w-7 text-[#a66c98]">
-        <motion.g
-          {...common}
-          stroke="currentColor"
-          animate={reduced ? undefined : { rotate: [0, 2.5, -1.5, 0], x: [0, 0.6, -0.4, 0] }}
-          transition={{ duration: 14, repeat: Infinity, ease: "easeInOut" }}
-          style={{ originX: "16px", originY: "16px" }}
-        >
-          <circle cx="13" cy="14" r="6.5" />
-          <circle cx="19" cy="17" r="5.5" />
-          <path d="M9 20c2 3 6 4 9 2" />
-        </motion.g>
-      </svg>
-    );
-  }
-
-  if (stage === "understanding") {
-    // A broken ring slowly completing itself.
-    return (
-      <svg viewBox="0 0 32 32" className="h-7 w-7 text-[#cf96af]">
-        <motion.circle
-          {...common}
-          stroke="currentColor"
-          cx="16"
-          cy="16"
-          r="9"
-          strokeDasharray="57"
-          animate={reduced ? { strokeDashoffset: 6 } : { strokeDashoffset: [26, 2, 26] }}
-          transition={{ duration: 11, repeat: Infinity, ease: "easeInOut" }}
-        />
-        <path {...common} stroke="currentColor" d="M16 11v5l3 2" opacity={0.75} />
-      </svg>
-    );
-  }
-
-  if (stage === "healing") {
-    // Leaves opening — organic growth, never a bounce.
-    return (
-      <svg viewBox="0 0 32 32" className="h-7 w-7 text-[#b9c6a8]">
-        <motion.g
-          {...common}
-          stroke="currentColor"
-          animate={reduced ? undefined : { scaleY: [1, 1.06, 1], scaleX: [1, 1.03, 1] }}
-          transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
-          style={{ originX: "16px", originY: "26px" }}
-        >
-          <path d="M16 26V13" />
-          <path d="M16 17c-4 0-6-3-6-6 3 0 6 2 6 6z" />
-          <path d="M16 20c4 0 6-3 6-6-3 0-6 2-6 6z" />
-        </motion.g>
-      </svg>
-    );
-  }
-
-  // clarity — warm light radiating outward on a long, calm loop.
+function MoodDot({ gradient, reduced }: { gradient: string; reduced: boolean }) {
   return (
-    <svg viewBox="0 0 32 32" className="h-7 w-7 text-[#e3c39b]">
-      <circle {...common} stroke="currentColor" cx="16" cy="16" r="5" />
-      <motion.g
-        {...common}
-        stroke="currentColor"
-        animate={reduced ? undefined : { opacity: [0.45, 0.9, 0.45], scale: [0.97, 1.05, 0.97] }}
-        transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
-        style={{ originX: "16px", originY: "16px" }}
-      >
-        {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
-          <line
-            key={deg}
-            x1="16"
-            y1="7.5"
-            x2="16"
-            y2="4.5"
-            transform={`rotate(${deg} 16 16)`}
-          />
-        ))}
-      </motion.g>
-    </svg>
+    <motion.span
+      className="block h-7 w-7 shrink-0 rounded-full"
+      style={{ background: gradient }}
+      animate={reduced ? undefined : { scale: [1, 1.08, 1], opacity: [0.9, 1, 0.9] }}
+      transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
+      aria-hidden
+    />
   );
 }
 
@@ -125,24 +35,23 @@ export function JourneyStrip({ reduced, delay = 0 }: { reduced: boolean; delay?:
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.77, delay, ease: EASE }}
     >
-      {STAGES.map((s, i) => (
-        <li
-          key={s.key}
-          className={`flex items-start gap-3 ${i > 0 ? "sm:border-l sm:border-cream/12 sm:pl-6" : ""}`}
-        >
-          <span className="mt-0.5 shrink-0">
-            <Icon stage={s.key} reduced={reduced} />
-          </span>
-          <span className="min-w-0">
-            <span className="block text-sm font-medium text-cream/90">{s.label}</span>
-            <span className="mt-0.5 block text-xs leading-relaxed text-cream/50">
-              {s.copy[0]}
-              <br />
-              {s.copy[1]}
+      {MOODS.map((m, i) => {
+        const mood = MOOD_STYLES[m.key];
+        return (
+          <li
+            key={m.key}
+            className={`flex items-start gap-3 ${i > 0 ? "sm:border-l sm:border-cream/12 sm:pl-6" : ""}`}
+          >
+            <span className="mt-0.5">
+              <MoodDot gradient={mood.gradient} reduced={reduced} />
             </span>
-          </span>
-        </li>
-      ))}
+            <span className="min-w-0">
+              <span className="block text-sm font-medium text-cream/90">{m.label}</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-cream/50">{mood.description}</span>
+            </span>
+          </li>
+        );
+      })}
     </motion.ul>
   );
 }

@@ -147,8 +147,8 @@ export default function TrustPage() {
           className="pointer-events-none absolute right-[8%] top-1/2 hidden -translate-y-1/2 lg:flex xl:right-[16%]"
           aria-hidden
         >
-          <div className="relative h-52 w-52 overflow-hidden rounded-full border border-cream/25 shadow-lg xl:h-[250px] xl:w-[250px]">
-            <Image src="/hero-badges/trust.jpg" alt="" fill sizes="250px" className="object-cover" />
+          <div className="relative h-[280px] w-[280px] overflow-hidden rounded-full border border-cream/25 shadow-lg xl:h-[340px] xl:w-[340px]">
+            <Image src="/hero-badges/trust.jpg" alt="" fill sizes="340px" className="object-cover" />
           </div>
         </div>
 

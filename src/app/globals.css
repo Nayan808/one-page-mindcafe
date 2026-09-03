@@ -373,7 +373,7 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-c
 }
 
 /* ---- Cinematic button system -------------------------------------------
-   One shared language for the dark hero world: the navbar's Book Session /
+   One shared language for the dark hero world: the navbar's Talk to Expert /
    Log In and the hero's two CTAs all use these, so they read as one design
    system with three levels of hierarchy rather than four unrelated buttons.
    Shared: radius, type scale, 300ms easing, tiny lift on hover. Different:

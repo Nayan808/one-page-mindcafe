@@ -229,7 +229,7 @@ export function Header() {
             override classes) since layering a white-text utility on top
             of that shared class isn't guaranteed to win the cascade. */}
         <div className="hidden items-center gap-3 sm:flex">
-          {/* Book Session = tertiary (outlined), Log In = the navbar's
+          {/* Talk to Expert = tertiary (outlined), Log In = the navbar's
               strongest action. Both use the shared .btn-cine-* system, so
               they share radius, type and easing with the hero CTAs and read
               as one hierarchy: hero primary > nav solid > nav ghost. */}
@@ -243,7 +243,7 @@ export function Header() {
                   : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
             }
           >
-            Book Session
+            Talk to Expert
           </Link>
 
           {status === "authenticated" && (
@@ -307,7 +307,7 @@ export function Header() {
             onClick={() => setMenuOpen(false)}
             className="w-full py-2.5 text-center uppercase hover:text-ink"
           >
-            book session
+            talk to expert
           </Link>
 
           {status === "authenticated" && (

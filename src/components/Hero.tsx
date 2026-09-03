@@ -108,11 +108,17 @@ export function Hero() {
         />
 
         <div
-          className="pointer-events-none absolute right-[8%] top-1/2 z-10 hidden -translate-y-1/2 lg:flex xl:right-[16%]"
+          className="pointer-events-none absolute bottom-0 right-[3%] z-10 hidden lg:flex xl:right-[8%]"
           aria-hidden
         >
-          <div className="relative h-52 w-52 overflow-hidden rounded-full border border-[#f6efe4]/25 shadow-lg xl:h-[250px] xl:w-[250px]">
-            <Image src="/hero-badges/feelz-v2.jpg" alt="" fill sizes="250px" className="object-cover" />
+          <div className="relative h-[630px] w-[473px] xl:h-[780px] xl:w-[585px]">
+            <Image
+              src="/hero-badges/feelz-v2.png"
+              alt=""
+              fill
+              sizes="585px"
+              className="object-contain object-bottom"
+            />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
@@ -104,9 +105,15 @@ export function ExpertsTeaserSection() {
             experts={professional}
             sessionPrice={priceQuery.data ?? undefined}
           />
-          <ExpertGroup title="Wellness Guides" experts={guides} sessionPrice={priceQuery.data ?? undefined} />
+          <ExpertGroup title="Wellness Guides" experts={guides.slice(0, 4)} sessionPrice={priceQuery.data ?? undefined} />
         </>
       )}
+
+      <div className="mt-10 flex justify-center">
+        <Link href="/experts" className="pill-btn-outline">
+          Check more experts
+        </Link>
+      </div>
       </Reveal>
     </section>
   );

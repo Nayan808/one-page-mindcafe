@@ -5,6 +5,9 @@
 // adding a new column just for this grouping. Shared between the
 // homepage counselling teaser and the /counselling page's own experts
 // section so the same expert always lands in the same group everywhere.
+// yoga/trainer/practitioner/ayurveda added so roles like "Celebrity Yoga
+// Trainer" and "Ayurveda and Hijama Practitioner" land here too, not in
+// Professional Support.
 export function isWellbeingGuideRole(role: string | undefined | null): boolean {
-  return /spiritual|wellbeing|lifestyle|guide|coach|influencer/i.test(role ?? "");
+  return /spiritual|wellbeing|lifestyle|guide|coach|influencer|yoga|trainer|practitioner|ayurveda/i.test(role ?? "");
 }
