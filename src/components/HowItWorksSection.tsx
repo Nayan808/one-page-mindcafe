@@ -5,11 +5,11 @@ import Image from "next/image";
 import { Modal } from "@/components/Modal";
 
 const STEPS = [
-  { title: "Pick your Feelz", description: "", src: "/how-it-works/step-1.webp" },
-  { title: "Open the pack", description: "", src: "/how-it-works/step-2.webp" },
-  { title: "Place the strip on your tongue", description: "", src: "/how-it-works/step-3.webp" },
-  { title: "Let it dissolve", description: "", src: "/how-it-works/step-4.webp" },
-  { title: "Get on with your day", description: "", src: "/how-it-works/step-5.webp" },
+  { title: "Pick your Feelz", description: "", src: "/how-it-works/step-1.jpg" },
+  { title: "Open the pack", description: "", src: "/how-it-works/step-2.jpg" },
+  { title: "Place the strip on your tongue", description: "", src: "/how-it-works/step-3.jpg" },
+  { title: "Let it dissolve", description: "", src: "/how-it-works/step-4.jpg" },
+  { title: "Get on with your day", description: "", src: "/how-it-works/step-5.jpg" },
 ];
 
 // Alternating tilt per card so the row reads as pinned-up photo prints

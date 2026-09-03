@@ -161,7 +161,7 @@ export function Hero() {
           animationNum={2}
           timelineRef={timelineRef}
           customVariants={revealVariants}
-          className="font-display mt-6 max-w-3xl text-4xl leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-6xl xl:text-7xl"
+          className="font-display mt-6 max-w-3xl text-[25px] leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-[42px] xl:text-[50px]"
         >
           <span className="block">Feelz better.</span>
           <span className="block">
