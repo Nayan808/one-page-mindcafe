@@ -202,7 +202,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     user ||
     (mode === "takeaway"
       ? guestName.trim() && isValidIndianMobile(normalizedGuestPhone) && guestEmail.trim()
-      : guestName.trim() && guestPhone.trim() && guestEmail.trim());
+      : Boolean(guestAddress?.full_name?.trim()) && Boolean(guestAddress?.phone?.trim()) && guestEmail.trim());
 
   const canPay =
     items.length > 0 &&
