@@ -11,8 +11,11 @@ import { formatInr } from "@/lib/utils";
 // Real checkout route — cart summary + fulfillment/payment, or (once
 // ?order= is set after a successful payment) the tracking/confirmation
 // view. Both used to live inside the CartDrawer modal; this is a direct
-// relocation, not a redesign. Guest checkout is fully supported here —
-// this route must never require sign-in.
+// relocation, not a redesign. Reaching this page with items already
+// implies sign-in (every add-to-cart entry point gates on it — Hero.tsx,
+// MoodProductCard.tsx), but FulfillmentAndPayment.tsx still verifies
+// `user` itself before allowing payment, as a second line of defense
+// (e.g. a session expiring between adding to cart and checking out).
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();

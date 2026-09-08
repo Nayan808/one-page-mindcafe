@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
-import { useGuestPhone } from "@/contexts/GuestPhoneContext";
 import { createClient } from "@/lib/supabase/client";
 import {
   checkPincodeServiceability,
@@ -15,7 +14,8 @@ import {
 } from "@/lib/api";
 import { openRazorpayCheckout } from "@/lib/razorpay";
 import { useAddresses } from "@/lib/query/hooks";
-import { AddressForm, isValidIndianMobile, normalizePhone, type AddressFormValues } from "@/components/AddressForm";
+import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
+import { PhoneVerifyInline } from "@/components/PhoneVerifyInline";
 import { formatInr } from "@/lib/utils";
 import type { PickupLocation } from "@/types/domain";
 
@@ -32,8 +32,10 @@ const AUTO_COUPON_CODE = "FEELZ10";
 const AUTO_COUPON_MIN_SUBTOTAL = 300;
 
 // Delivery or takeaway pickup at a listed Zostel — payment is Razorpay
-// only in both cases (pay-online, no cash-on-pickup). No account is
-// required: a guest supplies name/phone(/email) instead, and the actual
+// only in both cases (pay-online, no cash-on-pickup). No pre-existing
+// account is required, but an unverified guest is no longer allowed
+// either: anyone not already signed in verifies their phone inline
+// (PhoneVerifyInline) before the rest of this form appears. The actual
 // order — real prices, coupon, stock, Razorpay order — is all created
 // server-side by the create-order Edge Function (lib/api.ts `checkout`),
 // never trusting anything computed here.
@@ -41,17 +43,10 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const { user, profile } = useAuth();
   const { cartId, items, subtotal } = useCartContext();
   const { addresses, addAddress } = useAddresses(user?.id ?? null);
-  // A guest's phone number is remembered (cookie, 30 days — see
-  // guestPhone.ts) the moment they successfully place an order, so a
-  // return visit within that window pre-fills this field instead of
-  // asking again. Nothing captures it before checkout — there's no login
-  // or contact-info gate anywhere upstream of this component.
-  const { guestPhone: capturedGuestPhone, setGuestPhone: rememberGuestPhone } = useGuestPhone();
 
   const [mode, setMode] = useState<Mode>("delivery");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [showNewAddressForm, setShowNewAddressForm] = useState(false);
-  const [guestAddress, setGuestAddress] = useState<AddressFormValues | null>(null);
   const [serviceability, setServiceability] = useState<PincodeServiceability | "unchecked" | "checking" | "error">(
     "unchecked",
   );
@@ -60,21 +55,6 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [locations, setLocations] = useState<PickupLocation[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
   const [pickupSlot, setPickupSlot] = useState("");
-
-  const [guestName, setGuestName] = useState("");
-  const [guestPhone, setGuestPhone] = useState(capturedGuestPhone ?? "");
-  const [guestEmail, setGuestEmail] = useState("");
-
-  // Covers the case where capturedGuestPhone resolves (from its cookie)
-  // after this component's own first render — e.g. a hard reload landing
-  // directly on checkout, where GuestPhoneProvider's mount effect and this
-  // component's initial render race. A plain useState initializer alone
-  // would miss that update; only backfills an empty field, never
-  // overwrites something the customer already typed.
-  useEffect(() => {
-    if (capturedGuestPhone && !guestPhone) setGuestPhone(capturedGuestPhone);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [capturedGuestPhone]);
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
@@ -115,14 +95,12 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     }
   }
 
+  // Only reachable once `user` is set — the address step is gated behind
+  // phone verification below, so there's no guest branch here any more.
   async function handleAddAddress(values: AddressFormValues) {
-    if (user) {
-      const created = await addAddress.mutateAsync({ ...values, user_id: user.id });
-      setSelectedAddressId(created.id);
-      setShowNewAddressForm(false);
-    } else {
-      setGuestAddress(values);
-    }
+    const created = await addAddress.mutateAsync({ ...values, user_id: user!.id });
+    setSelectedAddressId(created.id);
+    setShowNewAddressForm(false);
     await handleCheckServiceability(values.pincode);
   }
 
@@ -192,21 +170,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     serviceability !== "checking" &&
     serviceability !== "error" &&
     serviceability.serviceable;
-  const hasDeliveryTarget = user ? Boolean(selectedAddressId) || Boolean(guestAddress) : Boolean(guestAddress);
-  // Delivery's guest phone comes from guestAddress (AddressForm), which
-  // already enforces this same 10-digit format via its own Zod schema —
-  // only takeaway's separate guestPhone field (a plain input, no
-  // validation of its own) needs the check here.
-  const normalizedGuestPhone = normalizePhone(guestPhone);
-  const hasGuestContact =
-    user ||
-    (mode === "takeaway"
-      ? guestName.trim() && isValidIndianMobile(normalizedGuestPhone) && guestEmail.trim()
-      : Boolean(guestAddress?.full_name?.trim()) && Boolean(guestAddress?.phone?.trim()) && guestEmail.trim());
+  const hasDeliveryTarget = Boolean(selectedAddressId);
 
   const canPay =
     items.length > 0 &&
-    Boolean(hasGuestContact) &&
+    Boolean(user) &&
     (mode === "delivery" ? hasDeliveryTarget && serviceabilityOk : Boolean(locationId));
 
   async function handlePlaceOrder() {
@@ -216,27 +184,15 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
 
     const sb = createClient();
 
-    if (!user) {
-      const phoneToRemember = mode === "takeaway" ? normalizedGuestPhone : guestAddress?.phone;
-      if (phoneToRemember) rememberGuestPhone(phoneToRemember);
-    }
-
     try {
       const result = await checkout(sb, {
         cartId,
         items: items.map((item) => ({ variantId: item.variant_id, quantity: item.quantity })),
         fulfillment:
           mode === "delivery"
-            ? user && selectedAddressId && !guestAddress
-              ? { type: "delivery", addressId: selectedAddressId }
-              : { type: "delivery", address: guestAddress! }
+            ? { type: "delivery", addressId: selectedAddressId! }
             : { type: "takeaway", locationId: locationId!, pickupSlot: pickupSlot || undefined },
         couponCode: couponCode.trim() || undefined,
-        guest: user
-          ? undefined
-          : mode === "takeaway"
-            ? { name: guestName.trim(), phone: normalizedGuestPhone, email: guestEmail.trim() || undefined }
-            : { name: guestAddress!.full_name, phone: guestAddress!.phone, email: guestEmail.trim() || undefined },
       });
 
       if (result.free) {
@@ -251,9 +207,9 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         razorpayOrderId: result.razorpay_order_id,
         name: "Mindcafe",
         prefill: {
-          name: profile?.full_name ?? guestName ?? undefined,
-          email: user?.email ?? guestEmail ?? undefined,
-          contact: profile?.phone ?? normalizedGuestPhone ?? undefined,
+          name: profile?.full_name ?? undefined,
+          email: user?.email ?? undefined,
+          contact: profile?.phone ?? user?.phone ?? undefined,
         },
         onSuccess: () => onOrderPlaced(result.order_id),
         onDismiss: () => {
@@ -286,48 +242,13 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         </button>
       </div>
 
-      {!user && mode === "takeaway" && (
-        <div className="grid gap-3 sm:grid-cols-2">
-          <input
-            value={guestName}
-            onChange={(event) => setGuestName(event.target.value)}
-            placeholder="Full name"
-            className="input"
-          />
-          <div>
-            <input
-              type="tel"
-              inputMode="numeric"
-              value={guestPhone}
-              onChange={(event) => setGuestPhone(event.target.value)}
-              placeholder="10-digit mobile number"
-              className="input w-full"
-            />
-            {guestPhone.trim().length > 0 && !isValidIndianMobile(normalizedGuestPhone) && (
-              <p className="mt-1 text-xs font-medium text-red-600">Enter a valid 10-digit mobile number.</p>
-            )}
-          </div>
-          <input
-            value={guestEmail}
-            onChange={(event) => setGuestEmail(event.target.value)}
-            placeholder="Email, for your pickup code"
-            className="input sm:col-span-2"
-          />
-        </div>
-      )}
+      {!user && <PhoneVerifyInline label="Verify your phone to continue" />}
 
+      {user && (
+      <>
       {mode === "delivery" ? (
         <div className="space-y-4">
-          {!user && (
-            <input
-              value={guestEmail}
-              onChange={(event) => setGuestEmail(event.target.value)}
-              placeholder="Email, for your order confirmation"
-              className="input"
-            />
-          )}
-
-          {user && addresses.length > 0 && !showNewAddressForm && (
+          {addresses.length > 0 && !showNewAddressForm && (
             <div className="space-y-2">
               {addresses.map((address) => (
                 <label
@@ -340,7 +261,6 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                     checked={selectedAddressId === address.id}
                     onChange={() => {
                       setSelectedAddressId(address.id);
-                      setGuestAddress(null);
                       void handleCheckServiceability(address.pincode);
                     }}
                     className="mt-1"
@@ -363,26 +283,9 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             </div>
           )}
 
-          {(!user || addresses.length === 0 || showNewAddressForm) &&
-            (guestAddress ? (
-              <div className="flex items-start justify-between gap-3 rounded-xl border border-ink/15 bg-white p-3 text-sm">
-                <span>
-                  <span className="block font-medium text-ink">{guestAddress.full_name}</span>
-                  <span className="block text-ink/60">
-                    {guestAddress.line1}, {guestAddress.city}, {guestAddress.state} {guestAddress.pincode}
-                  </span>
-                </span>
-                <button type="button" onClick={() => setGuestAddress(null)} className="text-xs text-ink underline">
-                  Edit
-                </button>
-              </div>
-            ) : (
-              <AddressForm
-                onSubmit={handleAddAddress}
-                isSubmitting={addAddress.isPending}
-                defaultValues={!user && capturedGuestPhone ? { phone: capturedGuestPhone } : undefined}
-              />
-            ))}
+          {(addresses.length === 0 || showNewAddressForm) && (
+            <AddressForm onSubmit={handleAddAddress} isSubmitting={addAddress.isPending} />
+          )}
 
           {serviceability === "checking" && <p className="text-sm text-ink/60">Checking serviceability…</p>}
           {serviceability === "error" && (
@@ -519,6 +422,8 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
       <button type="button" onClick={handlePlaceOrder} disabled={!canPay || isSubmitting} className="pill-btn w-full">
         {isSubmitting ? "Processing…" : "Pay Now"}
       </button>
+      </>
+      )}
     </div>
   );
 }

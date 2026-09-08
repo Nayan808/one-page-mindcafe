@@ -32,9 +32,17 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   // appear — deliberately not auto-opening the drawer, so adding an item
   // doesn't interrupt someone still comparing/picking other products.
   const [justAdded, setJustAdded] = useState(false);
-  const { addItem, isReady, openDrawer } = useCartContext();
+  const { addItem, isReady, cartId, openDrawer } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
+  // Set when "Add to Cart" is clicked while signed out, so the add can
+  // finish on its own once sign-in completes instead of costing a second
+  // click. Waits on `cartId` too, not just `user` — CartProvider resolves
+  // the signed-in cart asynchronously after `user` changes, so acting the
+  // instant `user` appears could still fire against a not-yet-ready cart.
+  // Only actually fires for the phone/email path: Google navigates away
+  // and reloads the page, which drops this in-memory flag anyway.
+  const [pendingAfterAuth, setPendingAfterAuth] = useState(false);
 
   useEffect(() => {
     if (!variantId) return;
@@ -55,18 +63,32 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   const isOutOfStock = available !== null && available <= 0;
   const price = variant?.price_override ?? product.price;
 
-  async function handleAddToCart() {
+  async function performAddToCart() {
     if (!variant) return;
-    if (!user) {
-      openAuthModal();
-      return;
-    }
     await addItem.mutateAsync({
       variant,
       product: { id: product.id, name: product.name, image_url: product.image_url, price: product.price },
       quantity,
     });
     setJustAdded(true);
+  }
+
+  useEffect(() => {
+    if (pendingAfterAuth && user && isReady && cartId) {
+      setPendingAfterAuth(false);
+      void performAddToCart();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAfterAuth, user, isReady, cartId]);
+
+  async function handleAddToCart() {
+    if (!variant) return;
+    if (!user) {
+      setPendingAfterAuth(true);
+      openAuthModal();
+      return;
+    }
+    await performAddToCart();
   }
 
   return (

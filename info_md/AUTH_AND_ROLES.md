@@ -9,8 +9,8 @@ get past the door. This doc is the map.
 
 | Route | Who it's for | Providers | On success | Self-signup? |
 | --- | --- | --- | --- | --- |
-| `/login` | Customers | Google OAuth + email/password | `?returnTo=` path, or `/` | Yes, at `/signup` |
-| `/signup` | Customers | Google OAuth + email/password | Same as `/login` | — |
+| `/login` | Customers | Google OAuth + phone OTP (WhatsApp, via MSG91) | `?returnTo=` path, or `/` | Yes, at `/signup` |
+| `/signup` | Customers | Google OAuth + phone OTP (WhatsApp, via MSG91) | Same as `/login` | — |
 | `/expert/login` | Experts | Google OAuth + email/password | `/expert/dashboard` | **No** — admin-provisioned only |
 | `/employer/login` | Employers | Google OAuth + email/password | `/employer/dashboard` | **No** — provisioned only (manually, see §4) |
 | `/staff` | Pickup-desk staff | **Not Supabase Auth at all** — a single shared password | Same page, unlocked | N/A |

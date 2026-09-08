@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Check, Loader2, ShoppingBag } from "lucide-react";
@@ -8,6 +8,8 @@ import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthModal } from "@/contexts/AuthModalContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { Modal } from "@/components/Modal";
 import { moodStyleFor } from "@/lib/moodStyles";
@@ -45,24 +47,28 @@ const revealVariants = {
 export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
+  const { user } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
   const [detailKey, setDetailKey] = useState<string | null>(null);
+  // Which mood was being added when "Add to Cart" was clicked signed out —
+  // resumed automatically once sign-in completes (see the effect below).
+  // Matches MoodProductCard.tsx's pendingAfterAuth pattern; only actually
+  // fires for the phone/email path, not Google (page reload drops it).
+  const [pendingAdd, setPendingAdd] = useState<{ moodKey: string; product: ProductWithVariants | undefined } | null>(
+    null,
+  );
 
   const catalogQuery = useQuery({
     queryKey: queryKeys.feelzCatalog(),
     queryFn: () => getFeelzCatalog(createClient()),
   });
 
-  async function handleAddToCart(moodKey: string, product: ProductWithVariants | undefined) {
+  async function performAddToCart(moodKey: string, product: ProductWithVariants | undefined) {
     const variant = product?.product_variants[0];
     if (!variant || !isReady || !cartId) return;
-
-    // No login gate at all — Feelz never requires an account or any
-    // pre-collected contact info to add to cart. Guest checkout is fully
-    // supported end-to-end (see /checkout, FulfillmentAndPayment.tsx),
-    // which is the only place name/phone/email actually get collected.
 
     setPendingKey(moodKey);
     setErrorKey(null);
@@ -85,6 +91,23 @@ export function Hero() {
     } finally {
       setPendingKey((current) => (current === moodKey ? null : current));
     }
+  }
+
+  useEffect(() => {
+    if (pendingAdd && user && isReady && cartId) {
+      setPendingAdd(null);
+      void performAddToCart(pendingAdd.moodKey, pendingAdd.product);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAdd, user, isReady, cartId]);
+
+  async function handleAddToCart(moodKey: string, product: ProductWithVariants | undefined) {
+    if (!user) {
+      setPendingAdd({ moodKey, product });
+      openAuthModal();
+      return;
+    }
+    await performAddToCart(moodKey, product);
   }
 
   return (

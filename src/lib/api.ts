@@ -171,6 +171,17 @@ export async function mergeGuestCart(sb: Sb, guestSessionId: string): Promise<vo
   }
 }
 
+// Reattaches guest orders/appointments placed under the same phone number
+// to this now-authenticated account — see claim-guest-records/index.ts for
+// why matching is scoped to unclaimed (user_id is null) rows only.
+export async function claimGuestRecords(sb: Sb): Promise<void> {
+  try {
+    await sb.functions.invoke("claim-guest-records", { body: {} });
+  } catch {
+    // best-effort — login must never be blocked by this failing
+  }
+}
+
 // --- Addresses --------------------------------------------------------
 
 export async function getUserAddresses(sb: Sb, userId: string): Promise<Address[]> {

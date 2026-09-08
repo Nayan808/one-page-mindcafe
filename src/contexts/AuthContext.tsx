@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { fetchProfile, mergeGuestCart } from "@/lib/api";
+import { fetchProfile, mergeGuestCart, claimGuestRecords } from "@/lib/api";
 import { readGuestSessionId, clearGuestSessionId } from "@/lib/guestSession";
 import type { Profile } from "@/types/domain";
 
@@ -14,8 +14,17 @@ type AuthContextValue = {
   user: User | null;
   profile: Profile | null;
   signInWithGoogle: (returnTo?: string) => Promise<{ error: string | null }>;
-  sendOtp: (email: string, fullName?: string) => Promise<{ error: string | null }>;
-  verifyOtp: (email: string, token: string) => Promise<{ error: string | null }>;
+  sendPhoneOtp: (phone: string, fullName?: string) => Promise<{ error: string | null }>;
+  verifyPhoneOtp: (phone: string, token: string) => Promise<{ error: string | null }>;
+  // Fallback for anyone who signed up before phone OTP existed: switching a
+  // returning customer straight to phone-only would silently orphan them
+  // from their order/appointment history, since orders.user_id is a fixed
+  // auth.users id and a phone sign-in with no matching auth.users.phone
+  // creates a brand-new account rather than recognizing the old one. Keep
+  // this alive in AuthForm.tsx as a "sign in with email instead" escape
+  // hatch, not just for symmetry.
+  sendEmailOtp: (email: string, fullName?: string) => Promise<{ error: string | null }>;
+  verifyEmailOtp: (email: string, token: string) => Promise<{ error: string | null }>;
   // Still used by role-based staff sign-in (expert/employer login,
   // RoleLoginForm.tsx) and the admin re-auth check on pickup-locations —
   // those accounts are provisioned by an admin, not self-serve, so they
@@ -68,6 +77,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (guestSessionId) {
           void mergeGuestCart(sb, guestSessionId).then(() => clearGuestSessionId());
         }
+
+        // Only phone sign-ins have anything to claim (see claim-guest-records) —
+        // harmless no-op for Google/email sign-ins, but skip the round-trip.
+        if (session.user.phone) void claimGuestRecords(sb);
       }
 
       if (event === "SIGNED_OUT") setProfile(null);
@@ -92,14 +105,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [sb],
   );
 
-  // Email auth is OTP-only (no password) — sendOtp both creates a new user
-  // (if the email is unrecognized) and signs an existing one in; Supabase's
-  // handle_new_user() trigger picks fullName up from raw_user_meta_data the
-  // same way signUpWithPassword used to. Email delivery uses Supabase's
-  // built-in mailer out of the box (rate-limited); once a custom SMTP
-  // provider is wired up in the Supabase dashboard, these same calls start
-  // sending through that instead — no code change needed here.
-  const sendOtp = useCallback(
+  // Phone auth is OTP-only (no password) — sendPhoneOtp both creates a new
+  // user (if the phone is unrecognized) and signs an existing one in;
+  // Supabase's handle_new_user() trigger picks fullName up from
+  // raw_user_meta_data the same way the old email flow did. Delivery goes
+  // over WhatsApp via MSG91 through the Send SMS Hook (auth-send-sms Edge
+  // Function) — Supabase still generates/verifies the code itself, the
+  // hook only swaps out how it's delivered. `phone` must be E.164
+  // (AuthForm.tsx composes it as "+91XXXXXXXXXX").
+  const sendPhoneOtp = useCallback(
+    async (phone: string, fullName?: string) => {
+      const { error } = await sb.auth.signInWithOtp({
+        phone,
+        options: {
+          shouldCreateUser: true,
+          data: fullName ? { full_name: fullName } : undefined,
+        },
+      });
+      return { error: error?.message ?? null };
+    },
+    [sb],
+  );
+
+  const verifyPhoneOtp = useCallback(
+    async (phone: string, token: string) => {
+      const { error } = await sb.auth.verifyOtp({ phone, token, type: "sms" });
+      return { error: error?.message ?? null };
+    },
+    [sb],
+  );
+
+  // Email auth is OTP-only (no password) — same shape as the phone flow
+  // above, kept alive as a fallback (see the type comment on
+  // sendEmailOtp/verifyEmailOtp) for accounts that predate phone sign-in.
+  // Delivery goes through Resend via the Send Email Hook (auth-send-email).
+  const sendEmailOtp = useCallback(
     async (email: string, fullName?: string) => {
       const { error } = await sb.auth.signInWithOtp({
         email,
@@ -113,7 +153,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [sb],
   );
 
-  const verifyOtp = useCallback(
+  const verifyEmailOtp = useCallback(
     async (email: string, token: string) => {
       const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
       return { error: error?.message ?? null };
@@ -142,8 +182,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     profile,
     signInWithGoogle,
-    sendOtp,
-    verifyOtp,
+    sendPhoneOtp,
+    verifyPhoneOtp,
+    sendEmailOtp,
+    verifyEmailOtp,
     signInWithPassword,
     signOut,
     refreshProfile,

@@ -32,7 +32,7 @@ create table if not exists public.profiles (
   full_name text,
   phone text,
   gender text,
-  auth_provider text not null default 'email' check (auth_provider in ('email', 'google')),
+  auth_provider text not null default 'email' check (auth_provider in ('email', 'google', 'phone')),
   avatar_url text,
   role text not null default 'customer' check (role in ('customer', 'expert', 'employer', 'admin', 'super_admin')),
   created_at timestamptz not null default now()
@@ -43,6 +43,12 @@ create table if not exists public.profiles (
 alter table public.profiles drop constraint if exists profiles_role_check;
 alter table public.profiles add constraint profiles_role_check
   check (role in ('customer', 'expert', 'employer', 'admin', 'super_admin'));
+
+-- Loosens an already-deployed database's auth_provider check constraint to
+-- match the above (adds 'phone') — idempotent, safe to re-run.
+alter table public.profiles drop constraint if exists profiles_auth_provider_check;
+alter table public.profiles add constraint profiles_auth_provider_check
+  check (auth_provider in ('email', 'google', 'phone'));
 
 comment on table public.profiles is 'App-level profile extending auth.users. role=admin/super_admin can only be set manually (see AUTH_AND_ROLES.md) or by admin-create-expert for role=expert. super_admin is a superset of admin (see is_admin()/is_super_admin()) that additionally can change anyone''s role — plain admin cannot change roles at all, see prevent_role_self_escalation().';
 
@@ -705,11 +711,16 @@ security definer
 set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name, auth_provider, avatar_url, role)
+  insert into public.profiles (id, full_name, phone, auth_provider, avatar_url, role)
   values (
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', new.raw_user_meta_data ->> 'name'),
-    case when new.raw_app_meta_data ->> 'provider' = 'google' then 'google' else 'email' end,
+    new.phone,
+    case
+      when new.raw_app_meta_data ->> 'provider' = 'google' then 'google'
+      when new.phone is not null and new.email is null then 'phone'
+      else 'email'
+    end,
     new.raw_user_meta_data ->> 'avatar_url',
     'customer'
   )
@@ -1278,6 +1289,55 @@ alter table public.orders add constraint orders_guest_needs_contact check (
 );
 
 create index if not exists orders_pickup_code_idx on public.orders (pickup_code) where pickup_code is not null;
+
+-- ============================================================
+-- appointments — guest booking (same pattern as orders' guest checkout
+-- above) + estimated_delivery/notification-reliability columns.
+-- from migrations/20260831000000_guest_appointments_and_notifications.sql
+-- ============================================================
+alter table public.appointments alter column user_id drop not null;
+
+alter table public.appointments add column if not exists guest_name text;
+alter table public.appointments add column if not exists guest_phone text;
+alter table public.appointments add column if not exists guest_email text;
+
+alter table public.appointments drop constraint if exists appointments_guest_needs_contact;
+alter table public.appointments add constraint appointments_guest_needs_contact check (
+  user_id is not null or (guest_name is not null and guest_phone is not null)
+);
+
+drop policy if exists appointments_select on public.appointments;
+create policy appointments_select on public.appointments
+  for select using (
+    user_id = auth.uid()
+    or user_id is null
+    or public.is_admin()
+    or exists (
+      select 1 from public.experts e
+      where e.id = appointments.expert_id and e.profile_id = auth.uid()
+    )
+  );
+
+drop policy if exists appointments_insert on public.appointments;
+create policy appointments_insert on public.appointments
+  for insert with check (user_id = auth.uid() or user_id is null or public.is_admin());
+
+alter table public.orders add column if not exists estimated_delivery text;
+
+alter table public.orders add column if not exists last_notification_status text;
+alter table public.orders add column if not exists last_notification_error text;
+alter table public.orders add column if not exists last_notification_at timestamptz;
+
+alter table public.appointments add column if not exists last_notification_status text;
+alter table public.appointments add column if not exists last_notification_error text;
+alter table public.appointments add column if not exists last_notification_at timestamptz;
+
+-- Speeds up claim-guest-records' lookup of unclaimed guest rows by phone.
+create index if not exists orders_guest_phone_unclaimed_idx
+  on public.orders (guest_phone) where user_id is null and guest_phone is not null;
+
+create index if not exists appointments_guest_phone_unclaimed_idx
+  on public.appointments (guest_phone) where user_id is null and guest_phone is not null;
 
 -- ============================================================
 -- generate_pickup_code — short, human-typeable code (staff read it off a

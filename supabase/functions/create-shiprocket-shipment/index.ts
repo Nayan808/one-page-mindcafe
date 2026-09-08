@@ -53,17 +53,23 @@ Deno.serve(async (req) => {
   const { data: order, error } = await sb
     .from("orders")
     .select(
-      "id, order_number, subtotal, created_at, addresses:address_id(full_name, phone, line1, line2, city, state, pincode), order_items(quantity, unit_price, product_variants(id, variant_label, sku, weight_grams, length_cm, breadth_cm, height_cm, products(name)))",
+      "id, order_number, subtotal, created_at, guest_name, guest_phone, guest_address_line1, guest_address_line2, guest_address_city, guest_address_state, guest_address_pincode, addresses:address_id(full_name, phone, line1, line2, city, state, pincode), order_items(quantity, unit_price, product_variants(id, variant_label, sku, weight_grams, length_cm, breadth_cm, height_cm, products(name)))",
     )
     .eq("id", record.id)
     .single();
 
-  if (error || !order || !order.addresses) {
-    console.error("create-shiprocket-shipment: order or address missing", record.id, error);
-    return jsonResponse({ error: "Order or address not found" }, 404);
+  if (error || !order) {
+    console.error("create-shiprocket-shipment: order missing", record.id, error);
+    return jsonResponse({ error: "Order not found" }, 404);
   }
 
-  const address = order.addresses as unknown as {
+  // A guest-checkout delivery order has no addresses row at all (that table
+  // requires a real auth.users id) — its address lives inline on the order
+  // in guest_address_* instead. orders_delivery_needs_address (setup.sql)
+  // already requires one shape or the other to be present, so falling
+  // through to "no address" here means checking the wrong one, not that
+  // the order is actually incomplete.
+  const savedAddress = order.addresses as unknown as {
     full_name: string;
     phone: string;
     line1: string;
@@ -71,7 +77,24 @@ Deno.serve(async (req) => {
     city: string;
     state: string;
     pincode: string;
-  };
+  } | null;
+
+  const address = savedAddress ?? (order.guest_address_line1
+    ? {
+        full_name: order.guest_name ?? "",
+        phone: order.guest_phone ?? "",
+        line1: order.guest_address_line1,
+        line2: order.guest_address_line2,
+        city: order.guest_address_city ?? "",
+        state: order.guest_address_state ?? "",
+        pincode: order.guest_address_pincode ?? "",
+      }
+    : null);
+
+  if (!address) {
+    console.error("create-shiprocket-shipment: order has neither a saved address nor guest address fields", record.id);
+    return jsonResponse({ error: "Order has no address" }, 404);
+  }
   const orderItems = order.order_items as unknown as Array<{
     quantity: number;
     unit_price: number;

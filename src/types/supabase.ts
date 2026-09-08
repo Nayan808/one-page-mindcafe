@@ -24,7 +24,7 @@ type PaymentMethod = "razorpay" | "cash_on_pickup";
 type PaymentStatus = "pending" | "pending_cash" | "paid" | "refund_required" | "refunded" | "failed";
 type FulfillmentType = "delivery" | "takeaway";
 type ProfileRole = "customer" | "expert" | "employer" | "admin" | "super_admin";
-type AuthProvider = "email" | "google";
+type AuthProvider = "email" | "google" | "phone";
 type CartStatus = "active" | "merged" | "abandoned" | "converted";
 
 export interface Database {
