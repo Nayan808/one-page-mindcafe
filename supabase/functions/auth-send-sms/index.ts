@@ -86,12 +86,13 @@ Deno.serve(async (req) => {
     // digits only, same shape.
     const to = phone.replace(/[^0-9]/g, "");
 
-    // `components` below assumes an approved template with a single body
-    // variable ({{1}}) for the code, e.g. "Your Mindcafe code is {{1}}."
-    // If the actual template also has an OTP-autofill/copy-code button
-    // component, MSG91 needs a matching `button_1: { subtype: "url" | "copy_code", type: "text", value: otp }`
-    // entry here too, or the send will be rejected — check the template's
-    // definition in the MSG91 dashboard (docs.msg91.com/whatsapp/get-templates).
+    // mindcafe_mobile_verification (the approved template, confirmed via
+    // its own generated request example in the MSG91 dashboard) has both a
+    // body variable ({{1}}, "Your Mindcafe code is {{1}}") and a one-tap
+    // autofill/URL button whose dynamic parameter is the same code —
+    // sending body_1 alone left the request "successful" per MSG91's API
+    // but silently undeliverable, since it didn't match what the template
+    // actually requires.
     const res = await fetch("https://api.msg91.com/api/v5/whatsapp/whatsapp-outbound-message/bulk/", {
       method: "POST",
       headers: { authkey: authKey, "Content-Type": "application/json" },
@@ -110,6 +111,7 @@ Deno.serve(async (req) => {
                 to: [to],
                 components: {
                   body_1: { type: "text", value: otp },
+                  button_1: { subtype: "url", type: "text", value: otp },
                 },
               },
             ],

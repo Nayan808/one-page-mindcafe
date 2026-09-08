@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { fetchProfile, mergeGuestCart, claimGuestRecords } from "@/lib/api";
+import { fetchProfile, mergeGuestCart, claimGuestRecords, updateProfile } from "@/lib/api";
 import { readGuestSessionId, clearGuestSessionId } from "@/lib/guestSession";
 import type { Profile } from "@/types/domain";
 
@@ -25,6 +25,16 @@ type AuthContextValue = {
   // hatch, not just for symmetry.
   sendEmailOtp: (email: string, fullName?: string) => Promise<{ error: string | null }>;
   verifyEmailOtp: (email: string, token: string) => Promise<{ error: string | null }>;
+  // The other direction of the same problem: a Google/email account that
+  // wants phone sign-in *to reach this same account* going forward (not a
+  // brand-new one) has to attach its phone to the current session, not
+  // sign in with it fresh. updateUser({ phone }) + verifyOtp(type:
+  // "phone_change") is Supabase's dedicated flow for exactly that — it
+  // sets auth.users.phone on the account already logged in, so a later
+  // sendPhoneOtp/verifyPhoneOtp with that number recognizes this account
+  // instead of creating a new one. See account/page.tsx's "Link phone".
+  linkPhone: (phone: string) => Promise<{ error: string | null }>;
+  verifyPhoneLink: (phone: string, token: string) => Promise<{ error: string | null }>;
   // Still used by role-based staff sign-in (expert/employer login,
   // RoleLoginForm.tsx) and the admin re-auth check on pickup-locations —
   // those accounts are provisioned by an admin, not self-serve, so they
@@ -161,6 +171,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [sb],
   );
 
+  // updateUser({ phone }) sends a confirmation OTP to the new number
+  // (still via the Send SMS Hook — "Enable phone confirmations" is on)
+  // without changing anything yet; verifyPhoneLink below is what actually
+  // commits it to the current account once confirmed.
+  const linkPhone = useCallback(
+    async (phone: string) => {
+      const { error } = await sb.auth.updateUser({ phone });
+      return { error: error?.message ?? null };
+    },
+    [sb],
+  );
+
+  const verifyPhoneLink = useCallback(
+    async (phone: string, token: string) => {
+      const { error } = await sb.auth.verifyOtp({ phone, token, type: "phone_change" });
+      if (error) return { error: error.message };
+      // Keep profiles.phone (a plain display field, separate from the
+      // verified auth.users.phone this just set) in sync so it doesn't
+      // sit blank/stale on an account that just linked a real number.
+      if (user) {
+        try {
+          await updateProfile(sb, user.id, { phone });
+          await loadProfile(user.id);
+        } catch {
+          // profiles.phone is cosmetic — the actual auth link already
+          // succeeded above, so a failure here shouldn't surface as an
+          // overall failure to the caller.
+        }
+      }
+      return { error: null };
+    },
+    [sb, user, loadProfile],
+  );
+
   const signInWithPassword = useCallback(
     async (email: string, password: string) => {
       const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -186,6 +230,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     verifyPhoneOtp,
     sendEmailOtp,
     verifyEmailOtp,
+    linkPhone,
+    verifyPhoneLink,
     signInWithPassword,
     signOut,
     refreshProfile,

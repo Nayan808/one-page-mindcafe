@@ -11,6 +11,7 @@ import { useAddresses, useUserAppointments, useUserOrders } from "@/lib/query/ho
 import { createClient } from "@/lib/supabase/client";
 import { updateProfile } from "@/lib/api";
 import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
+import { LinkPhoneSection } from "@/components/LinkPhoneSection";
 import { OrderConfirmation, STATUS_LABELS } from "@/components/OrderConfirmation";
 import { formatDate, formatDateTime, formatInr } from "@/lib/utils";
 
@@ -321,6 +322,7 @@ export default function AccountPage() {
     <div className="mx-auto max-w-2xl space-y-6 px-4 py-12 sm:px-6">
       <h1 className="font-display text-4xl font-bold text-ink">Your account</h1>
       <ProfileSection />
+      <LinkPhoneSection />
       <AddressesSection />
       <OrderHistorySection />
       <AppointmentsSection />
