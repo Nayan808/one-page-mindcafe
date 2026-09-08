@@ -118,8 +118,15 @@ Deno.serve(async (req) => {
       }),
     });
 
+    const resBody = await res.text();
+    // MSG91's bulk-send endpoint can return HTTP 200 with a per-recipient
+    // failure buried in the body (bad template/namespace, number never
+    // messaged the business number first, etc.) — logging the body on
+    // success too, not just on a non-2xx status, so that failure mode
+    // actually shows up here instead of looking like a silent success.
+    console.log("MSG91 WhatsApp send response", res.status, resBody);
+
     if (!res.ok) {
-      console.error("MSG91 WhatsApp send failed", await res.text());
       return jsonResponse({ error: { http_code: 500, message: "Failed to send WhatsApp message" } }, 500);
     }
 

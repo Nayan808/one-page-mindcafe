@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 const PHONE_DIGITS = /^[6-9]\d{9}$/;
@@ -13,11 +14,13 @@ const PHONE_DIGITS = /^[6-9]\d{9}$/;
 // callers don't need an onSuccess callback, they just render their
 // authenticated-user UI once `user` is truthy.
 export function PhoneVerifyInline({ label = "Verify your phone number" }: { label?: string }) {
-  const { sendPhoneOtp, verifyPhoneOtp } = useAuth();
+  const { sendPhoneOtp, verifyPhoneOtp, signInWithGoogle } = useAuth();
+  const pathname = usePathname();
 
   const [step, setStep] = useState<"phone" | "code">("phone");
   const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [name, setName] = useState("");
@@ -60,6 +63,19 @@ export function PhoneVerifyInline({ label = "Verify your phone number" }: { labe
     const { error } = await sendPhoneOtp(e164Phone, name.trim() || undefined);
     setIsSending(false);
     if (error) setError(error);
+  }
+
+  // Returns to this same page (checkout/booking) after Google sign-in
+  // instead of the default "/" — losing the cart/booking-in-progress
+  // context on the round trip would be worse than the extra param.
+  async function handleGoogle() {
+    setIsGoogleLoading(true);
+    setError(null);
+    const { error } = await signInWithGoogle(pathname);
+    if (error) {
+      setError(error);
+      setIsGoogleLoading(false);
+    }
   }
 
   return (
@@ -125,6 +141,18 @@ export function PhoneVerifyInline({ label = "Verify your phone number" }: { labe
             </button>
             <button type="button" onClick={handleResend} disabled={isSending} className="text-ink/60 underline">
               {isSending ? "Resending…" : "Resend Code"}
+            </button>
+          </div>
+
+          <div className="border-t border-ink/10 pt-3 text-center">
+            <p className="text-xs text-ink/50">Not receiving it?</p>
+            <button
+              type="button"
+              onClick={handleGoogle}
+              disabled={isGoogleLoading}
+              className="pill-btn-outline mt-2 w-full !py-2 text-xs"
+            >
+              {isGoogleLoading ? "Redirecting…" : "Continue with Google instead"}
             </button>
           </div>
         </form>

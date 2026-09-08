@@ -232,6 +232,12 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
               {isSending ? "Resending…" : "Resend Code"}
             </button>
           </div>
+
+          {method === "phone" && (
+            <p className="text-center text-xs text-ink/50">
+              Not receiving it? Use <span className="font-medium text-ink">Continue with Google</span> above instead.
+            </p>
+          )}
         </form>
       )}
     </div>
