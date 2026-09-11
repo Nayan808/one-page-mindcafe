@@ -42,11 +42,15 @@ Deno.serve(async (req) => {
   // exhausted. Fine at this project's scale; revisit with a bigger user
   // base.
   const emailById = new Map<string, string | null>();
+  const phoneById = new Map<string, string | null>();
   let page = 1;
   for (;;) {
     const { data, error } = await sb.auth.admin.listUsers({ page, perPage: 1000 });
     if (error) return jsonResponse({ error: error.message }, 500);
-    for (const u of data.users) emailById.set(u.id, u.email ?? null);
+    for (const u of data.users) {
+      emailById.set(u.id, u.email ?? null);
+      phoneById.set(u.id, u.phone ?? null);
+    }
     if (data.users.length < 1000) break;
     page += 1;
   }
@@ -54,6 +58,7 @@ Deno.serve(async (req) => {
   const users = (profiles ?? []).map((p) => ({
     id: p.id,
     email: emailById.get(p.id) ?? null,
+    phone: phoneById.get(p.id) ?? null,
     full_name: p.full_name,
     role: p.role,
     created_at: p.created_at,

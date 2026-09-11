@@ -25,7 +25,11 @@ export default function AdminUsersPage() {
     const all = query.data ?? [];
     if (!term) return all;
     return all.filter(
-      (u) => u.email?.toLowerCase().includes(term) || u.full_name?.toLowerCase().includes(term) || u.role.includes(term),
+      (u) =>
+        u.email?.toLowerCase().includes(term) ||
+        u.phone?.toLowerCase().includes(term) ||
+        u.full_name?.toLowerCase().includes(term) ||
+        u.role.includes(term),
     );
   }, [query.data, search]);
 
@@ -55,6 +59,7 @@ export default function AdminUsersPage() {
 
   const columns: AdminColumn<AdminUserRow>[] = [
     { key: "email", label: "email", render: (u) => <span className="font-medium text-ink">{u.email ?? "—"}</span> },
+    { key: "phone", label: "phone", render: (u) => <span className="font-medium text-ink">{u.phone ?? "—"}</span> },
     { key: "name", label: "name", render: (u) => <span className="text-ink/60">{u.full_name ?? "—"}</span> },
     { key: "created", label: "joined", render: (u) => <span className="text-ink/60">{formatDate(u.created_at)}</span> },
     {
@@ -89,7 +94,7 @@ export default function AdminUsersPage() {
       )}
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
-      <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by email, name, or role…" />
+      <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by email, phone, name, or role…" />
       <AdminTable columns={columns} rows={rows} getRowId={(u) => u.id} isLoading={query.isLoading} emptyLabel="No matching users." />
     </div>
   );

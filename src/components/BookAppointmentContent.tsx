@@ -447,6 +447,16 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
       {category && !user && <PhoneVerifyInline label="4. Verify your phone to continue" />}
 
+      {category && user && (user.phone || profile?.phone) && (
+        <p className="text-sm text-ink/60">
+          We&apos;ll reach you about this booking at{" "}
+          <span className="font-medium text-ink">
+            {user.phone ? `+${user.phone}` : profile?.phone}
+          </span>
+          .
+        </p>
+      )}
+
       {category && (
         <div>
           <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">5. Payment</h2>

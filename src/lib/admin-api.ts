@@ -1181,6 +1181,7 @@ export async function getNewsletterSubscribersAdmin(sb: Sb): Promise<NewsletterS
 export type AdminUserRow = {
   id: string;
   email: string | null;
+  phone: string | null;
   full_name: string | null;
   role: Database["public"]["Tables"]["profiles"]["Row"]["role"];
   created_at: string;

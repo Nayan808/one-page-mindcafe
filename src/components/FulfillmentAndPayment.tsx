@@ -244,6 +244,13 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
 
       {!user && <PhoneVerifyInline label="Verify your phone to continue" />}
 
+      {user && (user.phone || profile?.phone) && (
+        <p className="text-sm text-ink/60">
+          We&apos;ll reach you about this order at{" "}
+          <span className="font-medium text-ink">{user.phone ? `+${user.phone}` : profile?.phone}</span>.
+        </p>
+      )}
+
       {user && (
       <>
       {mode === "delivery" ? (
