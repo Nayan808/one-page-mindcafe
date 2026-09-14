@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, X } from "lucide-react";
+import { Calendar, ChevronDown, Search, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import {
@@ -15,84 +15,14 @@ import {
   type CouponPreview,
 } from "@/lib/api";
 import { openRazorpayCheckout } from "@/lib/razorpay";
-import { useCreateAppointment, useAppointmentTracking } from "@/lib/query/hooks";
+import { useCreateAppointment } from "@/lib/query/hooks";
 import { ExpertCard } from "@/components/ExpertCard";
-import { AppointmentIntakeForm } from "@/components/AppointmentIntakeForm";
+import { AppointmentConfirmation } from "@/components/AppointmentConfirmation";
 import { PhoneVerifyInline } from "@/components/PhoneVerifyInline";
 import { formatInr } from "@/lib/utils";
 import { generateTimeSlots, toLocalDateInputValue, MAX_BOOKING_DAYS_AHEAD } from "@/lib/timeSlots";
 
-const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
-  pending: "Pending confirmation",
-  confirmed: "Confirmed",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
-
-const PAYMENT_STATUS_LABELS: Record<string, string> = {
-  pending: "Payment pending",
-  paid: "Paid",
-  failed: "Payment failed",
-};
-
 const DEFAULT_SESSION_PRICE = 999;
-
-function BookingConfirmation({ appointmentId }: { appointmentId: string }) {
-  const { data: appointment, isLoading } = useAppointmentTracking(appointmentId);
-
-  if (isLoading) return <p className="text-sm text-ink/60">Loading…</p>;
-  if (!appointment) return <p className="text-sm text-ink/60">Appointment not found.</p>;
-
-  return (
-    <div className="mx-auto max-w-lg space-y-4 px-4 py-16 text-center sm:px-6">
-      <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Booking Requested</p>
-      <h1 className="font-display text-4xl font-bold text-ink">You&apos;re on the list</h1>
-      <p className="text-sm text-ink/60">
-        We&apos;ll confirm your session shortly. This updates automatically, no need to refresh.
-      </p>
-
-      <div className="rounded-xl border border-ink/15 bg-cream p-4 text-left text-sm">
-        <div className="flex justify-between">
-          <span className="text-ink/60">Category</span>
-          <span className="font-medium text-ink capitalize">{appointment.therapy_category.replace("-", " & ")}</span>
-        </div>
-        {appointment.experts && (
-          <div className="mt-2 flex justify-between">
-            <span className="text-ink/60">Expert</span>
-            <span className="font-medium text-ink">{appointment.experts.name}</span>
-          </div>
-        )}
-        <div className="mt-2 flex justify-between">
-          <span className="text-ink/60">Status</span>
-          <span className="font-medium text-ink">{APPOINTMENT_STATUS_LABELS[appointment.status] ?? appointment.status}</span>
-        </div>
-        {appointment.total !== null && (
-          <div className="mt-2 flex justify-between">
-            <span className="text-ink/60">Payment</span>
-            <span className="font-medium text-ink">
-              {formatInr(appointment.total)} · {PAYMENT_STATUS_LABELS[appointment.payment_status] ?? appointment.payment_status}
-            </span>
-          </div>
-        )}
-        {appointment.coupon_code && (
-          <div className="mt-2 flex justify-between text-emerald-700">
-            <span>Coupon</span>
-            <span>{appointment.coupon_code}</span>
-          </div>
-        )}
-      </div>
-
-      {appointment.payment_status === "paid" &&
-        (appointment.intake_completed_at ? (
-          <p className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-            Thanks, we&apos;ve shared your answers with your counsellor ahead of the session.
-          </p>
-        ) : (
-          <AppointmentIntakeForm appointmentId={appointment.id} />
-        ))}
-    </div>
-  );
-}
 
 function BookingForm({ initialCategory, initialExpertId }: { initialCategory: string | null; initialExpertId: string | null }) {
   const { user, profile } = useAuth();
@@ -304,7 +234,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
                 value={expertSearch}
                 onChange={(event) => setExpertSearch(event.target.value)}
                 placeholder="search by name or specialty"
-                className="input w-full pl-10"
+                className="input w-full !pl-10"
               />
             </div>
             {filteredExperts.length === 0 ? (
@@ -341,14 +271,27 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. category</h2>
         <p className="mt-1 text-xs text-ink/50">Optional — leave it as &ldquo;other&rdquo; if you're not sure.</p>
-        <select value={category ?? "other"} onChange={(event) => setCategory(event.target.value)} className="input mt-3">
-          {(categoriesQuery.data ?? []).map((c) => (
-            <option key={c.slug} value={c.slug}>
-              {c.title}
-            </option>
-          ))}
-          <option value="other">other</option>
-        </select>
+        {/* Native select/date-input icons don't reliably line up with each
+            other across browsers even with identical padding (their default
+            icon insets differ) — appearance-none plus a shared custom icon,
+            positioned identically to this input's own Calendar icon below,
+            guarantees they sit at the exact same spot instead of leaving it
+            to two different native renderers to happen to agree. */}
+        <div className="relative mt-3">
+          <select
+            value={category ?? "other"}
+            onChange={(event) => setCategory(event.target.value)}
+            className="input appearance-none !pr-9"
+          >
+            {(categoriesQuery.data ?? []).map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.title}
+              </option>
+            ))}
+            <option value="other">other</option>
+          </select>
+          <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
+        </div>
       </div>
 
       {category && (
@@ -357,18 +300,27 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
           <p className="mt-1 text-xs text-ink/50">Sessions run 45 minutes. Pick a date, then a slot.</p>
 
           <label className="mb-1 mt-3 block text-xs font-medium text-ink/70">date</label>
-          <input
-            type="date"
-            value={selectedDate}
-            min={toLocalDateInputValue(new Date())}
-            max={toLocalDateInputValue(new Date(Date.now() + MAX_BOOKING_DAYS_AHEAD * 24 * 60 * 60 * 1000))}
-            onChange={(event) => {
-              setSelectedDate(event.target.value);
-              setSelectedSlot("");
-              setUnavailablePopupSlot(null);
-            }}
-            className="input bg-white"
-          />
+          <div className="relative">
+            <input
+              type="date"
+              value={selectedDate}
+              min={toLocalDateInputValue(new Date())}
+              max={toLocalDateInputValue(new Date(Date.now() + MAX_BOOKING_DAYS_AHEAD * 24 * 60 * 60 * 1000))}
+              onChange={(event) => {
+                setSelectedDate(event.target.value);
+                setSelectedSlot("");
+                setUnavailablePopupSlot(null);
+              }}
+              // Chrome/Safari's own calendar-picker-indicator sits at a
+              // slightly different inset than a plain custom icon would —
+              // made invisible (not removed) so the real, still-clickable
+              // native control stays exactly where it always was, with our
+              // Calendar icon drawn in the same spot as the select's
+              // chevron above for the two to actually line up.
+              className="input bg-white !pr-9 [&::-webkit-calendar-picker-indicator]:opacity-0"
+            />
+            <Calendar className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
+          </div>
 
           {selectedDate && (
             <div className="mt-3">
@@ -526,6 +478,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
 function BookAppointmentInner() {
   const { status } = useAuth();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const confirmedId = searchParams.get("confirmed");
   const initialCategory = searchParams.get("category");
@@ -541,7 +494,17 @@ function BookAppointmentInner() {
     return <div className="px-4 py-16 text-center text-sm text-ink/60">Loading…</div>;
   }
 
-  if (confirmedId) return <BookingConfirmation appointmentId={confirmedId} />;
+  if (confirmedId) {
+    return (
+      <div className="px-4 py-16 sm:px-6">
+        <AppointmentConfirmation
+          appointmentId={confirmedId}
+          onBack={() => router.push("/book-appointment")}
+          backLabel="Book Another Session"
+        />
+      </div>
+    );
+  }
 
   return <BookingForm initialCategory={initialCategory} initialExpertId={initialExpertId} />;
 }

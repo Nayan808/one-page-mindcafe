@@ -127,9 +127,18 @@ const MOTES: [number, number, number][] = [
   [1134, 742, 2.2],
 ];
 
-/** Deterministic jitter so timings differ per spark but never reshuffle. */
+/** Deterministic jitter so timings differ per spark but never reshuffle.
+ * Rounded to 6 decimal places: Math.sin can differ in its last bit or two
+ * between the server's Node/V8 and the browser's V8 — invisible on its
+ * own, but enough to make the animation-duration/delay strings this feeds
+ * into (interpolated to full float precision) disagree between server and
+ * client, which React's hydration then flags as a real mismatch. Rounding
+ * collapses that noise before it reaches a string, so both sides land on
+ * the same value; plain +/* on an already-identical rounded number is
+ * IEEE-754-exact and doesn't reintroduce any drift. */
 function jitter(i: number, seed: number) {
-  return ((Math.sin(i * 37.13 + seed) * 43758.5453) % 1 + 1) % 1;
+  const raw = ((Math.sin(i * 37.13 + seed) * 43758.5453) % 1 + 1) % 1;
+  return Math.round(raw * 1e6) / 1e6;
 }
 
 export function HeroLightFlow({ reduced }: { reduced: boolean }) {

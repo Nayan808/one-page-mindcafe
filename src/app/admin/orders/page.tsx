@@ -334,6 +334,19 @@ export default function AdminOrdersPage() {
       },
     },
     { key: "total", label: "total", render: (o) => <span>{formatInr(o.total)}</span> },
+    {
+      key: "coupon",
+      label: "coupon",
+      render: (o) =>
+        o.coupon_code ? (
+          <span className="whitespace-nowrap">
+            {o.coupon_code}
+            {o.discount_amount > 0 && <span className="text-ink/50"> · −{formatInr(o.discount_amount)}</span>}
+          </span>
+        ) : (
+          <span className="text-ink/30">—</span>
+        ),
+    },
     { key: "payment", label: "payment", render: (o) => <span className="capitalize">{o.payment_status}</span> },
     {
       key: "status",

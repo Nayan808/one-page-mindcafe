@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { createClient } from "@/lib/supabase/client";
@@ -41,7 +42,7 @@ const AUTO_COUPON_MIN_SUBTOTAL = 300;
 // never trusting anything computed here.
 export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (orderId: string) => void }) {
   const { user, profile } = useAuth();
-  const { cartId, items, subtotal } = useCartContext();
+  const { cartId, items, subtotal, clearCart } = useCartContext();
   const { addresses, addAddress } = useAddresses(user?.id ?? null);
 
   const [mode, setMode] = useState<Mode>("delivery");
@@ -55,16 +56,27 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [locations, setLocations] = useState<PickupLocation[]>([]);
   const [locationId, setLocationId] = useState<string | null>(null);
   const [pickupSlot, setPickupSlot] = useState("");
+  const [locationSearch, setLocationSearch] = useState("");
+  // Same collapse-once-picked pattern as BookAppointmentContent.tsx's
+  // expert picker — a long flat list of Zostels doesn't need to stay open
+  // once one's chosen, and search only makes sense while still choosing.
+  const [showAllLocations, setShowAllLocations] = useState(true);
 
-  const [couponCode, setCouponCode] = useState("");
+  // The 10% coupon is a checkbox the customer controls directly (default
+  // on, once eligible) rather than something that silently refills a text
+  // field — that's what caused it to reappear right after being erased:
+  // clearing the input also cleared `appliedCoupon`, which made the old
+  // auto-apply effect's "nothing applied yet" condition true again on the
+  // very next render. manualCouponCode is now a separate, always-erasable
+  // field that never gets auto-filled by anything.
+  const [useAutoCoupon, setUseAutoCoupon] = useState(true);
+  const [manualCouponCode, setManualCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
-  // Tracks whether the current coupon code came from the auto-apply effect
-  // below rather than the customer typing it in themselves — lets the
-  // effect clean up after its own discount (e.g. cart drops back under
-  // ₹300) without ever touching one the customer applied on purpose.
-  const [isAutoCoupon, setIsAutoCoupon] = useState(false);
+  // A successfully-applied manual code takes priority over the default —
+  // the auto-coupon effect below checks this before touching anything.
+  const hasManualCoupon = appliedCoupon !== null && appliedCoupon.code !== AUTO_COUPON_CODE;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -112,58 +124,58 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     serviceability.serviceable
       ? serviceability.deliveryFee
       : 0;
-  // Only trust the applied preview while the input still matches what was
-  // checked — editing the code after applying shouldn't silently keep
-  // discounting at the old value.
-  const discountAmount = appliedCoupon?.code === couponCode.trim().toUpperCase() ? appliedCoupon.discountAmount : 0;
+  // appliedCoupon is the single source of truth once set — nothing here
+  // silently invalidates it out from under the displayed discount anymore.
+  const discountAmount = appliedCoupon?.discountAmount ?? 0;
   // Delivery is free for every customer right now — create-order applies
   // this server-side too (the FREESHIP coupon, looked up automatically,
   // no code entry from the customer), so the total shown here has to
   // exclude it the same way or this estimate would be wrong.
   const total = Math.max(0, subtotal - discountAmount);
 
-  async function applyCoupon(code: string) {
+  async function applyCoupon(code: string): Promise<boolean> {
     setIsCheckingCoupon(true);
     setCouponError(null);
     try {
       const sb = createClient();
       const result = await validateCoupon(sb, code, subtotal);
       setAppliedCoupon(result);
+      return true;
     } catch (err) {
-      setAppliedCoupon(null);
       setCouponError(err instanceof Error ? err.message : "Couldn't apply coupon");
+      return false;
     } finally {
       setIsCheckingCoupon(false);
     }
   }
 
-  async function handleApplyCoupon() {
-    await applyCoupon(couponCode);
+  async function handleApplyManualCoupon() {
+    if (!manualCouponCode.trim()) return;
+    const applied = await applyCoupon(manualCouponCode);
+    // A real manual code takes over from the default — matches the
+    // requested behavior: applying another code deselects FEELZ10.
+    if (applied) setUseAutoCoupon(false);
   }
 
-  // Auto-apply: fills in and validates AUTO_COUPON_CODE the moment the
-  // cart crosses the threshold, as long as the customer hasn't already
-  // typed a code of their own (empty field + nothing applied yet).
+  function handleRemoveManualCoupon() {
+    setManualCouponCode("");
+    setCouponError(null);
+    if (hasManualCoupon) setAppliedCoupon(null);
+  }
+
+  // Keeps FEELZ10 applied/removed in sync with the checkbox + ₹300
+  // threshold — but only while no manual code is active, so a customer's
+  // own coupon is never clobbered by this running again on some unrelated
+  // state change (item added, address picked, etc.).
   useEffect(() => {
-    if (subtotal >= AUTO_COUPON_MIN_SUBTOTAL && !couponCode.trim() && !appliedCoupon && !isCheckingCoupon) {
-      setCouponCode(AUTO_COUPON_CODE);
-      setIsAutoCoupon(true);
-      void applyCoupon(AUTO_COUPON_CODE);
+    if (hasManualCoupon || isCheckingCoupon) return;
+    if (useAutoCoupon && subtotal >= AUTO_COUPON_MIN_SUBTOTAL) {
+      if (appliedCoupon?.code !== AUTO_COUPON_CODE) void applyCoupon(AUTO_COUPON_CODE);
+    } else if (appliedCoupon?.code === AUTO_COUPON_CODE) {
+      setAppliedCoupon(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subtotal, couponCode, appliedCoupon, isCheckingCoupon]);
-
-  // Auto-remove: if the cart drops back under the threshold (item removed
-  // etc.), clear the discount this effect applied — but only if it's the
-  // one that's still active, so a customer's own valid coupon is never
-  // touched here.
-  useEffect(() => {
-    if (isAutoCoupon && subtotal < AUTO_COUPON_MIN_SUBTOTAL) {
-      setCouponCode("");
-      setAppliedCoupon(null);
-      setIsAutoCoupon(false);
-    }
-  }, [isAutoCoupon, subtotal]);
+  }, [useAutoCoupon, subtotal, hasManualCoupon, appliedCoupon, isCheckingCoupon]);
 
   const serviceabilityOk =
     serviceability !== "unchecked" &&
@@ -192,10 +204,11 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           mode === "delivery"
             ? { type: "delivery", addressId: selectedAddressId! }
             : { type: "takeaway", locationId: locationId!, pickupSlot: pickupSlot || undefined },
-        couponCode: couponCode.trim() || undefined,
+        couponCode: appliedCoupon?.code,
       });
 
       if (result.free) {
+        clearCart();
         onOrderPlaced(result.order_id);
         return;
       }
@@ -211,7 +224,10 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           email: user?.email ?? undefined,
           contact: profile?.phone ?? user?.phone ?? undefined,
         },
-        onSuccess: () => onOrderPlaced(result.order_id),
+        onSuccess: () => {
+          clearCart();
+          onOrderPlaced(result.order_id);
+        },
         onDismiss: () => {
           setError("Payment was cancelled. Your order is saved as pending.");
           setIsSubmitting(false);
@@ -325,32 +341,83 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         </div>
       ) : (
         <div className="space-y-4">
-          {locations.length === 0 ? (
-            <p className="text-sm text-ink/60">Loading Zostel pickup points…</p>
-          ) : (
-            <div className="space-y-2">
-              {locations.map((location) => (
-                <label
-                  key={location.id}
-                  className="flex items-start gap-3 rounded-xl border border-ink/15 bg-white p-3 text-sm has-[:checked]:border-ink"
-                >
-                  <input
-                    type="radio"
-                    name="pickup-location"
-                    checked={locationId === location.id}
-                    onChange={() => setLocationId(location.id)}
-                    className="mt-1"
-                  />
+          {(() => {
+            const selectedLocation = locations.find((l) => l.id === locationId);
+            const term = locationSearch.trim().toLowerCase();
+            const filteredLocations = term
+              ? locations.filter(
+                  (l) => l.name.toLowerCase().includes(term) || l.city.toLowerCase().includes(term),
+                )
+              : locations;
+
+            if (locations.length === 0) {
+              return <p className="text-sm text-ink/60">Loading Zostel pickup points…</p>;
+            }
+
+            if (selectedLocation && !showAllLocations) {
+              return (
+                <div className="flex items-start justify-between gap-3 rounded-xl border border-ink bg-white p-3 text-sm">
                   <span>
-                    <span className="block font-medium text-ink">{location.name}</span>
+                    <span className="block font-medium text-ink">{selectedLocation.name}</span>
                     <span className="block text-ink/60">
-                      {location.address}, {location.city}
+                      {selectedLocation.address}, {selectedLocation.city}
                     </span>
                   </span>
-                </label>
-              ))}
-            </div>
-          )}
+                  <button
+                    type="button"
+                    onClick={() => setShowAllLocations(true)}
+                    className="shrink-0 text-xs font-medium text-ink underline"
+                  >
+                    Change
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div className="space-y-2">
+                <div className="relative">
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
+                  <input
+                    type="text"
+                    value={locationSearch}
+                    onChange={(event) => setLocationSearch(event.target.value)}
+                    placeholder="search by Zostel name or city"
+                    className="input w-full !pl-10"
+                  />
+                </div>
+                <div className="max-h-72 space-y-2 overflow-y-auto">
+                  {filteredLocations.length === 0 ? (
+                    <p className="text-sm text-ink/60">No Zostel matches &ldquo;{locationSearch}&rdquo;.</p>
+                  ) : (
+                    filteredLocations.map((location) => (
+                      <label
+                        key={location.id}
+                        className="flex items-start gap-3 rounded-xl border border-ink/15 bg-white p-3 text-sm has-[:checked]:border-ink"
+                      >
+                        <input
+                          type="radio"
+                          name="pickup-location"
+                          checked={locationId === location.id}
+                          onChange={() => {
+                            setLocationId(location.id);
+                            setShowAllLocations(false);
+                          }}
+                          className="mt-1"
+                        />
+                        <span>
+                          <span className="block font-medium text-ink">{location.name}</span>
+                          <span className="block text-ink/60">
+                            {location.address}, {location.city}
+                          </span>
+                        </span>
+                      </label>
+                    ))
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           <div>
             <label className="mb-1 block text-sm text-ink/70">Pickup slot (optional)</label>
@@ -364,34 +431,60 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         </div>
       )}
 
-      <div>
-        <label className="mb-1 block text-sm text-ink/70">Coupon code (optional)</label>
-        <div className="flex gap-2">
+      <div className="space-y-3">
+        <label className="flex items-center gap-2 rounded-xl border border-ink/15 bg-cream p-3 text-sm">
           <input
-            value={couponCode}
-            onChange={(event) => {
-              setCouponCode(event.target.value);
-              setAppliedCoupon(null);
-              setCouponError(null);
-              setIsAutoCoupon(false);
-            }}
-            onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), handleApplyCoupon())}
-            placeholder="Enter coupon code"
-            className="input uppercase"
+            type="checkbox"
+            checked={useAutoCoupon}
+            onChange={(event) => setUseAutoCoupon(event.target.checked)}
+            className="h-4 w-4 shrink-0"
           />
-          <button
-            type="button"
-            onClick={handleApplyCoupon}
-            disabled={!couponCode.trim() || isCheckingCoupon || discountAmount > 0}
-            className="pill-btn-outline shrink-0 !py-2 text-xs normal-case tracking-normal"
-          >
-            {isCheckingCoupon ? "Checking…" : discountAmount > 0 ? "Applied" : "Apply"}
-          </button>
+          <span>
+            Apply 10% off (<span className="font-medium text-ink">{AUTO_COUPON_CODE}</span>)
+            {subtotal < AUTO_COUPON_MIN_SUBTOTAL && (
+              <span className="text-ink/50"> — add {formatInr(AUTO_COUPON_MIN_SUBTOTAL - subtotal)} more to qualify</span>
+            )}
+          </span>
+        </label>
+
+        <div>
+          <label className="mb-1 block text-sm text-ink/70">Have a different coupon code? (optional)</label>
+          <div className="flex gap-2">
+            <input
+              value={manualCouponCode}
+              onChange={(event) => {
+                setManualCouponCode(event.target.value);
+                setCouponError(null);
+              }}
+              onKeyDown={(event) => event.key === "Enter" && (event.preventDefault(), handleApplyManualCoupon())}
+              placeholder="Enter coupon code"
+              className="input uppercase"
+            />
+            {hasManualCoupon ? (
+              <button
+                type="button"
+                onClick={handleRemoveManualCoupon}
+                className="pill-btn-outline shrink-0 !py-2 text-xs normal-case tracking-normal"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleApplyManualCoupon}
+                disabled={!manualCouponCode.trim() || isCheckingCoupon}
+                className="pill-btn-outline shrink-0 !py-2 text-xs normal-case tracking-normal"
+              >
+                {isCheckingCoupon ? "Checking…" : "Apply"}
+              </button>
+            )}
+          </div>
+          {couponError && <p className="mt-1.5 text-sm text-red-600">{couponError}</p>}
         </div>
-        {couponError && <p className="mt-1.5 text-sm text-red-600">{couponError}</p>}
+
         {discountAmount > 0 && (
-          <p className="mt-1.5 text-sm text-emerald-700">
-            &ldquo;{appliedCoupon!.code}&rdquo; {isAutoCoupon ? "applied automatically" : "applied"}, {formatInr(discountAmount)} off
+          <p className="text-sm text-emerald-700">
+            &ldquo;{appliedCoupon!.code}&rdquo; applied, {formatInr(discountAmount)} off
           </p>
         )}
       </div>

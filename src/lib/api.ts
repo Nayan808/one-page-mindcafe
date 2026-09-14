@@ -487,6 +487,28 @@ export async function getUserAppointments(sb: Sb, userId: string): Promise<Appoi
   return (data as unknown as AppointmentWithExpert[]) ?? [];
 }
 
+export type ResumeAppointmentPaymentResponse = {
+  razorpay_order_id: string;
+  amount: number;
+  currency: string;
+  key_id: string;
+};
+
+// Picks a stalled booking (payment pending or failed) back up — reuses the
+// original Razorpay order where one exists, see
+// resume-appointment-payment/index.ts. Signed-in customers only, same as
+// the rest of /account.
+export async function resumeAppointmentPayment(sb: Sb, appointmentId: string): Promise<ResumeAppointmentPaymentResponse> {
+  const { data, error } = await sb.functions.invoke("resume-appointment-payment", {
+    body: { appointment_id: appointmentId },
+  });
+  if (error) {
+    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new ApiError("resumeAppointmentPayment", { message: detail?.error ?? error.message });
+  }
+  return data as ResumeAppointmentPaymentResponse;
+}
+
 // --- Expert dashboard ---------------------------------------------------
 
 export async function getExpertByProfileId(sb: Sb, profileId: string): Promise<Expert | null> {

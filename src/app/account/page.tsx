@@ -13,7 +13,9 @@ import { updateProfile } from "@/lib/api";
 import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
 import { LinkPhoneSection } from "@/components/LinkPhoneSection";
 import { OrderConfirmation, STATUS_LABELS } from "@/components/OrderConfirmation";
+import { AppointmentConfirmation } from "@/components/AppointmentConfirmation";
 import { formatDate, formatDateTime, formatInr } from "@/lib/utils";
+import type { AppointmentWithExpert } from "@/types/domain";
 
 const profileSchema = z.object({
   full_name: z.string().min(1, "Required"),
@@ -243,52 +245,63 @@ function OrderHistorySection() {
   );
 }
 
-const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
-  pending: "Pending confirmation",
-  confirmed: "Confirmed",
-  completed: "Completed",
-  cancelled: "Cancelled",
-};
+// Same priority order as AppointmentConfirmation.tsx's statusInfo — payment
+// status takes priority over booking status, since a failed/incomplete
+// payment never actually secured the slot, so "pending confirmation"
+// (implying only the expert still needs to act) would be misleading.
+function appointmentListStatus(appointment: AppointmentWithExpert): { text: string; className: string } {
+  if (appointment.payment_status === "failed") return { text: "Payment failed", className: "text-red-600" };
+  if (appointment.payment_status === "pending") return { text: "Payment pending", className: "text-amber-600" };
+  if (appointment.status === "cancelled") return { text: "Cancelled", className: "text-ink/60" };
+  if (appointment.status === "completed") return { text: "Completed", className: "text-ink/60" };
+  if (appointment.status === "confirmed") return { text: "Confirmed", className: "text-emerald-700" };
+  return { text: "Awaiting confirmation", className: "text-amber-600" };
+}
 
 function AppointmentsSection() {
   const { user } = useAuth();
   const { appointments, isLoading } = useUserAppointments(user?.id ?? null);
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
 
   return (
     <section className="rounded-2xl border border-ink/10 bg-white p-5">
       <h2 className="font-display text-xl font-bold text-ink">Counselling appointments</h2>
 
-      {isLoading ? (
+      {selectedAppointmentId ? (
+        <div className="mt-4">
+          <AppointmentConfirmation
+            appointmentId={selectedAppointmentId}
+            onBack={() => setSelectedAppointmentId(null)}
+            backLabel="Back to Appointments"
+          />
+        </div>
+      ) : isLoading ? (
         <p className="mt-4 text-sm text-ink/60">Loading your appointments…</p>
       ) : appointments.length === 0 ? (
         <p className="mt-4 text-sm text-ink/60">No sessions booked yet.</p>
       ) : (
         <ul className="mt-4 space-y-2">
-          {appointments.map((appointment) => (
-            <li key={appointment.id} className="rounded-xl border border-ink/15 p-3 text-sm">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-medium capitalize text-ink">{appointment.therapy_category.replace("-", " & ")}</span>
-                {/* Payment status takes priority over booking status — a
-                    failed/incomplete payment never actually secured this
-                    slot, so showing "pending confirmation" (implying the
-                    booking itself just needs the expert to act) would be
-                    misleading. */}
-                {appointment.payment_status === "failed" ? (
-                  <span className="text-xs font-medium text-red-600">Payment failed</span>
-                ) : appointment.payment_status === "pending" ? (
-                  <span className="text-xs font-medium text-amber-600">Payment pending</span>
-                ) : (
-                  <span className="text-xs font-medium text-ink/60">{APPOINTMENT_STATUS_LABELS[appointment.status] ?? appointment.status}</span>
-                )}
-              </div>
-              {appointment.experts && <p className="mt-1 text-ink/60">with {appointment.experts.name}</p>}
-              <p className="mt-1 text-ink/50">
-                {appointment.scheduled_at
-                  ? formatDateTime(appointment.scheduled_at)
-                  : "Time to be confirmed"}
-              </p>
-            </li>
-          ))}
+          {appointments.map((appointment) => {
+            const statusDisplay = appointmentListStatus(appointment);
+            return (
+              <li key={appointment.id}>
+                <button
+                  type="button"
+                  onClick={() => setSelectedAppointmentId(appointment.id)}
+                  className="w-full rounded-xl border border-ink/15 p-3 text-left text-sm transition hover:border-ink/30"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-medium capitalize text-ink">{appointment.therapy_category.replace("-", " & ")}</span>
+                    <span className={`text-xs font-medium ${statusDisplay.className}`}>{statusDisplay.text}</span>
+                  </div>
+                  {appointment.experts && <p className="mt-1 text-ink/60">with {appointment.experts.name}</p>}
+                  <p className="mt-1 text-ink/50">
+                    {appointment.scheduled_at ? formatDateTime(appointment.scheduled_at) : "Time to be confirmed"}
+                  </p>
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
     </section>

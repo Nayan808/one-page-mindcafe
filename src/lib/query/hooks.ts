@@ -115,7 +115,18 @@ export function useCart(cartId: string | null) {
   }, 0);
   const itemCount = items.reduce((sum, item) => sum + item.quantity, 0);
 
-  return { items, subtotal, itemCount, isLoading: itemsQuery.isLoading, addItem, updateQuantity, removeItem };
+  // create-order deletes every cart_items row for this cart server-side
+  // once an order is placed, but nothing about that cart's *id* changes —
+  // it's the same row, just emptied, so this query's cache is never
+  // invalidated by anything else and was showing the pre-order items
+  // indefinitely. Call this right after a successful order; setting
+  // directly (not invalidating) is correct here since the emptied state
+  // is already a known fact, not something that needs a round trip to confirm.
+  function clearCart() {
+    queryClient.setQueryData<CartItemWithVariant[]>(queryKey, []);
+  }
+
+  return { items, subtotal, itemCount, isLoading: itemsQuery.isLoading, addItem, updateQuantity, removeItem, clearCart };
 }
 
 export function useAddresses(userId: string | null) {

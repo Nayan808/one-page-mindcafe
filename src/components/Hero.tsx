@@ -101,6 +101,24 @@ export function Hero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingAdd, user, isReady, cartId]);
 
+  // Footer links (and anything else linking straight to a product) use
+  // /feelz#focus etc. — scrolling to that mood's grid card is the browser's
+  // native behavior for a URL hash, but landing in the middle of the full
+  // grid isn't the same as opening that product's own description, which
+  // is what those links are meant for. Opening the matching detail modal
+  // on load (and again if the hash changes while already on this page,
+  // since Next.js doesn't remount this component for a same-route
+  // navigation) covers both.
+  useEffect(() => {
+    function openFromHash() {
+      const key = window.location.hash.replace("#", "");
+      if (MOOD_GRID.some((mood) => mood.key === key)) setDetailKey(key);
+    }
+    openFromHash();
+    window.addEventListener("hashchange", openFromHash);
+    return () => window.removeEventListener("hashchange", openFromHash);
+  }, []);
+
   async function handleAddToCart(moodKey: string, product: ProductWithVariants | undefined) {
     if (!user) {
       setPendingAdd({ moodKey, product });

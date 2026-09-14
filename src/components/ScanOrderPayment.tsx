@@ -27,7 +27,7 @@ export function ScanOrderPayment({
   onOrderPlaced: (orderId: string) => void;
 }) {
   const { user, profile } = useAuth();
-  const { cartId, items, subtotal, updateQuantity, removeItem } = useCartContext();
+  const { cartId, items, subtotal, updateQuantity, removeItem, clearCart } = useCartContext();
   const [phone, setPhone] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +81,7 @@ export function ScanOrderPayment({
       });
 
       if (result.free) {
+        clearCart();
         onOrderPlaced(result.order_id);
         return;
       }
@@ -96,7 +97,10 @@ export function ScanOrderPayment({
           email: user?.email ?? undefined,
           contact: profile?.phone ?? (isPhoneValid ? phoneDigits : undefined),
         },
-        onSuccess: () => onOrderPlaced(result.order_id),
+        onSuccess: () => {
+          clearCart();
+          onOrderPlaced(result.order_id);
+        },
         onDismiss: () => {
           setError("Payment was cancelled. Your order is saved as pending.");
           setIsSubmitting(false);

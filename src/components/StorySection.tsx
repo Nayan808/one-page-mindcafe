@@ -1,49 +1,123 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { Volume2, VolumeX } from "lucide-react";
+import { useInView } from "motion/react";
 import { Reveal } from "@/components/Reveal";
 
 // Copy, pull-quote, and video sourced verbatim from mindcafe.app/about (the
 // same company's live "our story" section) rather than invented. The video
-// is the company's own real YouTube upload — clicking play loads and plays
-// that actual video via YouTube's embed player, not a placeholder.
+// is the company's own real YouTube upload.
 const YOUTUBE_VIDEO_ID = "GNa-LL2vylk";
 const VIDEO_TITLE = "Mindcafe's CEO & Founder, Sneh Nigam talks about Mindcafe";
 
+type YTPlayer = { mute: () => void; unMute: () => void; isMuted: () => boolean };
+
+declare global {
+  interface Window {
+    YT?: { Player: new (el: HTMLElement, opts: Record<string, unknown>) => YTPlayer };
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+
+let apiLoadPromise: Promise<void> | null = null;
+function loadYouTubeIframeApi(): Promise<void> {
+  if (window.YT?.Player) return Promise.resolve();
+  if (apiLoadPromise) return apiLoadPromise;
+  apiLoadPromise = new Promise((resolve) => {
+    const previous = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      previous?.();
+      resolve();
+    };
+    const script = document.createElement("script");
+    script.src = "https://www.youtube.com/iframe_api";
+    document.body.appendChild(script);
+  });
+  return apiLoadPromise;
+}
+
+// Autoplays muted (the only way any browser allows autoplay at all) the
+// moment the video scrolls into view, loops, and is click-to-unmute —
+// no separate "click to load a thumbnail" step first. The static
+// thumbnail stays put *underneath* the player the whole time: the YT
+// player only actually paints its iframe once the API's finished loading
+// and the player's ready, so without it there'd be a blank black box for
+// that brief window instead of an instant, already-familiar frame.
 export function StorySection() {
-  const [playing, setPlaying] = useState(false);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const playerElRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
+  const isInView = useInView(frameRef, { once: true, amount: 0.4 });
+  const [isMuted, setIsMuted] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (!isInView || !playerElRef.current) return;
+    let cancelled = false;
+    loadYouTubeIframeApi().then(() => {
+      if (cancelled || !playerElRef.current || !window.YT) return;
+      playerRef.current = new window.YT.Player(playerElRef.current, {
+        videoId: YOUTUBE_VIDEO_ID,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          loop: 1,
+          playlist: YOUTUBE_VIDEO_ID,
+          rel: 0,
+          modestbranding: 1,
+          playsinline: 1,
+        },
+        events: { onReady: () => setIsReady(true) },
+      });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isInView]);
+
+  function toggleMute() {
+    const player = playerRef.current;
+    if (!player) return;
+    if (player.isMuted()) {
+      player.unMute();
+      setIsMuted(false);
+    } else {
+      player.mute();
+      setIsMuted(true);
+    }
+  }
 
   return (
     <section className="bg-white">
       <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div className="overflow-hidden rounded-3xl border border-ink shadow-lg">
-            <div className="relative aspect-video w-full bg-ink">
-              {playing ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${YOUTUBE_VIDEO_ID}?autoplay=1&rel=0&modestbranding=1`}
-                  title={VIDEO_TITLE}
-                  className="absolute inset-0 h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setPlaying(true)}
-                  className="group absolute inset-0 flex items-center justify-center"
-                  aria-label={`Play video: ${VIDEO_TITLE}`}
-                >
-                  <Image src="/about/story-video-thumb.jpg" alt={VIDEO_TITLE} fill className="object-cover" />
-                  <span className="absolute inset-0 bg-ink/35 transition group-hover:bg-ink/45" aria-hidden />
-                  <span className="relative flex h-16 w-16 items-center justify-center rounded-full bg-cream shadow-lg transition group-hover:scale-105">
-                    <Play className="h-6 w-6 translate-x-0.5 text-ink" fill="currentColor" aria-hidden />
+            <div ref={frameRef} className="group relative aspect-video w-full bg-ink">
+              <Image src="/about/story-video-thumb.jpg" alt={VIDEO_TITLE} fill className="object-cover" />
+              <div ref={playerElRef} className="absolute inset-0 h-full w-full" />
+              {/* A real YouTube iframe, once mounted, is a separate
+                  browsing context — clicks landing on it never reach a
+                  parent element's onClick. This overlay sits above it (DOM
+                  order + no explicit z-index on either = later wins) so
+                  clicking anywhere on the video reliably toggles mute
+                  instead of silently doing nothing the moment the player
+                  becomes ready. */}
+              <button
+                type="button"
+                onClick={toggleMute}
+                disabled={!isReady}
+                aria-label={isReady ? (isMuted ? "Unmute video" : "Mute video") : VIDEO_TITLE}
+                className="absolute inset-0 h-full w-full"
+              >
+                {isReady && (
+                  <span className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-ink/60 text-cream backdrop-blur transition group-hover:bg-ink/80">
+                    {isMuted ? <VolumeX className="h-4 w-4" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
                   </span>
-                </button>
-              )}
+                )}
+              </button>
             </div>
             <div className="flex items-center gap-2 bg-ink px-5 py-3">
               <span aria-hidden>🎙️</span>
