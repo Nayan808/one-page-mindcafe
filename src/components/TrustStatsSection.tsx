@@ -65,7 +65,7 @@ export function TrustStatsSection() {
   ];
 
   return (
-    <div className="border-y border-ink/10 bg-gradient-to-b from-white to-cream/50 px-4 py-14 text-center">
+    <div className="border-y border-ink/10 bg-surface-alt px-4 py-14 text-center">
       {/* Milestone moment. Same choreography as StatsBar so the two read as
           one system: divider, then figure counting up, then label. The
           count is keyed on the figure string, so it starts only once the

@@ -14,7 +14,7 @@ const POINTS = [
 
 export function CounsellingPrivacySection() {
   return (
-    <section className="bg-cream">
+    <section>
       <Reveal className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
         <h2 className="font-display text-center text-3xl font-bold text-ink sm:text-4xl">Your privacy comes first.</h2>
 

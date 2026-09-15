@@ -91,7 +91,7 @@ export function StorySection() {
   }
 
   return (
-    <section className="bg-white">
+    <section>
       <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div className="overflow-hidden rounded-3xl border border-ink shadow-lg">

@@ -36,7 +36,7 @@ const USE_CASES = [
 
 export function UseCasesSection() {
   return (
-    <section className="bg-white">
+    <section>
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
         <div className="text-center">
           <RiseIn y={8} blur={3} amount={0.6}>

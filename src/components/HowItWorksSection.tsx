@@ -6,9 +6,9 @@ import { Modal } from "@/components/Modal";
 
 const STEPS = [
   { title: "Pick your Feelz", description: "", src: "/how-it-works/step-1.jpg" },
-  { title: "Open the pack", description: "", src: "/how-it-works/step-2.jpg" },
-  { title: "Place the strip on your tongue", description: "", src: "/how-it-works/step-3.jpg" },
-  { title: "Let it dissolve", description: "", src: "/how-it-works/step-4.jpg" },
+  { title: "Open the pack", description: "", src: "/how-it-works/step-2-v2.png" },
+  { title: "Place the strip on your tongue", description: "", src: "/how-it-works/step-3-v2.png" },
+  { title: "Let it dissolve", description: "", src: "/how-it-works/step-4-v2.png" },
   { title: "Get on with your day", description: "", src: "/how-it-works/step-5.jpg" },
 ];
 
@@ -26,7 +26,7 @@ export function HowItWorksSection() {
   const detailStep = detailIndex !== null ? STEPS[detailIndex] : null;
 
   return (
-    <section id="how-it-works" className="bg-white">
+    <section id="how-it-works">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="text-center">
           <div className="mx-auto flex w-fit items-center gap-3">

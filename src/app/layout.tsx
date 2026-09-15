@@ -48,7 +48,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       lang="en"
       className={`${display.variable} ${serifItalic.variable} ${serifDisplay.variable} ${body.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col bg-cream text-ink">
+      <body className="flex min-h-full flex-col bg-surface text-ink">
         {/* Google tag (gtag.js). next/script's afterInteractive strategy
             injects this at runtime after the page is interactive, rather
             than blocking first paint — Next manages the actual DOM

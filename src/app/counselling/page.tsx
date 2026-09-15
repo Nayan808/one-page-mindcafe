@@ -19,7 +19,7 @@ export default function CounsellingPage() {
       <CounsellingPrivacySection />
       <CounsellingConcernsSection />
       <TestimonialsSection />
-      <div className="bg-white">
+      <div>
         <CounsellingFaqSection />
       </div>
     </>

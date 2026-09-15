@@ -9,7 +9,7 @@ import { Reveal } from "@/components/Reveal";
 // exactly for "help me figure out where to start".
 export function NotSureWhereToStartBanner() {
   return (
-    <section className="bg-cream">
+    <section>
       <Reveal className="mx-auto max-w-2xl px-4 py-12 text-center sm:px-6">
         <h2 className="font-display text-2xl font-bold text-ink sm:text-3xl">Not sure where to start?</h2>
         <p className="mx-auto mt-3 max-w-lg text-sm text-ink/60 sm:text-base">

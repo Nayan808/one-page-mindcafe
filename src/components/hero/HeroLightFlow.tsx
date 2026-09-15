@@ -128,6 +128,7 @@ const MOTES: [number, number, number][] = [
 ];
 
 /** Deterministic jitter so timings differ per spark but never reshuffle.
+ *
  * Rounded to 6 decimal places: Math.sin can differ in its last bit or two
  * between the server's Node/V8 and the browser's V8 — invisible on its
  * own, but enough to make the animation-duration/delay strings this feeds
@@ -135,7 +136,15 @@ const MOTES: [number, number, number][] = [
  * client, which React's hydration then flags as a real mismatch. Rounding
  * collapses that noise before it reaches a string, so both sides land on
  * the same value; plain +/* on an already-identical rounded number is
- * IEEE-754-exact and doesn't reintroduce any drift. */
+ * IEEE-754-exact and doesn't reintroduce any drift.
+ *
+ * NOTE: that margin is input-dependent — it holds because no (i, seed)
+ * in the current MOTES/SPARKS tables lands near a rounding boundary
+ * (closest approach ~4.2e-3 against ~1e-5 of engine noise). Adding motes
+ * or sparks could in principle produce one that does. The .toFixed(2) on
+ * the duration/delay strings below is the backstop for that case, and
+ * keeps 17 significant figures out of the DOM either way.
+ */
 function jitter(i: number, seed: number) {
   const raw = ((Math.sin(i * 37.13 + seed) * 43758.5453) % 1 + 1) % 1;
   return Math.round(raw * 1e6) / 1e6;
@@ -236,8 +245,8 @@ export function HeroLightFlow({ reduced }: { reduced: boolean }) {
               fill={warm ? "url(#moteWarm)" : "url(#moteCool)"}
               className={reduced ? undefined : "hero-mote"}
               style={{
-                animationDuration: `${17 + jitter(i, 7) * 12}s`,
-                animationDelay: `${jitter(i, 8) * 18}s`,
+                animationDuration: `${(17 + jitter(i, 7) * 12).toFixed(2)}s`,
+                animationDelay: `${(jitter(i, 8) * 18).toFixed(2)}s`,
                 opacity: reduced ? 0.22 : undefined,
               }}
             />
@@ -272,8 +281,8 @@ export function HeroLightFlow({ reduced }: { reduced: boolean }) {
       <g>
         {SPARKS.map(([x, y, r], i) => {
           const warm = x > 1150 || jitter(i, 3) > 0.62;
-          const dur = 4 + jitter(i, 1) * 5;
-          const delay = jitter(i, 2) * 7;
+          const dur = (4 + jitter(i, 1) * 5).toFixed(2);
+          const delay = (jitter(i, 2) * 7).toFixed(2);
           return (
             <circle
               key={i}

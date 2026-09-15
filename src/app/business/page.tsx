@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getRecentReviews } from "@/lib/api";
 import { BusinessLeadForm } from "@/components/BusinessLeadForm";
 import { Reveal } from "@/components/Reveal";
+import { HeroBackdrop } from "@/components/hero/HeroBackdrop";
 
 // Copy and imagery sourced from mindcafe.app/businesses (the same company's
 // live corporate-wellness page) rather than invented — stats, the offering
@@ -149,7 +150,7 @@ function CorporateTestimonials() {
   if (!reviewsQuery.isLoading && reviews.length === 0) return null;
 
   return (
-    <section className="bg-white">
+    <section>
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <h2 className="font-display text-center text-3xl font-bold text-ink sm:text-4xl">What teams say</h2>
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
@@ -174,24 +175,7 @@ export default function BusinessPage() {
   return (
     <div>
       <section className="relative overflow-hidden text-[#f6efe4]" style={{ backgroundColor: "#150c1c" }}>
-        <Image src="/business-hero.jpg" alt="" fill priority sizes="100vw" className="object-cover opacity-70" />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(21,12,28,0.55) 0%, rgba(21,12,28,0.72) 55%, rgba(21,12,28,0.92) 100%)",
-          }}
-          aria-hidden
-        />
-
-        <div
-          className="pointer-events-none absolute right-[8%] top-1/2 hidden -translate-y-1/2 lg:flex xl:right-[16%]"
-          aria-hidden
-        >
-          <div className="relative h-[280px] w-[280px] overflow-hidden rounded-full border border-[#f6efe4]/25 shadow-lg xl:h-[340px] xl:w-[340px]">
-            <Image src="/hero-badges/business.jpg" alt="" fill sizes="340px" className="object-cover" />
-          </div>
-        </div>
+        <HeroBackdrop src="/business-hero-v2.png" />
 
         <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-28">
           <div className="max-w-xl">
@@ -218,7 +202,7 @@ export default function BusinessPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <div className="grid gap-4 sm:grid-cols-4">
           {STATS.map((stat) => (
@@ -230,7 +214,7 @@ export default function BusinessPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Who We Work With</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
@@ -250,7 +234,7 @@ export default function BusinessPage() {
         </Reveal>
       </section>
 
-      <section className="bg-white">
+      <section>
         <Reveal className="py-10">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/40">Trusted by teams at</p>
         <div
@@ -268,7 +252,7 @@ export default function BusinessPage() {
         </Reveal>
       </section>
 
-      <section className="bg-white">
+      <section>
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Recognition & Impact</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
@@ -290,7 +274,7 @@ export default function BusinessPage() {
         </Reveal>
       </section>
 
-      <section className="bg-white">
+      <section>
         <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">How It Works</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
@@ -320,7 +304,7 @@ export default function BusinessPage() {
         </Reveal>
       </section>
 
-      <section id="whats-included" className="bg-white">
+      <section id="whats-included">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
         <h2 className="font-display text-center text-3xl font-bold text-ink sm:text-4xl">What&apos;s included</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
@@ -343,7 +327,7 @@ export default function BusinessPage() {
 
       <section
         id="get-in-touch"
-        className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-cream sm:-mt-12 sm:rounded-t-[3rem]"
+        className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-surface sm:-mt-12 sm:rounded-t-[3rem]"
       >
         <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="text-center">

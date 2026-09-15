@@ -129,7 +129,7 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="relative overflow-hidden bg-white">
+    <section ref={timelineRef} className="relative overflow-hidden">
       {/* This wrapper — not the outer <section> — owns the background image.
           The section also contains the "Our Strips" grid below, so an
           absolutely-positioned image/overlay placed directly on the section
@@ -137,46 +137,95 @@ export function Hero() {
           combined) instead of just the hero banner. Scoping it to a div
           sized by just the hero content keeps the photo confined to this
           banner only. */}
-      <div className="relative overflow-hidden text-[#f6efe4]" style={{ backgroundColor: "#150c1c" }}>
-        <Image src="/feelz-hero.png" alt="" fill priority sizes="100vw" className="object-cover opacity-70" />
+      <div
+        // isolate: the light layers below blend in screen mode, and that has
+        // to resolve against the banner's own stack, not the whole page.
+        className="relative isolate overflow-hidden text-[#f6efe4]"
+        style={{ backgroundColor: "#150c1c" }}
+      >
+        {/* Layering follows HomeHero, back to front: base colour, artwork,
+            readability scrims, atmosphere, vignette. The banner ends on a
+            clean edge — no fade into the grid below. The artwork is left
+            uncovered on the right so the lamp and desk read as a photograph
+            rather than something behind a veil.
+
+            The banner is deliberately still — no parallax, no Ken Burns, no
+            pulsing light. Everything here is a fixed paint. */}
+        <Image
+          src="/feelz-hero-v2.png"
+          alt=""
+          fill
+          priority
+          quality={90}
+          sizes="100vw"
+          // Narrow screens bias the crop left, onto the empty wall and the
+          // light trail, so the copy never lands on the busy desk.
+          className="object-cover object-[38%_center] md:object-center"
+        />
+
+        {/* Readability. Clears completely by ~76% rather than veiling the
+            whole frame — a blanket scrim is what flattened this before. */}
         <div
           className="absolute inset-0"
           style={{
             background:
-              "linear-gradient(to bottom, rgba(21,12,28,0.55) 0%, rgba(21,12,28,0.72) 55%, rgba(21,12,28,0.92) 100%)",
+              "linear-gradient(97deg, rgba(21,12,28,0.94) 0%, rgba(21,12,28,0.86) 24%, rgba(21,12,28,0.52) 44%, rgba(21,12,28,0.16) 62%, rgba(0,0,0,0) 76%)",
+          }}
+          aria-hidden
+        />
+        {/* Mobile needs more: the copy sits over the artwork instead of
+            beside it, so a vertical scrim is added only at small sizes. */}
+        <div
+          className="absolute inset-0 md:hidden"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(21,12,28,0.88) 0%, rgba(21,12,28,0.6) 45%, rgba(21,12,28,0.82) 100%)",
           }}
           aria-hidden
         />
 
+        {/* Atmosphere. Both sit ABOVE the readability scrims, blended in screen
+            mode so they can only ADD light where the photograph is already
+            lit — over the lamp and over the pool it throws on the desk. A
+            normal overlay here would read as a grey film; this reads as the
+            lamp being on. Fixed opacity: they are lighting, not animation. */}
         <div
-          className="pointer-events-none absolute bottom-0 right-[3%] z-10 hidden lg:flex xl:right-[8%]"
+          className="pointer-events-none absolute hidden md:block"
+          style={{
+            right: "1%",
+            top: "-6%",
+            width: "30%",
+            height: "48%",
+            opacity: 0.8,
+            mixBlendMode: "screen",
+            background:
+              "radial-gradient(closest-side, rgba(255,211,148,0.34) 0%, rgba(255,183,104,0.15) 44%, rgba(0,0,0,0) 100%)",
+          }}
           aria-hidden
-        >
-          <div className="relative h-[630px] w-[473px] xl:h-[780px] xl:w-[585px]">
-            <Image
-              src="/hero-badges/feelz-v2.png"
-              alt=""
-              fill
-              sizes="585px"
-              className="object-contain object-bottom"
-            />
-          </div>
-        </div>
+        />
+        <div
+          className="pointer-events-none absolute hidden md:block"
+          style={{
+            right: "8%",
+            bottom: "4%",
+            width: "44%",
+            height: "36%",
+            opacity: 0.7,
+            mixBlendMode: "screen",
+            background:
+              "radial-gradient(closest-side, rgba(255,196,132,0.2) 0%, rgba(214,140,110,0.08) 50%, rgba(0,0,0,0) 100%)",
+          }}
+          aria-hidden
+        />
 
-        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start px-4 py-12 sm:px-6">
-        <TimelineContent
-          as="div"
-          animationNum={0}
-          timelineRef={timelineRef}
-          customVariants={revealVariants}
-          className="relative mb-4 flex h-20 w-20 flex-col items-center justify-center gap-1 overflow-hidden rounded-full border border-white/40 bg-white/30 shadow-lg backdrop-blur-md"
-        >
-          <span className="relative h-8 w-8 shrink-0">
-            <Image src="/press/zostel-star.png" alt="" fill className="object-contain" />
-          </span>
-          <span className="text-[8px] font-semibold uppercase tracking-widest text-ink/70">Zostel</span>
-        </TimelineContent>
+        {/* Soft vignette to seat the frame. */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ boxShadow: "inset 0 0 180px 40px rgba(10,6,14,0.55)" }}
+          aria-hidden
+        />
 
+        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start px-4 pb-16 pt-16 sm:px-6 sm:pb-20 sm:pt-20">
         <TimelineContent
           as="button"
           animationNum={1}
@@ -261,7 +310,7 @@ export function Hero() {
         </div>
       </div>
 
-      <div className="bg-white">
+      <div>
       <div id="mood-picks" className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
         <div className="text-center">
           <div className="mx-auto flex w-fit items-center gap-3">

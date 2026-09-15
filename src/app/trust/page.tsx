@@ -178,7 +178,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">What Guides Us</p>
@@ -206,7 +206,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Ingredients: Sample</p>
@@ -226,7 +226,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Carefully Selected</p>
@@ -250,7 +250,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Manufacturing</p>
@@ -273,7 +273,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Designed for Everyday Wellness</p>
@@ -303,7 +303,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Regulatory Compliance</p>
@@ -330,7 +330,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Transparency</p>
@@ -385,7 +385,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Responsible Usage</p>
@@ -429,7 +429,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Continuous Improvement</p>
@@ -454,7 +454,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Everyday Support, Not a Replacement</p>
           <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
@@ -477,7 +477,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
           <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-center text-xs font-medium text-amber-800">
             DRAFT: pending legal/compliance review, not final copy.
@@ -507,7 +507,7 @@ export default function TrustPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-lg px-4 pb-20 text-center sm:px-6">
           <h2 className="font-display text-2xl font-bold text-ink">Have questions about safety?</h2>
           <p className="mt-2 text-sm text-ink/60">

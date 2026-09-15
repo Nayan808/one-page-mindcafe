@@ -89,7 +89,7 @@ export function ZostelLocationsSection() {
   }, [locations, trimmedQuery]);
 
   return (
-    <section id="zostel-locations" className="bg-white">
+    <section id="zostel-locations">
       <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-16 text-center sm:px-6">
       <div className="relative mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full shadow-lg">
         <Image src="/press/zostel.png" alt="Zostel" fill className="object-cover" />

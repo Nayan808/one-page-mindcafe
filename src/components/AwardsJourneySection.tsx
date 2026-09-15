@@ -103,7 +103,7 @@ export function AwardsJourneySection() {
   const glowOpacity = useTransform(scrollYProgress, [0, 0.05, 0.95, 1], [0, 1, 1, 0]);
 
   return (
-    <section className="overflow-hidden bg-white">
+    <section className="overflow-hidden">
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Our Journey</p>

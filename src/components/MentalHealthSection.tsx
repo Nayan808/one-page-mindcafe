@@ -121,7 +121,7 @@ function MythCard({ myth, reality }: { myth: string; reality: string }) {
 
 export function MentalHealthSection() {
   return (
-    <section className="bg-white">
+    <section>
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Mental Health, Plainly</p>
