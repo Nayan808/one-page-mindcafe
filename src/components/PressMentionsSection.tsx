@@ -31,7 +31,7 @@ const PRESS = [
 
 export function PressMentionsSection() {
   return (
-    <section className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-cream py-16 sm:-mt-12 sm:rounded-t-[3rem]">
+    <section className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-surface py-16 sm:-mt-12 sm:rounded-t-[3rem]">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <RiseIn className="text-center" y={8} blur={3} amount={0.6}>
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">As Seen On</p>

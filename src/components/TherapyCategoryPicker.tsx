@@ -50,7 +50,7 @@ export function TherapyCategoryPicker() {
   if (!categoriesQuery.isLoading && categories.length === 0) return null;
 
   return (
-    <section className="bg-white">
+    <section>
       <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Choose a Category</p>

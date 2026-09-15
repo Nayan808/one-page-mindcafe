@@ -21,7 +21,7 @@ export default function FeelzPage() {
       <ZostelLocationsSection />
       <HowItWorksSection />
       <WhoItsForSection />
-      <div className="bg-white">
+      <div>
         <FaqSection />
         <HeadsUpSection />
       </div>

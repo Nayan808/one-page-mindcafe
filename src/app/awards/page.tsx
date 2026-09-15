@@ -101,7 +101,7 @@ export default function AwardsPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Featured Recognition</p>
@@ -132,7 +132,7 @@ export default function AwardsPage() {
 
       <AwardsJourneySection />
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Impact by Numbers</p>
@@ -152,7 +152,7 @@ export default function AwardsPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Other Recognition</p>
@@ -177,7 +177,7 @@ export default function AwardsPage() {
         </div>
       </section>
 
-      <section className="bg-white">
+      <section>
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
           <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
             Be part of the <span className="font-tagline italic text-brand">next chapter.</span>

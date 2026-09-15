@@ -61,7 +61,7 @@ export function FeelzTeaserSection() {
   };
 
   return (
-    <section id="feelz-teaser" className="relative isolate overflow-hidden bg-white">
+    <section id="feelz-teaser" className="relative isolate overflow-hidden">
       {/* Plain white section. The tinted dissolve, the three ambient colour
           fields, the drifting thread, the grain texture, and the dark-to-white
           blend at the top have all been removed — the only thing behind the

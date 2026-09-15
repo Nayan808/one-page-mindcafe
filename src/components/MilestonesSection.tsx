@@ -37,7 +37,7 @@ export function MilestonesSection() {
   if (!milestonesQuery.isLoading && milestones.length === 0) return null;
 
   return (
-    <section className="overflow-hidden bg-white">
+    <section className="overflow-hidden">
       <div className="mx-auto max-w-4xl px-4 py-20 sm:px-6">
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Our Journey</p>

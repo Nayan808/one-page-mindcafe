@@ -4,6 +4,36 @@
   --cream: #faf4f7;
   --ink: #111110;
 
+  /* The page surface: a warm sand, and deliberately a true beige rather
+     than a tinted white. Flat #fff made the long stretches between the
+     dark hero bands read as empty rather than quiet, and gave the white
+     cards nothing to sit against — on this they read as raised.
+
+     A separate token rather than a repointed --cream, because --cream is
+     also the TEXT colour on every dark band (text-cream); moving that
+     would recolour type across the whole site.
+
+     Note this sits a real step away from --cream, so any surface still
+     painted bg-cream reads as a distinctly lighter panel on top of it,
+     not as the same tone. That is intended for raised panels; a band
+     meant to BE the page should carry no background at all. */
+  --surface: #f2ece2;
+
+  /* The alternating band, for the stat rows and the testimonial section.
+
+     It separates by HUE, not by brightness. --surface is a yellow-warm
+     sand; this turns that warmth toward --brand-mauve at roughly the same
+     lightness. Two earlier attempts went the brightness route and both
+     failed: a near-white band read as a pale slab dropped between two
+     warm sections, and a merely-darker one (#e9ded8, ~4% down) read as
+     the same colour with a smudge on it. A band that shifts hue instead
+     reads as a second surface that was chosen, which is what lets it sit
+     against sand without either colour looking like a mistake.
+
+     Paired with the hairline border-y on the stat rows — the rule marks
+     the edge, the colour carries the separation. */
+  --surface-alt: #ead9da;
+
   /* Brand palette (client-supplied, matches the mauve in mindcafe-icon.png
      almost exactly — #96667c sampled vs. #986178 specified). Mauve is the
      dominant accent (buttons, links, key highlights); navy is the
@@ -21,6 +51,8 @@
 
 @theme inline {
   --color-cream: var(--cream);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
   --color-ink: var(--ink);
   --color-background: var(--cream);
   --color-foreground: var(--ink);
@@ -41,7 +73,7 @@ html {
 }
 
 body {
-  background: var(--cream);
+  background: var(--surface);
   color: var(--ink);
   font-family: var(--font-body), Arial, Helvetica, sans-serif;
   font-weight: 500;

@@ -62,7 +62,7 @@ const PERSONAS: { title: string; tagline: string; description: string; moods: Mo
 
 export function WhoItsForSection() {
   return (
-    <section id="who-its-for" className="bg-white">
+    <section id="who-its-for">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <div className="mx-auto flex w-fit items-center gap-3">

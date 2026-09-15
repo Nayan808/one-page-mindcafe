@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Laptop, Lock, User } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getSiteSetting } from "@/lib/api";
+import { HeroBackdrop } from "@/components/hero/HeroBackdrop";
 
 // Static hero (spec 4.4) — no DB call needed except the session price,
 // which is admin-configurable (site_settings.counselling_session_price)
@@ -27,36 +27,7 @@ export function CounsellingHero() {
 
   return (
     <section className="relative overflow-hidden text-[#f6efe4]" style={{ backgroundColor: "#150c1c" }}>
-      <Image
-        src="/counselling-hero.jpg"
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover opacity-70"
-      />
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to bottom, rgba(21,12,28,0.55) 0%, rgba(21,12,28,0.72) 55%, rgba(21,12,28,0.92) 100%)",
-        }}
-        aria-hidden
-      />
-
-      {/* Balances the left-aligned text column on wide screens — hidden
-          below lg so it never crowds the copy once the column and the
-          badge would otherwise overlap. Reuses the site's own unused
-          counselling/hero-bg.png (a real video-call photo) rather than an
-          icon, so the accent actually shows what the page is about. */}
-      <div
-        className="pointer-events-none absolute right-[8%] top-1/2 hidden -translate-y-1/2 lg:flex xl:right-[16%]"
-        aria-hidden
-      >
-        <div className="relative h-[280px] w-[280px] overflow-hidden rounded-full border border-[#f6efe4]/25 shadow-lg xl:h-[340px] xl:w-[340px]">
-          <Image src="/counselling/hero-bg.png" alt="" fill sizes="340px" className="object-cover" />
-        </div>
-      </div>
+      <HeroBackdrop src="/counselling-hero-v2.png" />
 
       <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-28">
         <div className="max-w-xl">

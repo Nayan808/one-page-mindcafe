@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion } from "motion/react";
 import { ArrowRight } from "lucide-react";
 import { JourneyStrip } from "@/components/hero/JourneyStrip";
 import { HeroLightFlow } from "@/components/hero/HeroLightFlow";
+import { useHeroPointer } from "@/components/hero/useHeroPointer";
 import { SettledWord, UnsettledWord } from "@/components/hero/FloatingWords";
 
 // Homepage hero built ON the cinematic artwork (public/homepage/hero-artwork.png)
@@ -71,41 +71,9 @@ export function HomeHero() {
   const prefersReduced = useReducedMotion();
   const reduced = !!prefersReduced;
 
-  // Pointer parallax, desktop only. Written to a ref and applied via
-  // transform on three layers at different depths.
-  const shellRef = useRef<HTMLDivElement>(null);
-  const [pointer, setPointer] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    if (reduced) return;
-    if (!window.matchMedia("(pointer: fine)").matches) return;
-
-    let raf = 0;
-    const target = { x: 0, y: 0 };
-    const current = { x: 0, y: 0 };
-
-    const onMove = (e: MouseEvent) => {
-      const el = shellRef.current;
-      if (!el) return;
-      const r = el.getBoundingClientRect();
-      target.x = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      target.y = ((e.clientY - r.top) / r.height - 0.5) * 2;
-    };
-
-    const tick = () => {
-      current.x += (target.x - current.x) * 0.04;
-      current.y += (target.y - current.y) * 0.04;
-      setPointer({ x: current.x, y: current.y });
-      raf = requestAnimationFrame(tick);
-    };
-
-    window.addEventListener("mousemove", onMove, { passive: true });
-    raf = requestAnimationFrame(tick);
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      cancelAnimationFrame(raf);
-    };
-  }, [reduced]);
+  // Pointer parallax, desktop only. Applied via transform on three layers at
+  // different depths.
+  const { ref: shellRef, pointer } = useHeroPointer<HTMLElement>(reduced);
 
   const rise = (delay: number, y = 14) => ({
     initial: reduced ? false : { opacity: 0, y, filter: "blur(4px)" },

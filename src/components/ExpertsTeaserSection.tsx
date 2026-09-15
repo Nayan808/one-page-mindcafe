@@ -75,7 +75,7 @@ export function ExpertsTeaserSection() {
   if (!expertsQuery.isLoading && experts.length === 0) return null;
 
   return (
-    <section className="bg-white">
+    <section>
       <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">Meet the Experts</h2>

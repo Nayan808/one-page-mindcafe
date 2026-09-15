@@ -31,7 +31,7 @@ export function StatsBar() {
   const chips = settingQuery.data?.chips?.length ? settingQuery.data.chips : DEFAULT_CHIPS;
 
   return (
-    <div className="border-y border-ink/10 bg-gradient-to-b from-white to-cream/50 px-4 py-14 text-center">
+    <div className="border-y border-ink/10 bg-surface-alt px-4 py-14 text-center">
       {/* A breathing space, so the order matters: the divider draws first,
           the figure counts up, and only then does the label arrive. */}
       <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
