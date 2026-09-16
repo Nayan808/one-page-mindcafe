@@ -311,13 +311,15 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
                 setSelectedSlot("");
                 setUnavailablePopupSlot(null);
               }}
-              // Chrome/Safari's own calendar-picker-indicator sits at a
-              // slightly different inset than a plain custom icon would —
-              // made invisible (not removed) so the real, still-clickable
-              // native control stays exactly where it always was, with our
-              // Calendar icon drawn in the same spot as the select's
-              // chevron above for the two to actually line up.
-              className="input bg-white !pr-9 [&::-webkit-calendar-picker-indicator]:opacity-0"
+              // Chrome/Safari's real calendar-picker-indicator sits in its
+              // own small icon-sized box, not necessarily under our custom
+              // Calendar icon's exact position — leaving it that size (just
+              // invisible) meant clicking our icon could miss its actual
+              // hit region entirely, which is exactly why the picker
+              // stopped opening. Stretched to cover the whole input instead:
+              // now every point on the field, including right under our
+              // icon, is the real clickable control.
+              className="input bg-white !pr-9 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-0 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:w-full [&::-webkit-calendar-picker-indicator]:cursor-pointer [&::-webkit-calendar-picker-indicator]:opacity-0"
             />
             <Calendar className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
           </div>
