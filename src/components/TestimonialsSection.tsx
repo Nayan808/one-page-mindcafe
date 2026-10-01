@@ -1,7 +1,11 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 import { Star } from "lucide-react";
+import { useReducedMotion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { getRecentReviews, getReviewsSummary } from "@/lib/api";
 import { MaskLine, RiseIn } from "@/components/motion/primitives";
@@ -21,7 +25,7 @@ function ReviewCard({ review, featured }: { review: Review; featured?: boolean }
   return (
     <div
       className={`flex h-full flex-col justify-between rounded-3xl p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-        featured ? "bg-ink text-cream" : "border border-ink/10 bg-white text-ink"
+        featured ? "bg-brand text-cream" : "border border-ink/10 bg-white text-ink"
       }`}
     >
       <div>
@@ -32,7 +36,7 @@ function ReviewCard({ review, featured }: { review: Review; featured?: boolean }
           </p>
         )}
       </div>
-      <p className={`mt-6 text-xs font-medium ${featured ? "text-cream/60" : "text-ink/50"}`}>
+      <p className={`mt-6 text-xs font-medium ${featured ? "text-cream/70" : "text-ink/50"}`}>
         {review.reviewer_name}
         {review.city ? ` · ${review.city}` : ""}
       </p>
@@ -40,13 +44,14 @@ function ReviewCard({ review, featured }: { review: Review; featured?: boolean }
   );
 }
 
-// 4-5 most recent reviews (spec 4.1), first one featured in a large dark
-// tile — an asymmetric bento layout instead of a uniform card grid, for
-// visual variety from the other homepage sections. reviewer_name/city and
-// star rating are the only fields the reviews table has (no photo column),
-// so there's nothing to anonymize beyond what the schema already omits.
-// No review-submission UI exists yet anywhere in the app, so an empty
-// state here is expected until that ships — not a bug.
+// 4-5 most recent reviews (spec 4.1), first one featured in a mauve tile —
+// a real rotating carousel (same embla primitive as the homepage hero)
+// rather than a static bento grid, so the featured tile and supporting
+// voices each get full width instead of being squeezed into a fixed grid.
+// reviewer_name/city and star rating are the only fields the reviews table
+// has (no photo column), so there's nothing to anonymize beyond what the
+// schema already omits. No review-submission UI exists yet anywhere in the
+// app, so an empty state here is expected until that ships — not a bug.
 export function TestimonialsSection() {
   const reviewsQuery = useQuery({
     queryKey: ["reviews", "recent"],
@@ -59,9 +64,27 @@ export function TestimonialsSection() {
   const reviews = reviewsQuery.data ?? [];
   const summary = summaryQuery.data;
 
-  if (!reviewsQuery.isLoading && reviews.length === 0) return null;
+  const prefersReduced = useReducedMotion();
+  const reduced = !!prefersReduced;
+  const autoplay = useRef(Autoplay({ delay: 5000, stopOnInteraction: false }));
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" }, reduced ? [] : [autoplay.current]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
-  const [first, ...rest] = reviews;
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on("select", onSelect);
+    return () => {
+      emblaApi.off("select", onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  if (!reviewsQuery.isLoading && reviews.length === 0) return null;
 
   return (
     <section className="bg-surface-alt py-20">
@@ -97,28 +120,31 @@ export function TestimonialsSection() {
           )}
         </div>
 
-        <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {/* The dark featured tile lands first and alone — it is the
-              emotional anchor, so the supporting voices follow it rather
-              than competing with it. */}
-          {first && (
-            <RiseIn className="sm:col-span-2" y={22} blur={6} duration={1.05} amount={0.2}>
-              <ReviewCard review={first} featured />
-            </RiseIn>
+        <RiseIn delay={0.2} y={18} blur={5} duration={0.9} amount={0.2} className="mt-10">
+          <div ref={emblaRef} className="overflow-hidden">
+            <div className="-ml-4 flex">
+              {reviews.map((review, index) => (
+                <div key={review.id} className="min-w-0 flex-[0_0_100%] pl-4 sm:flex-[0_0_60%] lg:flex-[0_0_42%]">
+                  <ReviewCard review={review} featured={index === 0} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {reviews.length > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-1.5">
+              {reviews.map((review, index) => (
+                <button
+                  key={review.id}
+                  type="button"
+                  onClick={() => emblaApi?.scrollTo(index)}
+                  aria-label={`Show review ${index + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${index === selectedIndex ? "w-6 bg-brand" : "w-1.5 bg-ink/15"}`}
+                />
+              ))}
+            </div>
           )}
-          {rest.map((review, index) => (
-            <RiseIn
-              key={review.id}
-              delay={0.34 + index * 0.12}
-              y={18}
-              blur={5}
-              duration={0.9}
-              amount={0.2}
-            >
-              <ReviewCard review={review} />
-            </RiseIn>
-          ))}
-        </div>
+        </RiseIn>
       </div>
     </section>
   );

@@ -63,54 +63,54 @@ const PERSONAS: { title: string; tagline: string; description: string; moods: Mo
 export function WhoItsForSection() {
   return (
     <section id="who-its-for">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="text-center">
         <div className="mx-auto flex w-fit items-center gap-3">
           <span className="h-px w-10 bg-ink/20" aria-hidden />
           <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
           <span className="h-px w-10 bg-ink/20" aria-hidden />
         </div>
-        <h2 className="font-display mt-4 text-3xl font-bold uppercase tracking-[0.3em] text-ink sm:text-4xl">
+        <h2 className="font-display mt-3 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">
           Who Is It For
         </h2>
       </div>
 
-      <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {PERSONAS.map((persona, index) => {
           const primaryMood = persona.moods[0];
           return (
             <Reveal key={persona.title} delayMs={index * 70} className={persona.wide ? "lg:col-span-2" : ""}>
               <div
-                className="group relative flex h-full flex-col overflow-hidden rounded-[1.75rem] border border-ink/15 bg-white p-6 text-ink shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-xl sm:p-7"
+                className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-ink/15 bg-white p-4 text-ink shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-xl sm:p-5"
               >
                 <div
-                  className={`pointer-events-none absolute -right-3 -top-5 h-24 w-20 shrink-0 overflow-hidden rounded-xl border-2 border-white shadow-lg transition-transform duration-300 group-hover:scale-105 sm:h-28 sm:w-24 ${persona.tilt}`}
+                  className={`pointer-events-none absolute -right-2 -top-3 h-16 w-14 shrink-0 overflow-hidden rounded-lg border-2 border-white shadow-lg transition-transform duration-300 group-hover:scale-105 sm:h-20 sm:w-16 ${persona.tilt}`}
                   aria-hidden
                 >
                   <Image
                     src={MOOD_IMAGE[primaryMood]}
                     alt=""
                     fill
-                    sizes="120px"
+                    sizes="80px"
                     className="object-cover"
                   />
                 </div>
 
                 <div className="relative max-w-[68%] sm:max-w-[62%]">
-                  <span className="text-[11px] font-semibold uppercase tracking-label text-brand/80">
+                  <span className="text-[10px] font-semibold uppercase tracking-label text-brand/80">
                     Who It&apos;s For · 0{index + 1}
                   </span>
 
-                  <h3 className="font-display mt-3 text-2xl font-bold leading-tight sm:text-3xl">
+                  <h3 className="font-display mt-1.5 text-lg font-bold leading-tight sm:text-xl">
                     {persona.title}
                   </h3>
-                  <p className="font-tagline mt-1.5 text-base italic opacity-90">{persona.tagline}</p>
+                  <p className="font-tagline mt-1 text-sm italic opacity-90">{persona.tagline}</p>
 
-                  <p className={`mt-4 text-sm leading-relaxed opacity-90 ${persona.wide ? "sm:max-w-md" : ""}`}>
+                  <p className={`mt-2 text-xs leading-relaxed opacity-90 ${persona.wide ? "sm:max-w-md" : ""}`}>
                     {persona.description}
                   </p>
 
-                  <div className="mt-5 flex flex-wrap items-center gap-1.5">
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     {persona.moods.map((mood) => (
                       <span
                         key={mood}

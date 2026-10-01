@@ -2,24 +2,17 @@
 
 import Image from "next/image";
 import { motion } from "motion/react";
-import { MOOD_STYLES } from "@/lib/moodStyles";
+import { MOOD_GRID, MOOD_STYLES } from "@/lib/moodStyles";
 
-// The four Feelz moods, previewed right in the homepage hero — the product
-// photo and tagline are the same ones already used on /feelz and the mood
-// cards (moodStyleFor), so a mood reads identically wherever it shows up.
-const MOODS = [
-  { key: "extrovert", label: "Extrovert", image: "/products/extrovert.png" },
-  { key: "focus", label: "Focus", image: "/products/focus.png" },
-  { key: "joy", label: "Joy", image: "/products/joy.png" },
-  { key: "rest", label: "Rest", image: "/products/rest.png" },
-] as const;
-
+// The four Feelz moods, previewed right below the homepage hero carousel —
+// reads MOOD_GRID, the same list the hero carousel, the /feelz product
+// grid, and the footer's Feelz links all use.
 const EASE = [0.22, 0.61, 0.36, 1] as const;
 
 function MoodThumb({ src, reduced }: { src: string; reduced: boolean }) {
   return (
     <motion.span
-      className="relative block h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-cream/20"
+      className="relative block h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-ink/10"
       animate={reduced ? undefined : { scale: [1, 1.05, 1] }}
       transition={{ duration: 9, repeat: Infinity, ease: "easeInOut" }}
       aria-hidden
@@ -37,17 +30,17 @@ export function JourneyStrip({ reduced, delay = 0 }: { reduced: boolean; delay?:
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.77, delay, ease: EASE }}
     >
-      {MOODS.map((m, i) => {
+      {MOOD_GRID.map((m, i) => {
         const mood = MOOD_STYLES[m.key];
         return (
           <li
             key={m.key}
-            className={`flex items-start gap-3 ${i > 0 ? "sm:border-l sm:border-cream/12 sm:pl-6" : ""}`}
+            className={`flex items-start gap-3 ${i > 0 ? "sm:border-l sm:border-ink/10 sm:pl-6" : ""}`}
           >
-            <MoodThumb src={m.image} reduced={reduced} />
+            <MoodThumb src={m.src} reduced={reduced} />
             <span className="min-w-0">
-              <span className="block text-sm font-medium text-cream/90">{m.label}</span>
-              <span className="mt-0.5 block text-xs leading-relaxed text-cream/50">{mood.description}</span>
+              <span className="block text-sm font-medium text-ink">{m.label}</span>
+              <span className="mt-0.5 block text-xs leading-relaxed text-ink/50">{mood.description}</span>
             </span>
           </li>
         );

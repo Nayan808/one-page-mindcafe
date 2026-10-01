@@ -7,7 +7,7 @@ const NOTES = [
 
 export function HeadsUpSection() {
   return (
-    <section id="heads-up" className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
+    <section id="heads-up" className="mx-auto max-w-3xl px-4 pb-10 pt-4 sm:px-6">
       <div className="flex flex-col overflow-hidden rounded-2xl border border-ink/10 shadow-[0_1px_2px_rgba(17,17,16,0.04),0_16px_32px_-16px_rgba(17,17,16,0.25)] sm:flex-row">
         <div className="flex shrink-0 items-center justify-center bg-ink px-6 py-5 text-cream sm:w-36">
           <div className="text-center">

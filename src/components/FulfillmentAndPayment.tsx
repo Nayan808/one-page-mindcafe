@@ -32,6 +32,15 @@ type Mode = "delivery" | "takeaway";
 const AUTO_COUPON_CODE = "FEELZ10";
 const AUTO_COUPON_MIN_SUBTOTAL = 300;
 
+// A second, independent automatic discount — buy 2+ packs (of anything,
+// summed across the whole cart), get 10% off, no code needed. Computed the
+// same way here and in create-order (the actual charge), and the two never
+// stack: whichever discount is larger wins, matching create-order's own
+// Math.max(couponDiscount, quantityDiscount) so this preview never shows a
+// number different from what's actually charged.
+const QUANTITY_DISCOUNT_MIN_QTY = 2;
+const QUANTITY_DISCOUNT_PERCENT = 0.1;
+
 // Delivery or takeaway pickup at a listed Zostel — payment is Razorpay
 // only in both cases (pay-online, no cash-on-pickup). No pre-existing
 // account is required, but an unverified guest is no longer allowed
@@ -124,9 +133,17 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     serviceability.serviceable
       ? serviceability.deliveryFee
       : 0;
-  // appliedCoupon is the single source of truth once set — nothing here
-  // silently invalidates it out from under the displayed discount anymore.
-  const discountAmount = appliedCoupon?.discountAmount ?? 0;
+  // appliedCoupon is the single source of truth for the COUPON discount —
+  // nothing here silently invalidates it out from under the displayed
+  // discount anymore. The quantity discount is entirely separate (no
+  // checkbox, no code, just cart quantity), so it can't be affected by
+  // anything in the coupon state machine above.
+  const couponDiscountAmount = appliedCoupon?.discountAmount ?? 0;
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  const quantityDiscountAmount =
+    totalQuantity >= QUANTITY_DISCOUNT_MIN_QTY ? subtotal * QUANTITY_DISCOUNT_PERCENT : 0;
+  const quantityDiscountWins = quantityDiscountAmount > couponDiscountAmount;
+  const discountAmount = Math.max(couponDiscountAmount, quantityDiscountAmount);
   // Delivery is free for every customer right now — create-order applies
   // this server-side too (the FREESHIP coupon, looked up automatically,
   // no code entry from the customer), so the total shown here has to
@@ -484,7 +501,9 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
 
         {discountAmount > 0 && (
           <p className="text-sm text-emerald-700">
-            &ldquo;{appliedCoupon!.code}&rdquo; applied, {formatInr(discountAmount)} off
+            {quantityDiscountWins
+              ? `10% off applied for 2+ packs, ${formatInr(discountAmount)} off`
+              : `"${appliedCoupon!.code}" applied, ${formatInr(discountAmount)} off`}
           </p>
         )}
       </div>
@@ -496,7 +515,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         </div>
         {discountAmount > 0 && (
           <div className="flex justify-between text-emerald-700">
-            <span>Coupon ({appliedCoupon!.code})</span>
+            <span>{quantityDiscountWins ? "2+ packs discount" : `Coupon (${appliedCoupon!.code})`}</span>
             <span>−{formatInr(discountAmount)}</span>
           </div>
         )}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { Menu, ShoppingBag, X } from "lucide-react";
@@ -10,53 +9,17 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { useCartContext } from "@/contexts/CartContext";
 import { ProfileMenu } from "@/components/ProfileMenu";
 import { Avatar } from "@/components/Avatar";
+import { ShopMenu } from "@/components/ShopMenu";
 import { getDashboardLink } from "@/lib/roleNav";
+import { MOOD_GRID } from "@/lib/moodStyles";
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-// Per-letter roll-up: each character gets its own clipped box holding two
-// stacked copies, staggered slightly by index so the word rolls letter by
-// letter on hover instead of sliding as one rigid block.
-function RollingText({ text }: { text: string }) {
-  return (
-    <>
-      {text.split("").map((char, index) =>
-        // A space is invisible either way, so there's nothing to roll —
-        // wrapping it in the same isolated inline-block as a letter
-        // collapses it to zero width in most browsers (a lone whitespace
-        // text node has no rendered width once it's not part of normal
-        // inline flow). A plain non-breaking space renders at its real
-        // width instead.
-        char === " " ? (
-          <span key={index} className="inline-block">
-            &nbsp;
-          </span>
-        ) : (
-          <span key={index} className="relative inline-block h-[1em] overflow-hidden align-top">
-            <span
-              className="block transition-transform duration-300 ease-out group-hover:-translate-y-full"
-              style={{ transitionDelay: `${index * 18}ms` }}
-            >
-              {char}
-            </span>
-            <span
-              className="absolute inset-0 block translate-y-full transition-transform duration-300 ease-out group-hover:translate-y-0"
-              style={{ transitionDelay: `${index * 18}ms` }}
-              aria-hidden
-            >
-              {char}
-            </span>
-          </span>
-        ),
-      )}
-    </>
-  );
-}
-
+// Plain top-level links — Feelz gets the ShopMenu mega-menu instead (it's
+// the only item with real subcategories), see below.
 const NAV_LINKS = [
-  { href: "/feelz", label: "Feelz" },
   { href: "/counselling", label: "counselling" },
   { href: "/business", label: "for business" },
   { href: "/about", label: "about" },
@@ -67,85 +30,25 @@ export function Header() {
   const { openAuthModal } = useAuthModal();
   const { itemCount, openDrawer } = useCartContext();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  // CINEMATIC MODE — homepage only.
-  //
-  // This Header is global, so the dark treatment must never leak onto the
-  // light routes (/feelz, /counselling, …) where it would be white-on-cream
-  // and unreadable. `cinematic` gates every dark style below.
-  //
-  // At the top of the homepage the bar is fully transparent so it sits
-  // inside the artwork; past ~40px it eases into a tinted, softly-bordered
-  // surface. Plain scroll position is enough now — the old wheel/touch
-  // synchronisation hack existed only for the removed ScrollExpandMedia
-  // hero, which pinned scrollY at 0 and made position untrustworthy.
-  const pathname = usePathname();
-  const isHome = pathname === "/";
+  const [mobileShopOpen, setMobileShopOpen] = useState(false);
+  // Purely cosmetic: the floating glass panel reads slightly denser once
+  // the page has scrolled, on every route (not homepage-specific anymore
+  // — there's no dark hero left to key that off of).
   const [scrolled, setScrolled] = useState(false);
-  // Whether the bar is still sitting over the dark hero artwork. This is NOT
-  // the same as "on the homepage" — the page turns ivory below the hero, and
-  // treating the whole route as dark left cream links on cream, invisible.
-  const [overHero, setOverHero] = useState(true);
 
   useEffect(() => {
-    if (!isHome) return;
-
-    let raf = 0;
-    const measure = () => {
-      raf = 0;
-      setScrolled(window.scrollY > 40);
-      const hero = document.getElementById("home-hero");
-      // The bar has left the artwork once the hero's bottom edge passes above
-      // the bar itself. Falls back to a scroll threshold if the hero is
-      // absent, so other pages using this Header can never get stuck dark.
-      setOverHero(hero ? hero.getBoundingClientRect().bottom > 96 : window.scrollY < 400);
-    };
-
-    // rAF-throttled: getBoundingClientRect is a layout read, so it must not
-    // run once per scroll event.
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(measure);
-    };
-
-    measure();
-
-    // The first measure runs before the hero has its final height (fonts and
-    // the artwork are still settling), so it can read a collapsed box and
-    // decide "not over the hero" — and with nothing scrolling, that wrong
-    // answer would stand forever. Watching the hero for resize means any
-    // layout settle re-measures, which self-corrects that first read.
-    const hero = document.getElementById("home-hero");
-    const ro = hero ? new ResizeObserver(onScroll) : null;
-    if (hero && ro) ro.observe(hero);
-
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll, { passive: true });
-    window.addEventListener("load", onScroll);
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      ro?.disconnect();
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-      window.removeEventListener("load", onScroll);
-    };
-  }, [isHome]);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-  // `cinematic` = the floating Liquid Glass island. Now on EVERY route, not
-  // just the homepage, so the navbar is one consistent component sitewide.
-  // The only thing that turns it off is the mobile menu, which needs a solid
-  // opaque surface to be readable when expanded.
+  // The floating "Liquid Glass" pill navbar is the one permanent treatment
+  // sitewide now that every hero is light — `cinematic` only turns off
+  // while the mobile menu is open, so the header becomes a full-width
+  // solid bar the dropdown panel can attach to cleanly instead of a
+  // floating pill with gaps down the sides.
   const cinematic = !menuOpen;
-  // `onDark` = that island is over the homepage hero artwork, so it takes
-  // cream type and a light rim. Everywhere else — inner pages, and the
-  // homepage below the hero — it keeps the identical glass shape and blur
-  // but flips to the light-ground variant with ink type.
-  //
-  // isHome is required here: `overHero` only updates on the homepage (its
-  // effect returns early elsewhere), so without this guard it would stay
-  // true on inner pages and paint cream text onto a light panel.
-  const onDark = cinematic && isHome && overHero;
-  // Retained for the mobile-menu-open state below.
-  const solid = !isHome;
 
   const dashboardLink = getDashboardLink(profile?.role);
 
@@ -154,143 +57,111 @@ export function Header() {
     openDrawer();
   }
 
-  // The mobile menu panel is always solid white, so if the header
-  // itself is still in its transparent/white-text state (top of the
-  // homepage, not yet scrolled) when it opens, the logo and close button
-  // render white-on-blush — hard to read against each other. Opening the
-  // menu always forces the solid/dark styling regardless of scroll position.
-  const headerSolid = solid || menuOpen;
-
   return (
     <header
-      // In cinematic mode the <header> itself carries no surface at all — it
-      // is just a transparent frame providing the inset. The Liquid Glass
-      // panel is the inner row, so it reads as a floating island over the
-      // artwork rather than a bar welded to the top of the page.
-      //
-      // The light-route branch keeps a solid white bar with a neutral
-      // ink-tinted shadow.
       className={`sticky top-0 z-30 transition-all duration-500 ease-out ${
         cinematic
           ? "px-3 pt-3 sm:px-6 sm:pt-4"
-          : headerSolid
-            ? "border-b border-ink/10 bg-white shadow-[0_1px_24px_-8px_rgba(17,17,16,0.18)]"
-            : "border-b border-transparent bg-transparent"
+          : "border-b border-ink/10 bg-white shadow-[0_1px_24px_-8px_rgba(17,17,16,0.18)]"
       }`}
     >
       <div
-        className={`mx-auto flex max-w-7xl items-center justify-between transition-all duration-500 ${
+        className={`mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center transition-all duration-500 ${
           cinematic
-            ? `liquid-glass rounded-full px-4 py-2.5 sm:px-6 sm:py-3 ${onDark ? "" : "liquid-glass-onlight"} ${scrolled ? "liquid-glass-dense" : ""}`
+            ? `liquid-glass liquid-glass-onlight rounded-full px-4 py-2.5 sm:px-6 sm:py-3 ${scrolled ? "liquid-glass-dense" : ""}`
             : "px-5 py-4 sm:px-8"
         }`}
       >
-        <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center gap-2 leading-none">
-          <span
-            className={`flex h-9 w-9 items-center justify-center rounded-full shadow-sm transition-colors ${headerSolid ? "bg-cream/90" : "bg-white/90"}`}
-          >
+        {/* Left column: nav links. Right column mirrors it at 1fr, so the
+            center column (the logo) lands exactly in the middle of the bar
+            regardless of how much content sits on either side. */}
+        <nav className="font-display hidden items-center gap-7 text-sm font-semibold tracking-label text-ink/70 sm:flex">
+          <ShopMenu linkClassName="nav-cine hover:text-brand" />
+          {NAV_LINKS.map((link) => (
+            <Link key={link.href} href={link.href} className="nav-cine hover:text-brand">
+              {link.label}
+            </Link>
+          ))}
+        </nav>
+
+        <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center justify-self-center gap-2 leading-none">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/90 shadow-sm">
             <Image src="/mindcafe-icon.png" alt="" width={28} height={28} priority className="h-7 w-7" />
           </span>
-          <span className={`font-display text-xl font-bold tracking-tight ${onDark ? "text-[#f6efe4]" : cinematic ? "text-ink" : headerSolid ? "text-ink" : "text-white"}`}>mindcafe</span>
+          <span className="font-display text-xl font-bold tracking-tight text-ink">mindcafe</span>
         </Link>
-
-        {/* Cinematic nav: lighter weight, wider letter-spacing and a hairline
-            underline wipe (.nav-cine) instead of the roll-up, which reads as
-            calmer and more architectural against the artwork. Light routes
-            keep the original RollingText treatment untouched. */}
-        <nav
-          className={`font-display hidden items-center sm:flex ${
-            cinematic
-              ? `gap-9 text-[11px] font-medium tracking-[0.18em] ${onDark ? "text-[#f6efe4]/70" : "text-ink/65"}`
-              : `gap-7 text-sm font-semibold tracking-label ${headerSolid ? "text-ink/70" : "text-white/90"}`
-          }`}
-        >
-          {NAV_LINKS.map((link) =>
-            cinematic ? (
-              <Link key={link.href} href={link.href} className={`nav-cine ${onDark ? "hover:text-[#f6efe4]" : "hover:text-brand"}`}>
-                {link.label}
-              </Link>
-            ) : (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`group uppercase leading-none ${headerSolid ? "hover:text-brand" : "hover:text-white"}`}
-              >
-                <RollingText text={link.label} />
-              </Link>
-            ),
-          )}
-        </nav>
 
         {/* Cart + account: visible inline on desktop, folded into the
             hamburger toggle on mobile so the header row stays to just the
-            logo and the toggle at narrow widths. Outline buttons are
-            written out explicitly per state (not `pill-btn-outline` +
-            override classes) since layering a white-text utility on top
-            of that shared class isn't guaranteed to win the cascade. */}
-        <div className="hidden items-center gap-3 sm:flex">
-          {/* Talk to Expert = tertiary (outlined), Log In = the navbar's
-              strongest action. Both use the shared .btn-cine-* system, so
-              they share radius, type and easing with the hero CTAs and read
-              as one hierarchy: hero primary > nav solid > nav ghost. */}
-          <Link
-            href="/book-appointment"
-            className={
-              onDark
-                ? "btn-cine-ghost"
-                : cinematic || headerSolid
-                  ? "pill-btn-outline !py-2 text-xs"
-                  : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
-            }
-          >
-            Talk to Expert
-          </Link>
+            logo and the toggle at narrow widths. */}
+        <div className="flex items-center justify-self-end gap-3">
+          <div className="hidden items-center gap-3 sm:flex">
+            <Link href="/book-appointment" className="pill-btn-outline !py-2 text-xs">
+              Talk to Expert
+            </Link>
 
-          {status === "authenticated" && (
-            <button
-              onClick={openDrawer}
-              className={
-                onDark
-                  ? "btn-cine-ghost"
-                  : cinematic || headerSolid
-                    ? "pill-btn-outline !py-2 text-xs"
-                    : "inline-flex items-center justify-center gap-1.5 rounded-full border border-white/40 bg-transparent px-5 py-2 text-xs font-medium text-white transition hover:bg-white/10"
-              }
-            >
-              <ShoppingBag
-                className={`h-3.5 w-3.5 ${onDark ? "text-[#f4ead9]" : "text-ink"}`}
-                aria-hidden
-              />
-              Cart{itemCount > 0 ? ` · ${itemCount}` : ""}
-            </button>
-          )}
-
-          {status === "authenticated" ? (
-            <ProfileMenu />
-          ) : (
-            status !== "loading" && (
-              <button type="button" onClick={openAuthModal} className={onDark ? "btn-cine-solid" : "pill-btn !py-2 text-xs"}>
-                Log In
+            {status === "authenticated" && (
+              <button onClick={openDrawer} className="pill-btn-outline !py-2 text-xs">
+                <ShoppingBag className="h-3.5 w-3.5 text-ink" aria-hidden />
+                Cart{itemCount > 0 ? ` · ${itemCount}` : ""}
               </button>
-            )
-          )}
-        </div>
+            )}
 
-        <button
-          type="button"
-          onClick={() => setMenuOpen((open) => !open)}
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border sm:hidden ${
-            onDark ? "border-[#f4ead9]/25 text-[#f6efe4]" : "border-ink/15 text-ink"
-          }`}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-        >
-          {menuOpen ? <X className="h-4 w-4" aria-hidden /> : <Menu className="h-4 w-4" aria-hidden />}
-        </button>
+            {status === "authenticated" ? (
+              <ProfileMenu />
+            ) : (
+              status !== "loading" && (
+                <button type="button" onClick={openAuthModal} className="pill-btn !py-2 text-xs">
+                  Log In
+                </button>
+              )
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setMenuOpen((open) => !open)}
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink sm:hidden"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+          >
+            {menuOpen ? <X className="h-4 w-4" aria-hidden /> : <Menu className="h-4 w-4" aria-hidden />}
+          </button>
+        </div>
       </div>
 
       {menuOpen && (
         <nav className="flex flex-col gap-1 border-t border-ink/10 bg-white px-4 py-3 text-[11px] font-medium tracking-label text-ink/70 sm:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileShopOpen((open) => !open)}
+            aria-expanded={mobileShopOpen}
+            className="flex w-full items-center justify-center gap-1.5 py-2.5 text-center uppercase hover:text-ink"
+          >
+            feelz {mobileShopOpen ? "−" : "+"}
+          </button>
+          {mobileShopOpen && (
+            <div className="mb-1 grid grid-cols-2 gap-1 px-4">
+              {MOOD_GRID.map((mood) => (
+                <Link
+                  key={mood.key}
+                  href={`/feelz/${mood.key}`}
+                  onClick={() => setMenuOpen(false)}
+                  className="rounded-lg bg-cream/60 py-2 text-center normal-case tracking-normal text-ink/70 hover:text-ink"
+                >
+                  {mood.label}
+                </Link>
+              ))}
+              <Link
+                href="/feelz"
+                onClick={() => setMenuOpen(false)}
+                className="col-span-2 rounded-lg border border-ink/10 py-2 text-center normal-case tracking-normal text-ink/70 hover:text-ink"
+              >
+                Shop All
+              </Link>
+            </div>
+          )}
+
           {NAV_LINKS.map((link) => (
             <Link
               key={link.href}

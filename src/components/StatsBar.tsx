@@ -31,7 +31,7 @@ export function StatsBar() {
   const chips = settingQuery.data?.chips?.length ? settingQuery.data.chips : DEFAULT_CHIPS;
 
   return (
-    <div className="border-y border-ink/10 bg-surface-alt px-4 py-14 text-center">
+    <div className="border-y border-ink/10 bg-surface-alt px-4 py-6 text-center">
       {/* A breathing space, so the order matters: the divider draws first,
           the figure counts up, and only then does the label arrive. */}
       <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-10">
@@ -47,7 +47,7 @@ export function StatsBar() {
                   delay={index * 0.12}
                 />
               )}
-              <div className="group flex flex-col items-center gap-1.5 rounded-2xl px-6 py-3 transition-transform duration-500 ease-out hover:-translate-y-1">
+              <div className="group flex flex-col items-center gap-1 rounded-2xl px-6 py-1 transition-transform duration-500 ease-out hover:-translate-y-1">
                 {split ? (
                   <>
                     <RiseIn delay={0.15 + index * 0.12} y={10} blur={4} amount={0.6}>

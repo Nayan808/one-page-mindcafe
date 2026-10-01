@@ -107,13 +107,13 @@ export default function SelfAssessmentPage() {
 
   return (
     <div>
-      <section className="bg-ink text-cream">
+      <section className="bg-cream">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/60">Self-Assessment Tests</p>
-          <h1 className="font-display mx-auto mt-4 max-w-xl text-4xl font-bold leading-[1.15] sm:text-5xl">
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Self-Assessment Tests</p>
+          <h1 className="font-display mx-auto mt-4 max-w-xl text-4xl font-bold leading-[1.15] text-ink sm:text-5xl">
             Know your mind better.
           </h1>
-          <p className="mt-4 text-sm text-cream/70 sm:text-base">
+          <p className="mt-4 text-sm text-ink/60 sm:text-base">
             Take free, professionally verified self-assessment tests to better understand your mental health,
             emotional patterns, and cognitive strengths.
           </p>

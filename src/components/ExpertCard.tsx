@@ -47,13 +47,13 @@ export function ExpertCard({
     .toUpperCase();
 
   return (
-    <div className="flex w-full flex-col items-center rounded-2xl border border-ink bg-white p-6 text-center shadow-lg">
+    <div className="flex w-full flex-col items-center rounded-2xl border border-ink/10 bg-white p-6 text-center shadow-sm transition hover:shadow-md">
       {expert.photo_url && !imageFailed ? (
-        <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-ink">
+        <div className="relative h-20 w-20 overflow-hidden rounded-full border-2 border-cream shadow-sm">
           <Image src={expert.photo_url} alt={expert.name} fill className="object-cover" onError={() => setImageFailed(true)} />
         </div>
       ) : (
-        <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-ink bg-ink text-lg font-bold text-cream">
+        <div className="flex h-20 w-20 items-center justify-center rounded-full border-2 border-cream bg-brand text-lg font-bold text-cream shadow-sm">
           {initials}
         </div>
       )}

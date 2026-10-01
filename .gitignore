@@ -26,3 +26,11 @@ next-env.d.ts
 
 # Legacy DB export — contains plaintext admin passwords + real customer PII, never commit
 u741728225_mindcafe*.sql
+
+# Raw source photo dumps — already cropped/optimized into public/feelz-creative/,
+# keeping the originals out of git since they're large (280MB+) and unused by the app
+/Ingredients/
+/Web Content /
+/Zostel Properties/
+/products/
+/real_life_moments/

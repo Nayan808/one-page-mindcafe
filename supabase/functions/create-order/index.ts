@@ -165,6 +165,7 @@ Deno.serve(async (req) => {
   const FALLBACK_WEIGHT_GRAMS = 500;
   let subtotal = 0;
   let totalWeightGrams = 0;
+  let totalQuantity = 0;
   const orderItemsInput: { variantId: string; quantity: number; unitPrice: number }[] = [];
 
   for (const item of items) {
@@ -176,8 +177,18 @@ Deno.serve(async (req) => {
     const unitPrice = Number(variant.price_override ?? variant.products.price);
     subtotal += unitPrice * quantity;
     totalWeightGrams += (variant.weight_grams ?? FALLBACK_WEIGHT_GRAMS) * quantity;
+    totalQuantity += quantity;
     orderItemsInput.push({ variantId: item.variant_id, quantity, unitPrice });
   }
+
+  // Buy 2+ (summed across the whole cart), get 10% off — automatic, no
+  // code needed. Computed here so it's real (enforced on the actual
+  // charge), not just a banner claim; kept separate from the coupons table
+  // entirely (no schema change) and resolved against any coupon below by
+  // taking whichever discount is larger, never both at once.
+  const QUANTITY_DISCOUNT_MIN_QTY = 2;
+  const QUANTITY_DISCOUNT_PERCENT = 0.1;
+  const quantityDiscountAmount = totalQuantity >= QUANTITY_DISCOUNT_MIN_QTY ? subtotal * QUANTITY_DISCOUNT_PERCENT : 0;
 
   // --- Fulfillment-specific validation ---
   let addressId: string | null = null;
@@ -276,8 +287,8 @@ Deno.serve(async (req) => {
 
   // --- Coupon, validated and priced server-side — before reserving stock,
   // so an invalid code fails fast without holding reservations. ---
-  let discountAmount = 0;
-  let appliedCouponCode: string | null = null;
+  let couponDiscountAmount = 0;
+  let validatedCoupon: { code: string } | null = null;
 
   if (coupon_code) {
     const { data: coupon } = await sb
@@ -296,12 +307,20 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: `This coupon needs a minimum order of ₹${coupon.min_order_amount}` }, 400);
     }
 
-    discountAmount =
+    couponDiscountAmount =
       coupon.discount_type === "percent" ? subtotal * (Number(coupon.discount_value) / 100) : Number(coupon.discount_value);
-    if (coupon.max_discount_amount !== null) discountAmount = Math.min(discountAmount, Number(coupon.max_discount_amount));
-    discountAmount = Math.min(discountAmount, subtotal);
-    appliedCouponCode = coupon.code;
+    if (coupon.max_discount_amount !== null) couponDiscountAmount = Math.min(couponDiscountAmount, Number(coupon.max_discount_amount));
+    couponDiscountAmount = Math.min(couponDiscountAmount, subtotal);
+    validatedCoupon = { code: coupon.code };
   }
+
+  // Resolved against the quantity discount computed above — whichever is
+  // larger wins, never both (a customer applying FEELZ10 on a 2-pack order
+  // shouldn't get 20% off). The coupon's usage_limit is only consumed when
+  // the coupon is actually what's used, below.
+  const quantityDiscountWins = quantityDiscountAmount > couponDiscountAmount;
+  const discountAmount = quantityDiscountWins ? quantityDiscountAmount : couponDiscountAmount;
+  const appliedCouponCode = quantityDiscountWins ? null : validatedCoupon?.code ?? null;
 
   // --- Stock check + short-lived reservation (re-verified atomically
   // inside the RPC, same guard the 3-step checkout uses). ---

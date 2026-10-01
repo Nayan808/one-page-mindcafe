@@ -11,16 +11,16 @@ import { HeroBackdrop } from "@/components/hero/HeroBackdrop";
 export default function AboutPage() {
   return (
     <div>
-      <section className="relative overflow-hidden text-[#f6efe4]" style={{ backgroundColor: "#150c1c" }}>
+      <section className="relative -mt-16 overflow-hidden bg-cream sm:-mt-[76px]">
         <HeroBackdrop src="/about-hero-v2.png" />
-        <div className="relative mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-28">
+        <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-40 sm:px-6 sm:pb-28 sm:pt-[188px]">
           <div className="max-w-xl">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-[#f4ead9]/70">About Mindcafe</p>
-            <h1 className="font-display mt-4 text-4xl font-bold leading-[1.15] text-[#f6efe4] sm:text-5xl">
+            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/60">About Mindcafe</p>
+            <h1 className="font-display mt-4 text-4xl font-bold leading-[1.15] text-ink sm:text-5xl">
               A world where seeking support is as natural as offering a hand.
             </h1>
-            <div className="mt-6 h-px w-12 bg-[#f6efe4]/25" aria-hidden />
-            <p className="mt-6 text-sm text-[#f4ead9]/70 sm:text-base">
+            <div className="mt-6 h-px w-12 bg-ink/15" aria-hidden />
+            <p className="mt-6 text-sm text-ink/70 sm:text-base">
               Our mission: make mental wellness practical, accessible, and relevant, part of everyday life, not just
               something for crisis moments.
             </p>
