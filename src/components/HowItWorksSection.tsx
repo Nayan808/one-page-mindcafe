@@ -4,12 +4,18 @@ import { useState } from "react";
 import Image from "next/image";
 import { Modal } from "@/components/Modal";
 
+// Same five steps/titles/layout as before — only the photos changed, to
+// the real step photography already used per-mood on /feelz/[mood]
+// (feelz-creative/steps/), swapped in for the old /how-it-works/ stock
+// crops wherever a matching real shot exists. "Pick your Feelz" has no
+// real-photo equivalent (it's a product-selection step, not a usage
+// step), so it keeps its original image.
 const STEPS = [
-  { title: "Pick your Feelz", description: "", src: "/how-it-works/step-1.jpg" },
-  { title: "Open the pack", description: "", src: "/how-it-works/step-2-v2.png" },
-  { title: "Place the strip on your tongue", description: "", src: "/how-it-works/step-3-v2.png" },
-  { title: "Let it dissolve", description: "", src: "/how-it-works/step-4-v2.png" },
-  { title: "Get on with your day", description: "", src: "/how-it-works/step-5.jpg" },
+  { title: "Pick your Feelz", description: "", src: "/feelz-creative/steps/pick-v2.webp" },
+  { title: "Open the pack", description: "", src: "/feelz-creative/steps/open.webp" },
+  { title: "Place the strip on your tongue", description: "", src: "/feelz-creative/steps/place.webp" },
+  { title: "Let it dissolve", description: "", src: "/feelz-creative/steps/dissolve.webp" },
+  { title: "Get on with your day", description: "", src: "/feelz-creative/steps/go.webp" },
 ];
 
 // Alternating tilt per card so the row reads as pinned-up photo prints
@@ -27,7 +33,7 @@ export function HowItWorksSection() {
 
   return (
     <section id="how-it-works">
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="text-center">
           <div className="mx-auto flex w-fit items-center gap-3">
             <span className="h-px w-10 bg-ink/20" aria-hidden />

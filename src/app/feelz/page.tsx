@@ -20,15 +20,16 @@ import { IngredientsTeaserSection } from "@/components/feelz/IngredientsTeaserSe
 // unchanged so the shopping experience itself isn't disrupted by the
 // routing restructure. Order follows the section map in the Feelz content
 // brief: hero → "meet feelz" → product catalogue (both inside Hero, "meet
-// feelz" sits between the carousel and the strip grid) → credibility →
-// locations/stats → formulation story → ingredients → how-it-works →
-// personas → reviews → FAQ → "not sure how" → good-to-know. "Not sure how"
-// sits last (just before the good-to-know disclaimer) rather than near the
-// top, on request. The dark mood-picker CTA section was removed on request.
+// feelz" sits between the carousel and the strip grid) → "not sure how" →
+// credibility → locations/stats → formulation story → ingredients →
+// how-it-works → personas → reviews → FAQ → good-to-know. "Not sure how"
+// sits right after the product grid, on request. The dark mood-picker CTA
+// section was removed on request.
 export default function FeelzPage() {
   return (
     <>
       <Hero />
+      <NotSureHowSection />
       <CredibilityStrip />
       <StatsBar />
       <ZostelLocationsSection />
@@ -37,9 +38,8 @@ export default function FeelzPage() {
       <IngredientsTeaserSection />
       <HowItWorksSection />
       <WhoItsForSection />
-      <TestimonialsSection />
+      <TestimonialsSection background="bg-brand-blush/20" />
       <FaqSection />
-      <NotSureHowSection />
       <HeadsUpSection />
     </>
   );

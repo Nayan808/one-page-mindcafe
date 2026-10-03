@@ -25,7 +25,7 @@ const ROTATE_MS = 4500;
 const DEV_PREVIEW_FALLBACK: AnnouncementValue = {
   enabled: true,
   messages: [
-    { text: "Buy 2 packs, get 10% off — automatically", href: "/feelz" },
+    { text: "Get 10% off on purchases of ₹300 or more", href: "/feelz" },
     { text: "Book a 1:1 session with a certified counsellor", href: "/book-appointment" },
   ],
 };

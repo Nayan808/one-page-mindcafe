@@ -138,8 +138,8 @@ export function ZostelLocationsSection() {
   }, [locations, trimmedQuery]);
 
   return (
-    <section id="zostel-locations" className="bg-white">
-      <div className="mx-auto w-full min-w-0 max-w-7xl px-4 py-16 text-center sm:px-6">
+    <section id="zostel-locations" className="bg-brand-blush/20">
+      <div className="mx-auto w-full min-w-0 max-w-[96rem] px-4 py-16 text-center sm:px-6">
       <div className="mx-auto flex w-fit items-center gap-3">
         <span className="h-px w-10 bg-ink/20" aria-hidden />
         <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
@@ -243,7 +243,7 @@ export function ZostelLocationsSection() {
               there's no visible sign there's anything past the first 4
               cards — arrows call scrollBy on the tracked ref, same
               destination the trackpad/scrollbar already reaches. */}
-          <div className="relative mx-auto mt-10 hidden max-w-[78rem] items-center gap-2 sm:flex">
+          <div className="relative mx-auto mt-10 hidden max-w-[92rem] items-center gap-2 sm:flex">
             {locations.length > 3 && (
               <button
                 type="button"

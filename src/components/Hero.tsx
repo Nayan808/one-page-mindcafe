@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowUpRight, Check, Loader2, ShoppingBag } from "lucide-react";
+import { Check, Loader2, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
@@ -15,7 +15,9 @@ import { useAuthModal } from "@/contexts/AuthModalContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { HeroCarousel } from "@/components/feelz/HeroCarousel";
 import { MeetFeelzSection } from "@/components/feelz/MeetFeelzSection";
-import { moodStyleFor, MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
+import { MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
+import { FEELZ_PRODUCT_PAGES } from "@/lib/feelzProductPages";
+import type { FeelzMoodKey } from "@/lib/feelzIngredients";
 import { formatInr } from "@/lib/utils";
 import type { ProductWithVariants } from "@/types/domain";
 
@@ -49,9 +51,9 @@ export function Hero() {
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  // Which product card in the "Our Strips" grid is currently hovered —
-  // fed down to MeetFeelzSection above so its "Your brain needs" word
-  // jumps to match whatever's being hovered, instead of only auto-cycling.
+  // Which product card in the grid below is currently hovered — fed down
+  // to MeetFeelzSection above so its "Your brain needs" word jumps to
+  // match whatever's being hovered, instead of only auto-cycling.
   const [hoveredMoodKey, setHoveredMoodKey] = useState<string | null>(null);
   // Which mood was being added when "Add to Cart" was clicked signed out —
   // resumed automatically once sign-in completes (see the effect below).
@@ -120,7 +122,7 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="relative -mt-16 overflow-hidden sm:-mt-[76px]">
+    <section ref={timelineRef} className="relative -mt-8 overflow-hidden sm:-mt-[76px]">
       {/* Real marketing creatives (see public/feelz-creative), not a
           from-scratch CSS hero — per the brief, these photographs ARE the
           design system here. TimelineContent's entrance stagger doesn't
@@ -143,16 +145,15 @@ export function Hero() {
 
       <MeetFeelzSection hoveredKey={hoveredMoodKey} />
 
-      <div className="bg-feelz-cream">
-      <div id="mood-picks" className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6">
+      <div className="bg-brand-blush/15">
+      <div id="mood-picks" className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex justify-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-feelz-berry/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-label text-feelz-berry">
-            Buy 2 packs, get 10% off — automatically
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-feelz-berry/[0.2] px-4 py-1.5 text-xs font-semibold uppercase tracking-label text-feelz-berry">
+            Get 10% off on purchases of ₹300 or more
           </span>
         </div>
         <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">
           {MOOD_GRID.map((mood, index) => {
-            const style = moodStyleFor(mood.key);
             const feelzStyle = MOOD_STYLES[mood.key];
             const colors = FEELZ_COLOR_CLASSES[feelzStyle.feelzColor];
             const product = catalogQuery.data?.find((p) => p.name.trim().toLowerCase() === mood.key);
@@ -173,78 +174,61 @@ export function Hero() {
                 customVariants={revealVariants}
                 onMouseEnter={() => setHoveredMoodKey(mood.key)}
                 onMouseLeave={() => setHoveredMoodKey((current) => (current === mood.key ? null : current))}
-                className="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-feelz-ink/10 bg-feelz-paper shadow-[0_1px_2px_rgba(16,35,63,0.04),0_16px_32px_-16px_rgba(16,35,63,0.25)] transition-shadow duration-300 hover:shadow-[0_1px_2px_rgba(16,35,63,0.06),0_20px_40px_-16px_rgba(16,35,63,0.3)]"
+                className="group flex scroll-mt-24 flex-col overflow-hidden bg-feelz-paper shadow-[0_1px_2px_rgba(16,35,63,0.08),0_16px_32px_-16px_rgba(16,35,63,0.35)] transition-shadow duration-300 hover:shadow-[0_1px_2px_rgba(16,35,63,0.1),0_20px_40px_-16px_rgba(16,35,63,0.4)]"
               >
                 <Link
                   href={`/feelz/${mood.key}`}
-                  className="relative block aspect-[4/5] w-full overflow-hidden"
+                  className="relative block aspect-square w-full overflow-hidden"
                   aria-label={`View Feelz ${mood.label}`}
                 >
+                  <span className="absolute right-3 top-3 z-10 rounded-full bg-feelz-cream px-3 py-1 text-[10px] font-bold uppercase tracking-label text-feelz-ink shadow-sm">
+                    Strip
+                  </span>
                   <Image
-                    src={mood.src}
+                    src={hoveredMoodKey === mood.key ? FEELZ_PRODUCT_PAGES[mood.key as FeelzMoodKey].images[1] : feelzStyle.catalogueSrc}
                     alt={`Feelz ${mood.label} mood strip box`}
                     fill
                     sizes="(min-width: 768px) 22vw, 45vw"
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
-
-                  <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-feelz-ink/95 via-feelz-ink/75 to-feelz-ink/10 p-4 text-left opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-label text-feelz-cream/60">For:</p>
-                    <p className="mt-1 text-xs leading-snug text-feelz-cream/95 sm:text-[13px]">{style.description}</p>
-                    <p className="mt-2 text-[10px] leading-snug text-feelz-cream/55">{style.ingredients.join(" · ")}</p>
-                  </div>
                 </Link>
 
-                <div className="flex flex-1 flex-col justify-between gap-3 p-4 text-left">
-                  <div>
-                    <h3 className={`font-display text-lg font-bold leading-none sm:text-xl ${colors.text}`}>
-                      {mood.label}
-                    </h3>
-                    <p className="font-tagline mt-1 text-xs italic text-feelz-ink/60 sm:text-sm">{style.tagline}</p>
-                    <Link
-                      href={`/feelz/${mood.key}`}
-                      className={`mt-2 inline-flex items-center gap-1 rounded-full border ${colors.border} px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label ${colors.text} transition hover:opacity-70`}
+                <div className="flex flex-1 flex-col gap-4 p-5 text-center text-feelz-ink">
+                  <Link href={`/feelz/${mood.key}`}>
+                    <h3 className="font-display text-lg font-bold leading-tight sm:text-xl">{mood.label}</h3>
+                    <p className="mt-1 text-xs leading-none text-feelz-ink/50">(Pack of 10)</p>
+                    <p className="mt-1.5 text-lg font-bold leading-tight text-feelz-ink/70">
+                      {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
+                    </p>
+                  </Link>
+
+                  {cartItem ? (
+                    <button
+                      type="button"
+                      onClick={openDrawer}
+                      className={`inline-flex w-full items-center justify-center gap-1.5 rounded-full ${colors.bgCard} py-3 text-xs font-bold uppercase tracking-label text-feelz-cream transition hover:opacity-90`}
                     >
-                      View details
-                      <ArrowUpRight className="h-3 w-3" aria-hidden />
-                    </Link>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-feelz-ink">
-                        {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
-                      </span>
-
-                      {cartItem ? (
-                        <button
-                          type="button"
-                          onClick={openDrawer}
-                          className={`inline-flex items-center gap-1.5 rounded-full ${colors.bgTint} px-3.5 py-2 text-[11px] font-semibold uppercase tracking-label ${colors.text} transition hover:brightness-95`}
-                        >
-                          <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                          cart · {cartItem.quantity}
-                        </button>
+                      <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
+                      cart · {cartItem.quantity}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCart(mood.key, product)}
+                      disabled={!variant || !isReady || !cartId || isPending}
+                      className={`inline-flex w-full items-center justify-center gap-1.5 rounded-full ${colors.bgCard} py-3 text-xs font-bold uppercase tracking-label text-feelz-cream transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40`}
+                    >
+                      {isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      ) : isAdded ? (
+                        <Check className="h-3.5 w-3.5" aria-hidden />
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleAddToCart(mood.key, product)}
-                          disabled={!variant || !isReady || !cartId || isPending}
-                          className={`inline-flex items-center gap-1.5 rounded-full ${colors.bg} px-3.5 py-2 text-[11px] font-semibold uppercase tracking-label text-feelz-cream transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40`}
-                        >
-                          {isPending ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                          ) : isAdded ? (
-                            <Check className="h-3.5 w-3.5" aria-hidden />
-                          ) : (
-                            <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                          )}
-                          {isAdded ? "added" : "add"}
-                        </button>
+                        <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
                       )}
-                    </div>
-                    {hasError && <p className="mt-1.5 text-[10px] font-medium text-red-700/80">couldn&apos;t add, try again</p>}
-                  </div>
+                      {isAdded ? "Added" : "Add to Cart"}
+                    </button>
+                  )}
+                  {hasError && <p className="text-[10px] font-medium text-red-600">couldn&apos;t add, try again</p>}
                 </div>
               </TimelineContent>
             );

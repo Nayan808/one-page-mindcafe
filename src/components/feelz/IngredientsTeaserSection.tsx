@@ -13,9 +13,24 @@ import { MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
 // scroll/swipe/arrows so someone doesn't have to leave /feelz to see more
 // than three. Clicking a card still leads to the full /ingredients page
 // rather than duplicating the drawer experience here.
-const ALL_INGREDIENTS: { mood: FeelzMoodKey; ingredient: FeelzIngredient }[] = (
-  ["focus", "joy", "extrovert", "rest"] as const
-).flatMap((mood) => FEELZ_INGREDIENTS[mood].map((ingredient) => ({ mood, ingredient })));
+//
+// Interleaved round-robin across moods (focus, joy, extrovert, rest, then
+// repeat) rather than one mood's whole block before the next — each card's
+// background is now tinted by its mood, so a plain per-mood grouping would
+// show the same color several cards in a row; cycling through all four
+// keeps the colors changing one at a time as you scroll.
+const MOOD_ORDER = ["focus", "joy", "extrovert", "rest"] as const;
+const ALL_INGREDIENTS: { mood: FeelzMoodKey; ingredient: FeelzIngredient }[] = (() => {
+  const maxLength = Math.max(...MOOD_ORDER.map((mood) => FEELZ_INGREDIENTS[mood].length));
+  const interleaved: { mood: FeelzMoodKey; ingredient: FeelzIngredient }[] = [];
+  for (let i = 0; i < maxLength; i++) {
+    for (const mood of MOOD_ORDER) {
+      const ingredient = FEELZ_INGREDIENTS[mood][i];
+      if (ingredient) interleaved.push({ mood, ingredient });
+    }
+  }
+  return interleaved;
+})();
 
 export function IngredientsTeaserSection() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -26,7 +41,7 @@ export function IngredientsTeaserSection() {
 
   return (
     <section className="border-y border-feelz-ink/10 bg-feelz-paper py-16">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-[88rem] px-4 sm:px-6">
         <div className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-berry">Natural Ingredients</p>
           <h2 className="font-display mt-2 text-3xl font-bold text-feelz-ink sm:text-4xl">
@@ -54,7 +69,7 @@ export function IngredientsTeaserSection() {
                 <Reveal key={`${mood}-${ingredient.name}`} delayMs={Math.min(index, 5) * 60} className="shrink-0">
                   <Link
                     href={`/ingredients#${mood}`}
-                    className="group flex h-full w-64 flex-col rounded-2xl border border-feelz-ink/10 bg-feelz-cream p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    className={`group flex h-full w-64 flex-col rounded-2xl border ${colors.borderSoft} ${colors.bgSoft} p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg`}
                   >
                     {ingredient.image && (
                       <div className="relative mb-4 h-24 w-full overflow-hidden rounded-xl bg-white">

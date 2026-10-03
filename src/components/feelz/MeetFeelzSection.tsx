@@ -84,17 +84,12 @@ export function MeetFeelzSection({ hoveredKey }: { hoveredKey?: string | null })
   const colors = FEELZ_COLOR_CLASSES[style.feelzColor];
 
   return (
-    <section id="discover" className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
-      <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-berry">Meet FEELZ</p>
-      <h2 className="font-display mt-3 text-3xl font-bold text-feelz-ink sm:text-4xl">Your brain needs different things.</h2>
-      <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-feelz-ink/60">
-        Some days you need focus. Some days you need calm. Some days you need to step into the room. And some days,
-        you simply need to switch off.
-      </p>
+    <section id="discover" className="mx-auto max-w-4xl px-4 pb-3 pt-6 text-center sm:px-6">
+      <p className="text-xs font-semibold uppercase tracking-label text-feelz-berry">Meet FEELZ</p>
 
-      <div className="relative mx-auto mt-10 flex min-h-[9rem] flex-col items-center justify-center rounded-[2rem] border border-feelz-ink/10 bg-feelz-paper p-10">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Your brain needs:</p>
-        <p className={`font-display mt-3 min-h-[1.2em] text-4xl font-bold sm:text-5xl ${colors.text}`}>
+      <div className="relative mx-auto mt-3 flex min-h-[7rem] flex-col items-center justify-center rounded-[2rem] bg-feelz-paper p-5">
+        <p className="text-xs font-semibold uppercase tracking-label text-feelz-ink/40">Your brain wants:</p>
+        <p className={`font-display mt-2 min-h-[1.2em] text-4xl font-bold sm:text-5xl ${colors.text}`}>
           {displayedWord}
           <span className="animate-pulse">|</span>
         </p>

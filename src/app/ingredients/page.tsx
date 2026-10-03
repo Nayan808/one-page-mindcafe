@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-import { Modal } from "@/components/Modal";
 import { MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
 import { FEELZ_INGREDIENTS, FEELZ_CROSS_INGREDIENT, FEELZ_RESEARCH_DISCLAIMER, type FeelzMoodKey } from "@/lib/feelzIngredients";
 
@@ -28,11 +27,15 @@ export default function IngredientsPage() {
     const key = window.location.hash.replace("#", "");
     if (VALID_MOODS.includes(key as FeelzMoodKey)) setActiveMood(key as FeelzMoodKey);
   }, []);
-  const [openIngredient, setOpenIngredient] = useState<{ mood: FeelzMoodKey; index: number } | null>(null);
+  // Detail content (what is it / why in FEELZ / research / dosage note)
+  // now expands inline within the card itself instead of opening in a
+  // separate popup — only one card open at a time, closed again on a
+  // second click or on switching tabs (ingredients is reset per activeMood
+  // below so a stale expanded card from another tab can't linger).
+  const [expandedName, setExpandedName] = useState<string | null>(null);
 
   const activeStyle = MOOD_STYLES[activeMood];
   const ingredients = FEELZ_INGREDIENTS[activeMood];
-  const drawerIngredient = openIngredient ? FEELZ_INGREDIENTS[openIngredient.mood][openIngredient.index] : null;
 
   return (
     <div className="bg-feelz-cream">
@@ -58,7 +61,10 @@ export default function IngredientsPage() {
                 <button
                   key={mood.key}
                   type="button"
-                  onClick={() => setActiveMood(mood.key as FeelzMoodKey)}
+                  onClick={() => {
+                    setActiveMood(mood.key as FeelzMoodKey);
+                    setExpandedName(null);
+                  }}
                   className={`rounded-full px-4 py-2 text-xs font-semibold uppercase tracking-label transition ${
                     active ? `${colors.bg} text-feelz-cream` : "text-feelz-ink/60 hover:text-feelz-ink"
                   }`}
@@ -88,16 +94,12 @@ export default function IngredientsPage() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {ingredients.map((ingredient, index) => {
+        <div className="mt-10 grid items-start gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {ingredients.map((ingredient) => {
             const colors = FEELZ_COLOR_CLASSES[activeStyle.feelzColor];
+            const isExpanded = expandedName === ingredient.name;
             return (
-              <button
-                key={ingredient.name}
-                type="button"
-                onClick={() => setOpenIngredient({ mood: activeMood, index })}
-                className="group flex flex-col rounded-2xl border border-feelz-ink/10 bg-feelz-paper p-5 text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-              >
+              <div key={ingredient.name} className={`group flex flex-col rounded-2xl border ${colors.borderSoft} ${colors.bgSoft} p-5 text-left shadow-sm transition hover:shadow-lg`}>
                 {ingredient.image && (
                   <div className="relative mb-4 h-28 w-full overflow-hidden rounded-xl bg-white">
                     <Image
@@ -116,11 +118,41 @@ export default function IngredientsPage() {
                 <span className="font-display mt-3 text-base font-bold text-feelz-ink">{ingredient.name}</span>
                 <span className="font-tagline mt-1.5 text-sm italic text-feelz-ink/70">{ingredient.cardHeadline}</span>
                 <span className="mt-2 text-xs leading-relaxed text-feelz-ink/50">{ingredient.cardHook}</span>
-                <span className={`mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text}`}>
-                  Learn more
-                  <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
-                </span>
-              </button>
+
+                {/* Expands the card itself in place — the detail content
+                    that used to open in a separate popup — instead of
+                    navigating away into a modal/drawer. */}
+                {isExpanded && (
+                  <div className="mt-4 space-y-4 border-t border-feelz-ink/10 pt-4">
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">What is it?</p>
+                      <p className="mt-1 text-xs leading-relaxed text-feelz-ink/70">{ingredient.whatIsIt}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Why is it in FEELZ?</p>
+                      <p className="mt-1 text-xs leading-relaxed text-feelz-ink/70">{ingredient.whyInFeelz}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">The research</p>
+                      <p className="mt-1 text-xs leading-relaxed text-feelz-ink/70">{ingredient.research}</p>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">A note on dosage</p>
+                      <p className="mt-1 text-xs leading-relaxed text-feelz-ink/55">{ingredient.formulationNote}</p>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => setExpandedName(isExpanded ? null : ingredient.name)}
+                  aria-expanded={isExpanded}
+                  className={`mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text}`}
+                >
+                  {isExpanded ? "Show less" : "More details"}
+                  <ArrowUpRight className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-[135deg]" : "group-hover:translate-x-0.5 group-hover:-translate-y-0.5"}`} aria-hidden />
+                </button>
+              </div>
             );
           })}
         </div>
@@ -175,7 +207,7 @@ export default function IngredientsPage() {
               <Link
                 key={mood.key}
                 href={`/feelz/${mood.key}`}
-                className="rounded-2xl border border-feelz-ink/10 bg-feelz-paper p-4 text-center transition hover:-translate-y-0.5 hover:shadow-md"
+                className={`rounded-2xl border ${colors.borderSoft} ${colors.bgSoft} p-4 text-center transition hover:-translate-y-0.5 hover:shadow-md`}
               >
                 <span className={`font-display block text-sm font-bold ${colors.text}`}>{mood.label}</span>
                 <span className="mt-1 block text-[11px] text-feelz-ink/50">{style.stateLine}</span>
@@ -203,53 +235,6 @@ export default function IngredientsPage() {
         <strong className="font-semibold text-feelz-ink/55">Research &amp; formulation note:</strong> {FEELZ_RESEARCH_DISCLAIMER}
       </p>
 
-      {/* Ingredient detail drawer */}
-      <Modal
-        isOpen={!!drawerIngredient}
-        onClose={() => setOpenIngredient(null)}
-        title={drawerIngredient?.name ?? ""}
-        bgClassName="bg-feelz-paper"
-      >
-        {drawerIngredient && (
-          <div className="space-y-5">
-            <p className="text-xs font-semibold uppercase tracking-label text-feelz-berry">
-              {drawerIngredient.amount}
-              {drawerIngredient.standardization ? ` · ${drawerIngredient.standardization}` : ""}
-            </p>
-
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">What is it?</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-feelz-ink/75">{drawerIngredient.whatIsIt}</p>
-            </div>
-
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Why is it in FEELZ?</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-feelz-ink/75">{drawerIngredient.whyInFeelz}</p>
-            </div>
-
-            <div className="rounded-xl border border-feelz-ink/10 bg-feelz-cream p-4">
-              <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">The research</p>
-              <p className="mt-1.5 text-sm leading-relaxed text-feelz-ink/75">{drawerIngredient.research}</p>
-              {drawerIngredient.researchUrl && (
-                <a
-                  href={drawerIngredient.researchUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-3 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-label text-feelz-berry hover:underline"
-                >
-                  Read the research
-                  <ArrowUpRight className="h-3 w-3" aria-hidden />
-                </a>
-              )}
-            </div>
-
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">A note on dosage</p>
-              <p className="mt-1.5 text-xs leading-relaxed text-feelz-ink/55">{drawerIngredient.formulationNote}</p>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 }

@@ -52,7 +52,7 @@ function ReviewCard({ review, featured }: { review: Review; featured?: boolean }
 // has (no photo column), so there's nothing to anonymize beyond what the
 // schema already omits. No review-submission UI exists yet anywhere in the
 // app, so an empty state here is expected until that ships — not a bug.
-export function TestimonialsSection() {
+export function TestimonialsSection({ background = "bg-surface-alt" }: { background?: string }) {
   const reviewsQuery = useQuery({
     queryKey: ["reviews", "recent"],
     queryFn: () => getRecentReviews(createClient(), 5),
@@ -87,8 +87,8 @@ export function TestimonialsSection() {
   if (!reviewsQuery.isLoading && reviews.length === 0) return null;
 
   return (
-    <section className="bg-surface-alt py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+    <section className={`${background} py-20`}>
+      <div className="mx-auto max-w-7xl px-4 sm:px-6">
         {/* The page's quietest moment: label, then heading, then the rating —
             each waiting on the one before it, so the section settles rather
             than arriving all at once. */}
