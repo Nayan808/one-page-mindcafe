@@ -270,7 +270,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
     <div className="bg-feelz-cream">
       {/* 01. Gallery + product info */}
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-start">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12 lg:items-start">
           {/* Sticky on desktop — the gallery stays in view while scrolling
               through the right column's (now much longer) content, and
               only scrolls away once the right column itself finishes
@@ -704,7 +704,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
           <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
             {copy.benefits.map((benefit) => (
               <div key={benefit.label} className="text-center">
-                <div className="relative mx-auto h-32 w-32 overflow-hidden rounded-2xl border border-feelz-cream/15 shadow-sm sm:h-44 sm:w-44">
+                <div className="relative mx-auto aspect-square w-full max-w-[8rem] overflow-hidden rounded-2xl border border-feelz-cream/15 shadow-sm sm:max-w-[11rem]">
                   <Image src={benefit.image} alt={benefit.label} fill sizes="176px" className="object-cover" />
                 </div>
                 <p className="mt-3 text-xs font-semibold sm:text-sm">{benefit.label}</p>

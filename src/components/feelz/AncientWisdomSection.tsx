@@ -13,11 +13,11 @@ import { FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
 // row (tried a straight 5-column grid and alternating editorial blocks
 // first; this is the third direction, picked after those two).
 const STEPS = [
-  { n: "01", title: "Ayurveda", body: "Timeless wisdom for modern lives.", color: FEELZ_COLOR_CLASSES["feelz-berry"], image: "/feelz-creative/wisdom/ayurveda.webp", offset: "sm:translate-y-6" },
-  { n: "02", title: "Botanicals", body: "Potent plants. Real benefits.", color: FEELZ_COLOR_CLASSES["feelz-orange"], image: "/feelz-creative/wisdom/botanicals.webp", offset: "sm:-translate-y-2" },
-  { n: "03", title: "Formulation", body: "Science meets nature's best.", color: FEELZ_COLOR_CLASSES["feelz-navy"], image: "/feelz-creative/wisdom/formulation.webp", offset: "sm:-translate-y-8" },
-  { n: "04", title: "Melt-in-mouth", body: "Wellness that dissolves in seconds.", color: FEELZ_COLOR_CLASSES["feelz-rest"], image: "/feelz-creative/wisdom/melt.webp", offset: "sm:-translate-y-2" },
-  { n: "05", title: "Your moment", body: "More goodness in your everyday.", color: FEELZ_COLOR_CLASSES["feelz-berry"], image: "/feelz-creative/wisdom/moment-v2.webp", offset: "sm:translate-y-6" },
+  { n: "01", title: "Ayurveda", body: "Timeless wisdom for modern lives.", color: FEELZ_COLOR_CLASSES["feelz-berry"], image: "/feelz-creative/wisdom/ayurveda.webp", offset: "lg:translate-y-6" },
+  { n: "02", title: "Botanicals", body: "Potent plants. Real benefits.", color: FEELZ_COLOR_CLASSES["feelz-orange"], image: "/feelz-creative/wisdom/botanicals.webp", offset: "lg:-translate-y-2" },
+  { n: "03", title: "Formulation", body: "Science meets nature's best.", color: FEELZ_COLOR_CLASSES["feelz-navy"], image: "/feelz-creative/wisdom/formulation.webp", offset: "lg:-translate-y-8" },
+  { n: "04", title: "Melt-in-mouth", body: "Wellness that dissolves in seconds.", color: FEELZ_COLOR_CLASSES["feelz-rest"], image: "/feelz-creative/wisdom/melt.webp", offset: "lg:-translate-y-2" },
+  { n: "05", title: "Your moment", body: "More goodness in your everyday.", color: FEELZ_COLOR_CLASSES["feelz-berry"], image: "/feelz-creative/wisdom/moment-v2.webp", offset: "lg:translate-y-6" },
 ];
 
 export function AncientWisdomSection() {
@@ -38,7 +38,7 @@ export function AncientWisdomSection() {
             look mechanically repeated. Replaces the earlier dot-travel +
             node-glow animation and the plain smooth-curve arrows. */}
         <svg
-          className="pointer-events-none absolute inset-x-0 top-0 hidden h-40 w-full sm:block sm:h-52"
+          className="pointer-events-none absolute inset-x-0 top-0 hidden h-40 w-full lg:block lg:h-52"
           viewBox="0 0 1000 160"
           preserveAspectRatio="none"
           aria-hidden
@@ -65,23 +65,23 @@ export function AncientWisdomSection() {
             read as one clear top-to-bottom sequence instead of a 2-up
             grid that breaks the 1→2→3→4→5 order into odd row pairs.
             Desktop keeps the 5-across arc layout. */}
-        <div className="relative flex flex-col gap-8 sm:grid sm:grid-cols-5 sm:gap-x-4 sm:gap-y-10">
+        <div className="relative mx-auto flex max-w-md flex-col gap-8 lg:grid lg:max-w-none lg:grid-cols-5 lg:gap-x-4 lg:gap-y-10">
           {STEPS.map((step, index) => (
-            <div key={step.n} className={`relative flex items-center gap-4 text-left sm:flex-col sm:items-center sm:text-center ${step.offset}`}>
+            <div key={step.n} className={`relative flex items-center gap-4 text-left lg:flex-col lg:items-center lg:text-center ${step.offset}`}>
               {index < STEPS.length - 1 && (
-                <span className="absolute left-10 top-full h-8 w-px bg-feelz-ink/15 sm:hidden" aria-hidden />
+                <span className="absolute left-10 top-full h-8 w-px bg-feelz-ink/15 lg:hidden" aria-hidden />
               )}
               <div className="relative shrink-0">
-                <div className="h-20 w-20 overflow-hidden rounded-full shadow-[0_8px_24px_-8px_rgba(16,35,63,0.3)] sm:h-52 sm:w-52">
+                <div className="h-20 w-20 overflow-hidden rounded-full shadow-[0_8px_24px_-8px_rgba(16,35,63,0.3)] lg:h-40 lg:w-40 xl:h-52 xl:w-52">
                   <Image src={step.image} alt={step.title} width={416} height={416} className="h-full w-full object-cover" />
                 </div>
-                <span className={`absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-feelz-cream ${step.color.bgTint} text-[11px] font-bold ${step.color.text} sm:h-8 sm:w-8 sm:text-xs`}>
+                <span className={`absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-feelz-cream ${step.color.bgTint} text-[11px] font-bold ${step.color.text} lg:h-8 lg:w-8 lg:text-xs`}>
                   {step.n}
                 </span>
               </div>
               <div>
-                <p className={`font-display text-base font-bold sm:mt-4 sm:text-lg ${step.color.text}`}>{step.title}</p>
-                <p className="mt-1 max-w-[14rem] text-xs leading-relaxed text-feelz-ink/55 sm:max-w-[10rem]">{step.body}</p>
+                <p className={`font-display text-base font-bold lg:mt-4 lg:text-lg ${step.color.text}`}>{step.title}</p>
+                <p className="mt-1 max-w-[14rem] text-xs leading-relaxed text-feelz-ink/55 lg:max-w-[10rem]">{step.body}</p>
               </div>
             </div>
           ))}
