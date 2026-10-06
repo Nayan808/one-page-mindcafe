@@ -8,6 +8,7 @@ import { Check, Loader2, MapPin, Search, ShoppingBag, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getActivePickupLocations, getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
+import { moodStyleFor } from "@/lib/moodStyles";
 import { useCartContext } from "@/contexts/CartContext";
 import { OrderConfirmation } from "@/components/OrderConfirmation";
 import { ScanOrderPayment } from "@/components/ScanOrderPayment";
@@ -162,15 +163,13 @@ function ProductsStep({ onProceedToPay }: { onProceedToPay: () => void }) {
             return (
               <div key={product.id} className="overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-sm">
                 <div className="relative aspect-square w-full bg-cream">
-                  {product.image_url && (
-                    <Image
-                      src={product.image_url}
-                      alt={product.name}
-                      fill
-                      sizes="(min-width: 640px) 12rem, 45vw"
-                      className="object-cover"
-                    />
-                  )}
+                  <Image
+                    src={moodStyleFor(product.name).catalogueSrc}
+                    alt={product.name}
+                    fill
+                    sizes="(min-width: 640px) 12rem, 45vw"
+                    className="object-cover"
+                  />
                 </div>
                 <div className="p-3">
                   <p className="font-display text-base font-bold capitalize text-ink">{product.name}</p>

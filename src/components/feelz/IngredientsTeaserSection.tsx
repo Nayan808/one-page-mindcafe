@@ -62,37 +62,37 @@ export function IngredientsTeaserSection() {
             <ChevronLeft className="h-4 w-4" aria-hidden />
           </button>
 
-          <div ref={scrollRef} className="scrollbar-hide flex min-w-0 gap-5 overflow-x-auto scroll-smooth pb-2">
+          <div ref={scrollRef} className="scrollbar-hide flex min-w-0 items-start gap-5 overflow-x-auto scroll-smooth pb-2">
             {ALL_INGREDIENTS.map(({ mood, ingredient }, index) => {
               const colors = FEELZ_COLOR_CLASSES[MOOD_STYLES[mood].feelzColor];
               return (
                 <Reveal key={`${mood}-${ingredient.name}`} delayMs={Math.min(index, 5) * 60} className="shrink-0">
-                  <Link
-                    href={`/ingredients#${mood}`}
-                    className={`group flex h-full w-64 flex-col rounded-2xl border ${colors.borderSoft} ${colors.bgSoft} p-6 shadow-sm transition hover:-translate-y-1 hover:shadow-lg`}
-                  >
+                  <div className={`group flex w-56 flex-col border ${colors.borderSoft} ${colors.bgSoft} p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg`}>
                     {ingredient.image && (
-                      <div className="relative mb-4 h-24 w-full overflow-hidden rounded-xl bg-white">
+                      <div className="relative mx-auto mb-3 h-32 w-32 shrink-0 overflow-hidden rounded-full bg-white">
                         <Image
                           src={ingredient.image}
                           alt={ingredient.name}
                           fill
-                          sizes="256px"
-                          className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+                          sizes="128px"
+                          className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
                         />
                       </div>
                     )}
                     <span className={`w-fit rounded-full ${colors.bgTint} px-2.5 py-1 text-[10px] font-semibold uppercase tracking-label ${colors.text}`}>
                       {mood}
                     </span>
-                    <p className="font-display mt-4 text-xl font-bold text-feelz-ink">{ingredient.name}</p>
-                    <p className="mt-1 text-sm text-feelz-ink/60">{ingredient.amount}</p>
-                    <p className="mt-3 flex-1 text-sm leading-relaxed text-feelz-ink/60">{ingredient.cardHeadline}</p>
-                    <span className={`mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text}`}>
-                      Learn more
-                      <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden />
-                    </span>
-                  </Link>
+                    <p className="font-display mt-3 text-lg font-bold text-feelz-ink">{ingredient.name}</p>
+                    <p className="mt-1 text-xs text-feelz-ink/60">{ingredient.amount}</p>
+                    <p className="mt-2 text-sm leading-relaxed text-feelz-ink/60">{ingredient.cardHeadline}</p>
+                    <p className="mt-1.5 text-xs leading-relaxed text-feelz-ink/50">{ingredient.cardHook}</p>
+                    <Link
+                      href={`/feelz/${mood}`}
+                      className={`mt-3 flex items-center justify-center gap-1 self-center rounded-full ${colors.bg} px-3 py-1.5 text-[11px] font-semibold uppercase tracking-label text-feelz-cream transition hover:opacity-90`}
+                    >
+                      View Product
+                    </Link>
+                  </div>
                 </Reveal>
               );
             })}

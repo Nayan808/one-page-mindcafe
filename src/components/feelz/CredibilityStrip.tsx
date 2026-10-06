@@ -17,7 +17,7 @@ const ITEMS: { icon: string; label: string }[] = [
   { icon: "/feelz-creative/credibility/ayurveda.webp", label: "Ayurveda-Inspired" },
   { icon: "/feelz-creative/credibility/formulation.webp", label: "Modern Formulation" },
   { icon: "/feelz-creative/credibility/mobility.webp", label: "Built for Life on the Move" },
-  { icon: "/feelz-creative/credibility/melt.webp", label: "Melt-in-Mouth" },
+  { icon: "/feelz-creative/credibility/melt-v2.webp", label: "Melt-in-Mouth" },
   { icon: "/feelz-creative/credibility/wellness.webp", label: "Everyday Mental Wellness" },
   { icon: "/feelz-creative/credibility/zostel-backpack.webp", label: "Built with Zostel" },
 ];

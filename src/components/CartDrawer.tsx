@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Trash2, X } from "lucide-react";
 import { useCartContext } from "@/contexts/CartContext";
 import { formatInr } from "@/lib/utils";
+import { moodStyleFor } from "@/lib/moodStyles";
 
 // Mini-cart popup — line items + qty + subtotal, then a single "go to
 // checkout" that navigates to /checkout. Fulfillment/payment/tracking all
@@ -87,17 +88,15 @@ export function CartDrawer() {
                   const price = item.product_variants.price_override ?? item.product_variants.products.price;
                   return (
                     <li key={item.id} className="flex gap-3 rounded-2xl border border-feelz-ink/10 bg-feelz-paper p-3">
-                      {item.product_variants.products.image_url && (
-                        <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white">
-                          <Image
-                            src={item.product_variants.products.image_url}
-                            alt={item.product_variants.products.name}
-                            fill
-                            sizes="64px"
-                            className="object-cover"
-                          />
-                        </div>
-                      )}
+                      <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-white">
+                        <Image
+                          src={moodStyleFor(item.product_variants.products.name).catalogueSrc}
+                          alt={item.product_variants.products.name}
+                          fill
+                          sizes="64px"
+                          className="object-cover"
+                        />
+                      </div>
                       <div className="min-w-0 flex-1 text-sm">
                         <div className="flex items-start justify-between gap-2">
                           <span className="font-semibold text-feelz-ink">{item.product_variants.products.name}</span>

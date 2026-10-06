@@ -22,6 +22,19 @@ export type FeelzProductPageCopy = {
   benefits: { label: string; sub: string; image: string }[];
   painPointHeadline: string;
   painPointBody: string;
+  // Real marketing banner creative — headline/body/sticky-notes baked
+  // into the image itself. Only used where the client supplied the
+  // actual exported creative (Rest) — for every other mood this is
+  // deliberately NOT a pasted screenshot of a reference design; see
+  // painPointPhoto below for those.
+  painPointImage?: string;
+  // The reference-creative LOOK (headline + handwritten arrow callout +
+  // real photo + floating sticky notes), rebuilt from real site assets —
+  // a real moments photo (not stock art) plus real typed note labels —
+  // instead of using the reference image file itself.
+  painPointPhoto?: string;
+  painPointAnnotation?: string;
+  painPointNotes?: string[];
   comparisonTitle: string;
   comparisonAgainst: string;
   comparisonAgainstCons: string[];
@@ -47,6 +60,9 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     painPointHeadline: "Not tired. Just distracted.",
     painPointBody:
       "You sit down to finish an important task. Then your phone buzzes. You check one notification, reply to one message, and suddenly your attention is everywhere except the work in front of you.",
+    painPointPhoto: "/feelz-creative/moments/focus-working-v3.webp",
+    painPointAnnotation: "Too many tabs",
+    painPointNotes: ["3 new messages", "Team update", "Client feedback", "Dinner plans?", "Market research..."],
     comparisonTitle: "Sometimes, more energy isn't the answer.",
     comparisonAgainst: "Coffee / Energy Drink",
     comparisonAgainstCons: ["Energy + alertness", "Helps you feel awake", "Temporary boost", "Doesn't always solve distraction"],
@@ -73,6 +89,9 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     painPointHeadline: "A calmer you. A happier day.",
     painPointBody:
       "Some days feel heavy. Your mind feels cloudy, motivation is low, and everything seems a little harder. FEELZ Joy is here to help you feel more balanced, positive and like yourself again.",
+    painPointPhoto: "/feelz-creative/moments/joy-everyday-v3.webp",
+    painPointAnnotation: "Good mood goes a long way.",
+    painPointNotes: ["Better mood at work", "More patience", "Feel lighter", "Enjoy the little things"],
     comparisonTitle: "Not just a sweet treat.",
     comparisonAgainst: "Chocolate / Candy",
     comparisonAgainstCons: ["Quick mood lift", "Feels good momentarily", "Sugar crash later", "Doesn't support emotional balance"],
@@ -99,6 +118,9 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     painPointHeadline: "More you. In every moment.",
     painPointBody:
       "Whether it's a new room, a big meeting or a weekend plan, FEELZ Extrovert helps you feel more confident, energetic and present — so you can show up as your best self.",
+    painPointPhoto: "/feelz-creative/moments/extrovert-hangingout-v3.webp",
+    painPointAnnotation: "Social plans? Say yes.",
+    painPointNotes: ["New people", "Social events", "Present & confident", "Good conversations"],
     comparisonTitle: "Not just another energy boost.",
     comparisonAgainst: "Energy Drinks",
     comparisonAgainstCons: ["Quick spike", "Jitters", "Temporary boost", "Crash later"],
@@ -125,6 +147,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     painPointHeadline: "Quiet mind. Better nights.",
     painPointBody:
       "Some days, your mind just doesn't switch off. Thoughts keep running, and sleep feels far away. FEELZ Rest helps you relax, unwind and slip into a more restful sleep — so you can wake up lighter.",
+    painPointImage: "/feelz-creative/painpoint-rest.webp",
     comparisonTitle: "Not just counting sheep.",
     comparisonAgainst: "Late-night scrolling",
     comparisonAgainstCons: ["Keeps you alert", "Increases overthinking", "Disrupts sleep cycle", "Makes it harder to sleep"],

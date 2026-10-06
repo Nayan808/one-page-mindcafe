@@ -99,9 +99,9 @@ export default function IngredientsPage() {
             const colors = FEELZ_COLOR_CLASSES[activeStyle.feelzColor];
             const isExpanded = expandedName === ingredient.name;
             return (
-              <div key={ingredient.name} className={`group flex flex-col rounded-2xl border ${colors.borderSoft} ${colors.bgSoft} p-5 text-left shadow-sm transition hover:shadow-lg`}>
+              <div key={ingredient.name} className={`group flex flex-col border ${colors.borderSoft} ${colors.bgSoft} p-5 text-left shadow-sm transition hover:shadow-lg`}>
                 {ingredient.image && (
-                  <div className="relative mb-4 h-28 w-full overflow-hidden rounded-xl bg-white">
+                  <div className="relative mb-4 h-28 w-full overflow-hidden bg-white">
                     <Image
                       src={ingredient.image}
                       alt={ingredient.name}
@@ -143,15 +143,23 @@ export default function IngredientsPage() {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={() => setExpandedName(isExpanded ? null : ingredient.name)}
-                  aria-expanded={isExpanded}
-                  className={`mt-4 flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text}`}
-                >
-                  {isExpanded ? "Show less" : "More details"}
-                  <ArrowUpRight className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-[135deg]" : "group-hover:translate-x-0.5 group-hover:-translate-y-0.5"}`} aria-hidden />
-                </button>
+                <div className="mt-4 flex flex-col items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedName(isExpanded ? null : ingredient.name)}
+                    aria-expanded={isExpanded}
+                    className={`flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text}`}
+                  >
+                    {isExpanded ? "Show less" : "More details"}
+                    <ArrowUpRight className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-[135deg]" : "group-hover:translate-x-0.5 group-hover:-translate-y-0.5"}`} aria-hidden />
+                  </button>
+                  <Link
+                    href={`/feelz/${activeMood}`}
+                    className={`rounded-full ${colors.bg} px-3 py-1.5 text-[11px] font-semibold uppercase tracking-label text-feelz-cream transition hover:opacity-90`}
+                  >
+                    View Product
+                  </Link>
+                </div>
               </div>
             );
           })}
@@ -171,7 +179,7 @@ export default function IngredientsPage() {
 
           <div className="mt-10 grid gap-5 sm:grid-cols-3">
             {FEELZ_CROSS_INGREDIENT.map((item) => (
-              <div key={item.name} className="rounded-2xl border border-feelz-ink/10 bg-feelz-cream p-5">
+              <div key={item.name} className="border border-feelz-ink/10 bg-feelz-cream p-5">
                 <p className="font-display text-lg font-bold text-feelz-ink">{item.name}</p>
                 <ul className="mt-3 space-y-3">
                   {item.roles.map((role) => (

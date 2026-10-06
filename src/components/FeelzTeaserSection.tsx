@@ -142,15 +142,13 @@ export function FeelzTeaserSection() {
                   aria-label={`View larger image of ${product.name}`}
                   className="relative block aspect-[4/5] w-full cursor-zoom-in overflow-hidden"
                 >
-                  {product.image_url && (
-                    <Image
-                      src={product.image_url}
-                      alt={product.name}
-                      fill
-                      sizes="(min-width: 1024px) 22vw, (min-width: 640px) 45vw, 90vw"
-                      className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
-                    />
-                  )}
+                  <Image
+                    src={style.catalogueSrc}
+                    alt={product.name}
+                    fill
+                    sizes="(min-width: 1024px) 22vw, (min-width: 640px) 45vw, 90vw"
+                    className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                  />
                 </button>
 
                 <Link href="/feelz" className="flex flex-1 flex-col px-5 pb-6 pt-5">
@@ -201,10 +199,10 @@ export function FeelzTeaserSection() {
         panelClassName="max-w-lg"
         bgClassName="bg-white"
       >
-        {lightboxProduct?.image_url && (
+        {lightboxProduct && (
           <div className="relative aspect-square w-full overflow-hidden rounded-2xl">
             <Image
-              src={lightboxProduct.image_url}
+              src={moodStyleFor(lightboxProduct.name).catalogueSrc}
               alt={lightboxProduct.name}
               fill
               sizes="32rem"

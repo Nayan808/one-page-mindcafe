@@ -72,7 +72,7 @@ export function AncientWisdomSection() {
                 <span className="absolute left-10 top-full h-8 w-px bg-feelz-ink/15 sm:hidden" aria-hidden />
               )}
               <div className="relative shrink-0">
-                <div className="h-20 w-20 overflow-hidden rounded-full border-4 border-feelz-cream shadow-[0_8px_24px_-8px_rgba(16,35,63,0.3)] sm:h-52 sm:w-52">
+                <div className="h-20 w-20 overflow-hidden rounded-full shadow-[0_8px_24px_-8px_rgba(16,35,63,0.3)] sm:h-52 sm:w-52">
                   <Image src={step.image} alt={step.title} width={416} height={416} className="h-full w-full object-cover" />
                 </div>
                 <span className={`absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-feelz-cream ${step.color.bgTint} text-[11px] font-bold ${step.color.text} sm:h-8 sm:w-8 sm:text-xs`}>

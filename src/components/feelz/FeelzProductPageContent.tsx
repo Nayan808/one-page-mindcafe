@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Check, Loader2, ShoppingBag, Sparkles, Target, Heart, ArrowUpRight, X, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { Check, Loader2, ShoppingBag, ArrowUpRight, X, ChevronDown, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog, getRecentReviews, getReviewsSummary } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
@@ -20,7 +20,26 @@ import { FEELZ_PRODUCT_PAGES } from "@/lib/feelzProductPages";
 import { formatInr } from "@/lib/utils";
 import type { ProductWithVariants } from "@/types/domain";
 
-const BENEFIT_ICONS = [Sparkles, Target, Heart];
+// Each FEELZ mood only ships in its one real flavour today — not a
+// multi-flavour product line — so this renders as a single pre-selected
+// pill rather than a real picker with other options to switch between.
+const FLAVOR_ICON: Record<string, string> = {
+  Mango: "🥭",
+  Spearmint: "🌿",
+  Ginger: "🫚",
+  "Mixedberry + Mint": "🍓",
+};
+
+// Scattered positions for the floating sticky-note labels over the
+// painPointPhoto banner — cycled by index so any note count (4 or 5) still
+// spreads out across the photo instead of stacking in one spot.
+const NOTE_POSITIONS = [
+  "left-3 top-3 -rotate-6",
+  "right-3 top-5 rotate-3",
+  "left-4 bottom-16 rotate-2",
+  "right-4 bottom-5 -rotate-3",
+  "left-1/2 top-1/2 -translate-x-1/2 -rotate-1",
+];
 
 const PRODUCT_FAQS: Record<FeelzMoodKey, { question: string; answer: string }[]> = {
   focus: [
@@ -96,7 +115,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
   const [bundleError, setBundleError] = useState(false);
   const [pendingAdd, setPendingAdd] = useState<"cart" | "buy" | "bundle" | false>(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [infoOpen, setInfoOpen] = useState(false);
+  const [openSection, setOpenSection] = useState<"description" | "benefits" | "info" | null>(null);
   const [faqTab, setFaqTab] = useState<"product" | "shipping">("product");
 
   // Real client-supplied product photography, in serial order (see
@@ -119,11 +138,11 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
   // changes which frame this timer is currently on — it doesn't need to
   // know that.
   useEffect(() => {
-    if (galleryHovered || galleryImages.length < 2) return;
+    if (galleryHovered || lightboxOpen || galleryImages.length < 2) return;
     const id = window.setInterval(() => setActiveImageIndex((i) => (i + 1) % galleryImages.length), 2500);
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [galleryHovered, galleryImages.length]);
+  }, [galleryHovered, lightboxOpen, galleryImages.length]);
 
   function goToPrevImage() {
     setActiveImageIndex((i) => (i - 1 + galleryImages.length) % galleryImages.length);
@@ -159,6 +178,12 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
   // rather than a separate bundle SKU in Supabase, which doesn't exist.
   const bundleProducts = MOOD_GRID.map((m) => catalogQuery.data?.find((p) => p.name.trim().toLowerCase() === m.key));
   const bundleReady = bundleProducts.every((p): p is ProductWithVariants => !!p?.product_variants[0]);
+  // Real sum of the four moods' own prices — shown struck through next to
+  // the flat FEELZ_BUNDLE_PRICE so the saving is visible, without this
+  // number itself ever being what's charged (BUNDLE20 at checkout is).
+  const bundleOriginalPrice = bundleReady
+    ? (bundleProducts as ProductWithVariants[]).reduce((sum, p) => sum + (p.product_variants[0].price_override ?? p.price), 0)
+    : null;
 
   const reviewsQuery = useQuery({ queryKey: ["reviews", "recent", "pdp"], queryFn: () => getRecentReviews(createClient(), 3) });
   const summaryQuery = useQuery({ queryKey: ["reviews", "summary", "pdp"], queryFn: () => getReviewsSummary(createClient()) });
@@ -245,8 +270,13 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
     <div className="bg-feelz-cream">
       {/* 01. Gallery + product info */}
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-10 sm:px-6">
-        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12">
-          <div>
+        <div className="grid gap-8 lg:grid-cols-2 lg:gap-12 lg:items-start">
+          {/* Sticky on desktop — the gallery stays in view while scrolling
+              through the right column's (now much longer) content, and
+              only scrolls away once the right column itself finishes
+              scrolling past it. Off on mobile (no room for two columns
+              there anyway, so nothing to stay pinned beside). */}
+          <div className="lg:sticky lg:top-24">
             <div className="flex gap-3">
               {/* Vertical thumbnail rail — real product photography
                   (copy.images), stacked beside the main image on desktop
@@ -331,52 +361,84 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
 
           <div ref={buyPanelRef}>
             <p className={`text-[11px] font-semibold uppercase tracking-label ${colors.text}`}>FEELZ by mindcafe</p>
-            <h1 className="font-display mt-2 text-4xl font-bold text-feelz-ink sm:text-5xl">{label}</h1>
-            <p className="mt-1 text-sm text-feelz-ink/60">({copy.flavor})</p>
+            <h1 className="font-display mt-2 text-3xl font-bold leading-tight text-feelz-ink sm:text-4xl">
+              FEELZ {label} Wellness Strips (10 Strips: 1 x 10 strip pack)
+            </h1>
+            {summaryQuery.data && summaryQuery.data.count > 0 && (
+              <div className="mt-2 flex items-center gap-1.5">
+                <div className="flex gap-0.5">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className="h-4 w-4 text-amber-400"
+                      fill={i < Math.round(summaryQuery.data!.average) ? "currentColor" : "none"}
+                      aria-hidden
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-feelz-ink/60">
+                  {summaryQuery.data.count} review{summaryQuery.data.count === 1 ? "" : "s"}
+                </span>
+              </div>
+            )}
             <p className="mt-3 text-sm font-medium text-feelz-ink/70">{copy.positioning}</p>
 
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-feelz-ink/50">
-              <span>Fast-dissolving oral thin film</span>
-              <span>Get 10% off on orders ₹300+</span>
-              <span>Available at selected Zostel properties</span>
+            <div className="mt-4">
+              <p className="text-xs font-semibold text-feelz-ink">Flavor:</p>
+              <div className="mt-2 flex flex-wrap gap-2.5">
+                <span className={`flex items-center gap-2 rounded-xl border-2 ${colors.border} ${colors.bgTint} px-4 py-2.5`}>
+                  <span className="text-lg" aria-hidden>{FLAVOR_ICON[copy.flavor] ?? "🌿"}</span>
+                  <span className="text-sm font-bold text-feelz-ink">{copy.flavor}</span>
+                </span>
+              </div>
             </div>
-
-            <Link href={`/ingredients#${mood}`} className={`mt-2 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text} hover:underline`}>
-              Know your ingredients
-              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-            </Link>
 
             {/* Pack of 1 / Pack of 2 / Feelz Bundle — three option tiles
                 in one row instead of a free-form quantity stepper next to
                 a single bundle tile. The first two just preset `quantity`
                 for the Add to Cart/Buy buttons below; the bundle tile adds
                 its own four distinct products immediately (it can't be a
-                quantity of the current variant), same as before. */}
-            <div className="mt-6 grid grid-cols-3 gap-3">
+                quantity of the current variant), same as before. Flex
+                instead of an equal-width grid — Pack of 1/2's short
+                content doesn't need a full third of the row, and forcing
+                it there just left a lot of empty space inside those two
+                cards while Bundle (which has real extra content) got the
+                same width as them instead of the room it actually needs. */}
+            <p className="mt-5 text-xs font-semibold text-feelz-ink">Size :</p>
+            <div className="mt-2 flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => setQuantity(1)}
-                className={`flex flex-col rounded-2xl border p-4 text-left transition ${
+                className={`relative flex min-w-[9rem] flex-col rounded-2xl border p-5 pt-6 text-left transition ${
                   quantity === 1 ? `${colors.border} border-2 ${colors.bgTint}` : "border-feelz-ink/10 bg-feelz-paper hover:border-feelz-ink/20"
                 }`}
               >
+                <span className={`absolute -top-2.5 left-4 rounded-full ${colors.bg} px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-label text-feelz-cream`}>
+                  Best Seller
+                </span>
                 <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Pack of 1</p>
-                <p className="mt-1 text-xl font-bold text-feelz-ink sm:text-2xl">
+                <p className="mt-2 text-xl font-bold text-feelz-ink sm:text-2xl">
                   {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
                 </p>
+                <p className="mt-1.5 text-[10px] text-feelz-ink/40">10 strips</p>
               </button>
 
               <button
                 type="button"
                 onClick={() => setQuantity(2)}
-                className={`flex flex-col rounded-2xl border p-4 text-left transition ${
+                className={`relative flex min-w-[9rem] flex-col rounded-2xl border p-5 pt-6 text-left transition ${
                   quantity === 2 ? `${colors.border} border-2 ${colors.bgTint}` : "border-feelz-ink/10 bg-feelz-paper hover:border-feelz-ink/20"
                 }`}
               >
+                <span className={`absolute -top-2.5 left-4 rounded-full ${colors.bg} px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-label text-feelz-cream`}>
+                  Most Popular
+                </span>
                 <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Pack of 2</p>
-                <p className="mt-1 text-xl font-bold text-feelz-ink sm:text-2xl">
+                <p className="mt-2 text-xl font-bold text-feelz-ink sm:text-2xl">
                   {price !== null ? formatInr(price * 2) : catalogQuery.isLoading ? "…" : "—"}
                 </p>
+                <p className="mt-1.5 text-[10px] text-feelz-ink/40">20 strips</p>
+                <p className={`mt-1.5 text-[10px] font-semibold ${colors.text}`}>10% off at checkout</p>
               </button>
 
               {/* Variety bundle — one real sachet of each of the four
@@ -389,23 +451,30 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                 type="button"
                 onClick={handleAddBundle}
                 disabled={!bundleReady || !isReady || !cartId || bundlePending}
-                className={`flex flex-col justify-between rounded-2xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
+                className={`relative flex min-w-[14rem] flex-col rounded-2xl border p-5 pt-6 text-left transition disabled:cursor-not-allowed disabled:opacity-50 ${
                   bundleAdded ? `${colors.border} border-2 ${colors.bgTint}` : "border-feelz-ink/10 bg-feelz-paper hover:border-feelz-ink/20"
                 }`}
               >
-                <div>
-                  <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Feelz Bundle</p>
-                  <p className="mt-1 text-xl font-bold text-feelz-ink sm:text-2xl">{formatInr(FEELZ_BUNDLE_PRICE)}</p>
-                  {bundleError && <p className="mt-1 text-xs font-medium text-red-600">couldn&apos;t add, try again</p>}
-                </div>
-                <span className={`mt-3 flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-label ${bundleAdded ? `${colors.bg} text-feelz-cream` : `border ${colors.border} ${colors.text}`}`}>
-                  {bundlePending ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                  ) : bundleAdded ? (
-                    <Check className="h-3.5 w-3.5" aria-hidden />
-                  ) : null}
-                  {bundleAdded ? "Added" : "Add bundle"}
+                <span className={`absolute -top-2.5 left-4 rounded-full ${colors.bg} px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-label text-feelz-cream`}>
+                  Best Value
                 </span>
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">
+                  Feelz Bundle
+                  {bundlePending ? (
+                    <Loader2 className="h-3 w-3 shrink-0 animate-spin" aria-hidden />
+                  ) : bundleAdded ? (
+                    <Check className={`h-3 w-3 shrink-0 ${colors.text}`} aria-hidden />
+                  ) : null}
+                </div>
+                <p className="mt-0.5 text-[10px] leading-snug text-feelz-ink/35">Joy + Extrovert + Focus + Rest</p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  {bundleOriginalPrice !== null && (
+                    <span className="text-sm font-bold text-feelz-ink/40 line-through">{formatInr(bundleOriginalPrice)}</span>
+                  )}
+                  <span className="text-xl font-bold text-feelz-ink sm:text-2xl">{formatInr(FEELZ_BUNDLE_PRICE)}</span>
+                </div>
+                <p className="mt-0.5 text-[10px] text-feelz-ink/40">40 strips</p>
+                {bundleError && <p className="mt-1 text-xs font-medium text-red-600">couldn&apos;t add, try again</p>}
               </button>
             </div>
 
@@ -441,6 +510,87 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
             )}
             {hasError && <p className="mt-2 text-xs font-medium text-red-700/80">Couldn&apos;t add to cart, please try again.</p>}
 
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-feelz-ink/50">
+              <span>Fast-dissolving oral thin film</span>
+              <span>Get 10% off on orders ₹300+</span>
+              <span>Available at selected Zostel properties</span>
+            </div>
+
+            <Link href={`/ingredients#${mood}`} className={`mt-2 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text} hover:underline`}>
+              Know your ingredients
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+
+            {/* Description / Product Benefits / Additional Information —
+                three stacked accordion rows (one open at a time), moved
+                into this column right above the bundle banner instead of
+                a separate full-width block below the whole two-column
+                row. No tinted background here (plain border only), unlike
+                the mood-colored cards elsewhere on this page. Description
+                and Product Benefits reuse copy that already exists
+                elsewhere on this page (painPointBody, benefits) rather
+                than new text. */}
+            <div className="mt-6 overflow-hidden rounded-2xl border border-feelz-ink/10">
+              <button
+                type="button"
+                onClick={() => setOpenSection((current) => (current === "description" ? null : "description"))}
+                aria-expanded={openSection === "description"}
+                className="flex w-full items-center justify-between px-5 py-4 text-left"
+              >
+                <span className="text-sm font-semibold text-feelz-ink">Description</span>
+                <ChevronDown className={`h-4 w-4 text-feelz-ink/50 transition-transform ${openSection === "description" ? "rotate-180" : ""}`} aria-hidden />
+              </button>
+              {openSection === "description" && (
+                <div className="border-t border-feelz-ink/10 px-5 py-4">
+                  <p className="text-xs leading-relaxed text-feelz-ink/80">{copy.painPointBody}</p>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setOpenSection((current) => (current === "benefits" ? null : "benefits"))}
+                aria-expanded={openSection === "benefits"}
+                className="flex w-full items-center justify-between border-t border-feelz-ink/10 px-5 py-4 text-left"
+              >
+                <span className="text-sm font-semibold text-feelz-ink">Product Benefits</span>
+                <ChevronDown className={`h-4 w-4 text-feelz-ink/50 transition-transform ${openSection === "benefits" ? "rotate-180" : ""}`} aria-hidden />
+              </button>
+              {openSection === "benefits" && (
+                <div className="border-t border-feelz-ink/10 px-5 py-4">
+                  <ul className="space-y-3">
+                    {copy.benefits.map((benefit) => (
+                      <li key={benefit.label} className="text-xs">
+                        <span className="font-semibold text-feelz-ink">{benefit.label}</span>
+                        <span className="text-feelz-ink/60"> — {benefit.sub}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setOpenSection((current) => (current === "info" ? null : "info"))}
+                aria-expanded={openSection === "info"}
+                className="flex w-full items-center justify-between border-t border-feelz-ink/10 px-5 py-4 text-left"
+              >
+                <span className="text-sm font-semibold text-feelz-ink">Additional Information</span>
+                <ChevronDown className={`h-4 w-4 text-feelz-ink/50 transition-transform ${openSection === "info" ? "rotate-180" : ""}`} aria-hidden />
+              </button>
+              {openSection === "info" && (
+                <div className="border-t border-feelz-ink/10 px-5 py-4">
+                  <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-2">
+                    {ADDITIONAL_INFO.map((row) => (
+                      <div key={row.label} className="text-xs">
+                        <dt className="text-feelz-ink/50">{row.label}</dt>
+                        <dd className="mt-0.5 font-medium leading-relaxed text-feelz-ink/80">{row.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </div>
+              )}
+            </div>
+
             {/* Bundle promo banner — sits in this column's own remaining
                 space (it's shorter than the gallery beside it), not as a
                 separate full-width block below the whole two-column row.
@@ -458,36 +608,55 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
         </div>
       </section>
 
-      {/* 01b. Additional information */}
-      <div className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
-        <div className="overflow-hidden rounded-2xl border border-feelz-ink/10 bg-feelz-paper">
-          <button
-            type="button"
-            onClick={() => setInfoOpen((open) => !open)}
-            aria-expanded={infoOpen}
-            className="flex w-full items-center justify-between px-5 py-4 text-left"
-          >
-            <span className="text-sm font-semibold text-feelz-ink">Additional information</span>
-            <ChevronDown className={`h-4 w-4 text-feelz-ink/50 transition-transform ${infoOpen ? "rotate-180" : ""}`} aria-hidden />
-          </button>
-          {infoOpen && (
-            <dl className="grid grid-cols-1 gap-x-6 gap-y-2 border-t border-feelz-ink/10 px-5 py-4 sm:grid-cols-2">
-              {ADDITIONAL_INFO.map((row) => (
-                <div key={row.label} className="flex justify-between gap-3 text-xs">
-                  <dt className="text-feelz-ink/50">{row.label}</dt>
-                  <dd className="text-right font-medium text-feelz-ink/80">{row.value}</dd>
-                </div>
+      {/* 02. Pain point — three tiers:
+          1. copy.painPointImage: the real exported creative file (Rest
+             only — that's the one case the client supplied the actual
+             PNG for).
+          2. copy.painPointPhoto: the reference creative's LOOK rebuilt
+             from real site assets (a real moments photo + real typed
+             headline/body/sticky-notes) for moods where only a reference
+             screenshot exists — deliberately not a pasted copy of that
+             screenshot.
+          3. Plain text, for anything with neither yet. */}
+      {copy.painPointImage ? (
+        <Reveal className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
+          <div className="relative aspect-[1864/466] w-full overflow-hidden rounded-2xl">
+            <Image src={copy.painPointImage} alt={copy.painPointHeadline} fill sizes="(min-width: 1280px) 1200px, 100vw" className="object-cover" />
+          </div>
+        </Reveal>
+      ) : copy.painPointPhoto ? (
+        <Reveal className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
+          <div className="grid overflow-hidden rounded-2xl border border-feelz-ink/10 bg-feelz-cream sm:grid-cols-2">
+            <div className="flex flex-col justify-center px-6 py-10 sm:px-10">
+              <div className="flex items-start gap-3">
+                <h2 className={`font-display text-3xl font-bold leading-[1.1] sm:text-4xl ${colors.text}`}>{copy.painPointHeadline}</h2>
+                {copy.painPointAnnotation && (
+                  <p className="font-tagline mt-1 hidden max-w-[7rem] shrink-0 -rotate-3 text-sm italic text-feelz-ink/50 sm:block">
+                    {copy.painPointAnnotation}
+                  </p>
+                )}
+              </div>
+              <p className="mt-4 max-w-md text-sm leading-relaxed text-feelz-ink/60">{copy.painPointBody}</p>
+            </div>
+            <div className="relative min-h-[16rem] sm:min-h-[22rem]">
+              <Image src={copy.painPointPhoto} alt={copy.painPointHeadline} fill sizes="(min-width: 640px) 50vw, 100vw" className="object-cover" />
+              {copy.painPointNotes?.map((note, index) => (
+                <span
+                  key={note}
+                  className={`absolute rounded-md bg-[#fdf3c7] px-2.5 py-1.5 text-[11px] font-semibold text-feelz-ink shadow-md ${NOTE_POSITIONS[index % NOTE_POSITIONS.length]}`}
+                >
+                  {note}
+                </span>
               ))}
-            </dl>
-          )}
-        </div>
-      </div>
-
-      {/* 02. Pain point */}
-      <Reveal className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
-        <h2 className="font-display text-3xl font-bold text-feelz-ink sm:text-4xl">{copy.painPointHeadline}</h2>
-        <p className="mt-4 max-w-xl text-sm leading-relaxed text-feelz-ink/60">{copy.painPointBody}</p>
-      </Reveal>
+            </div>
+          </div>
+        </Reveal>
+      ) : (
+        <Reveal className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
+          <h2 className="font-display text-3xl font-bold text-feelz-ink sm:text-4xl">{copy.painPointHeadline}</h2>
+          <p className="mt-4 max-w-xl text-sm leading-relaxed text-feelz-ink/60">{copy.painPointBody}</p>
+        </Reveal>
+      )}
 
       {/* 02b. The other three moods — cross-sell straight off the pain
           point, before committing to "Feel the difference" below, so
@@ -496,7 +665,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
       <Reveal className="mx-auto max-w-7xl px-4 pb-14 text-center sm:px-6">
         <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Not quite your mood?</p>
         <h3 className="font-display mt-1 text-xl font-bold text-feelz-ink sm:text-2xl">Explore the other FEELZ strips.</h3>
-        <div className="mx-auto mt-8 grid max-w-5xl grid-cols-3 gap-10 sm:gap-16">
+        <div className="mx-auto mt-8 grid max-w-6xl grid-cols-3 gap-10 sm:gap-16">
           {MOOD_GRID.filter((m) => m.key !== mood).map((otherMood) => {
             const otherStyle = MOOD_STYLES[otherMood.key];
             const otherColors = FEELZ_COLOR_CLASSES[otherStyle.feelzColor];
@@ -504,7 +673,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
               <Link
                 key={otherMood.key}
                 href={`/feelz/${otherMood.key}`}
-                className="group mx-auto flex w-full max-w-[16rem] flex-col overflow-hidden border border-feelz-ink/10 bg-feelz-paper shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:max-w-[20rem]"
+                className="group mx-auto flex w-full max-w-[17rem] flex-col overflow-hidden border border-feelz-ink/10 bg-feelz-paper shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:max-w-[22rem]"
               >
                 <div className="relative aspect-square w-full overflow-hidden">
                   <Image
@@ -533,23 +702,15 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
             A thoughtfully crafted blend to support your {label.toLowerCase()} — for the moments that matter.
           </p>
           <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
-            {copy.benefits.map((benefit, index) => {
-              const Icon = BENEFIT_ICONS[index % BENEFIT_ICONS.length];
-              return (
-                <div key={benefit.label} className="text-center">
-                  <div className="relative mx-auto w-fit">
-                    <div className="h-20 w-20 overflow-hidden rounded-2xl border border-feelz-cream/15 shadow-sm sm:h-28 sm:w-28">
-                      <Image src={benefit.image} alt={benefit.label} fill sizes="112px" className="object-cover" />
-                    </div>
-                    <span className="absolute -left-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full border-2 border-feelz-cream bg-feelz-ink text-feelz-cream shadow-sm sm:h-8 sm:w-8">
-                      <Icon className="h-3.5 w-3.5" aria-hidden />
-                    </span>
-                  </div>
-                  <p className="mt-3 text-xs font-semibold">{benefit.label}</p>
-                  <p className="text-[11px] text-feelz-cream/70">{benefit.sub}</p>
+            {copy.benefits.map((benefit) => (
+              <div key={benefit.label} className="text-center">
+                <div className="relative mx-auto h-32 w-32 overflow-hidden rounded-2xl border border-feelz-cream/15 shadow-sm sm:h-44 sm:w-44">
+                  <Image src={benefit.image} alt={benefit.label} fill sizes="176px" className="object-cover" />
                 </div>
-              );
-            })}
+                <p className="mt-3 text-xs font-semibold sm:text-sm">{benefit.label}</p>
+                <p className="text-[11px] text-feelz-cream/70 sm:text-xs">{benefit.sub}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -607,7 +768,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
           </h2>
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {ingredients.map((ingredient) => (
-              <div key={ingredient.name} className={`overflow-hidden rounded-xl border ${colors.borderSoft} ${colors.bgSoft}`}>
+              <div key={ingredient.name} className={`overflow-hidden border ${colors.borderSoft} ${colors.bgSoft}`}>
                 {ingredient.image && (
                   <div className="relative h-20 w-full bg-white">
                     <Image src={ingredient.image} alt={ingredient.name} fill sizes="200px" className="object-contain p-2" />
@@ -617,6 +778,14 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                   <p className="font-display text-sm font-bold text-feelz-ink">{ingredient.name}</p>
                   <p className="text-xs text-feelz-ink/50">{ingredient.amount}</p>
                   <p className="mt-1.5 text-xs leading-snug text-feelz-ink/60">{ingredient.cardHeadline}</p>
+                  <button
+                    type="button"
+                    onClick={() => buyPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                    className={`mx-auto mt-3 flex items-center justify-center gap-1 text-[11px] font-semibold uppercase tracking-label ${colors.text} hover:underline`}
+                  >
+                    View Product
+                    <ArrowUpRight className="h-3 w-3" aria-hidden />
+                  </button>
                 </div>
               </div>
             ))}

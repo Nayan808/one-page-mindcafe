@@ -1,11 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Bell, CalendarClock, MessageCircle, ListChecks, FlaskConical, Sparkles, Droplet, ArrowRight } from "lucide-react";
+import { Bell, CalendarClock, MessageCircle, ListChecks, FlaskConical, Sparkles, Droplet } from "lucide-react";
 import Image from "next/image";
 import { Reveal } from "@/components/Reveal";
 import { FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
-import { SketchLeaf, SketchFlask, SketchHeart, SketchSun, SketchTarget, SketchSparkle } from "@/components/feelz/SketchIcons";
 
 // A section built to match a reference creative's structure (problem →
 // small-strip moment → plant-powered formulation → feel-the-difference,
@@ -42,15 +41,6 @@ const STICKY_NOTES: { label: string; rotate: string; icon: typeof CalendarClock 
   { label: "Calls", rotate: "rotate-3", icon: Bell },
   { label: "To-dos", rotate: "rotate-2", icon: ListChecks },
   { label: "Social plans", rotate: "-rotate-3", icon: MessageCircle },
-];
-
-// Paired cause-and-effect — each approach reads straight into the outcome
-// it leads to, told as one connected row instead of two separate,
-// disconnected groups of three.
-const PAIRS = [
-  { approach: { icon: SketchLeaf, label: "Ayurveda-inspired botanicals" }, outcome: { icon: SketchSun, label: "A brighter mood" } },
-  { approach: { icon: SketchFlask, label: "Modern formulation" }, outcome: { icon: SketchTarget, label: "Sharper focus" } },
-  { approach: { icon: SketchHeart, label: "Gentle, everyday support" }, outcome: { icon: SketchSparkle, label: "A calmer you" } },
 ];
 
 export function CalmerYouSection() {
@@ -201,42 +191,6 @@ export function CalmerYouSection() {
           </Reveal>
         </div>
 
-        {/* Paired cause-and-effect rows — each approach flows straight
-            into the outcome it leads to, read left-to-right as one
-            connected narrative instead of two separate, disconnected
-            groups of three (the earlier version). */}
-        <Reveal delayMs={200} className="mt-16">
-          {/* Raised panel — a light tint of the site's own brand pink
-              (brand-blush) lifts this block off the page's plain cream
-              background instead of just a thin top divider. */}
-          <div className="rounded-[2rem] border border-brand-blush/30 bg-brand-blush/20 p-6 shadow-[0_16px_40px_-20px_rgba(207,150,175,0.4)] sm:p-10">
-            <div className="flex items-center justify-center gap-6 text-xs font-semibold uppercase tracking-label text-feelz-ink/40 sm:text-sm">
-              <span>The approach</span>
-              <ArrowRight className="h-4 w-4 text-feelz-ink/25" aria-hidden />
-              <span>The outcome</span>
-            </div>
-            <div className="mx-auto mt-8 max-w-3xl space-y-4">
-              {PAIRS.map((pair) => (
-                <div
-                  key={pair.approach.label}
-                  className="flex items-center gap-4 rounded-[1.75rem] border border-feelz-ink/10 bg-feelz-paper p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg sm:gap-6 sm:p-6"
-                >
-                  <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-feelz-berry/20 ${FEELZ_COLOR_CLASSES["feelz-berry"].bgTint} sm:h-[4.5rem] sm:w-[4.5rem]`}>
-                    <pair.approach.icon className="h-7 w-7 text-feelz-berry sm:h-8 sm:w-8" aria-hidden />
-                  </span>
-                  <span className="flex-1 text-base font-semibold leading-snug text-feelz-ink/80 sm:text-lg">{pair.approach.label}</span>
-
-                  <ArrowRight className="h-6 w-6 shrink-0 text-feelz-ink/25" aria-hidden />
-
-                  <span className="flex-1 text-right text-base font-bold leading-snug text-feelz-navy sm:text-lg">{pair.outcome.label}</span>
-                  <span className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-feelz-navy/20 ${FEELZ_COLOR_CLASSES["feelz-navy"].bgTint} sm:h-[4.5rem] sm:w-[4.5rem]`}>
-                    <pair.outcome.icon className="h-7 w-7 text-feelz-navy sm:h-8 sm:w-8" aria-hidden />
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Reveal>
       </div>
     </section>
   );

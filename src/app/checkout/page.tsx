@@ -8,6 +8,7 @@ import { useCartContext } from "@/contexts/CartContext";
 import { FulfillmentAndPayment } from "@/components/FulfillmentAndPayment";
 import { OrderConfirmation } from "@/components/OrderConfirmation";
 import { formatInr } from "@/lib/utils";
+import { moodStyleFor } from "@/lib/moodStyles";
 
 // Real checkout route — cart summary + fulfillment/payment, or (once
 // ?order= is set after a successful payment) the tracking/confirmation
@@ -54,17 +55,15 @@ function CheckoutContent() {
                 const price = item.product_variants.price_override ?? item.product_variants.products.price;
                 return (
                   <li key={item.id} className="flex gap-4 rounded-2xl border border-feelz-ink/10 bg-feelz-paper p-4">
-                    {item.product_variants.products.image_url && (
-                      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white sm:h-24 sm:w-24">
-                        <Image
-                          src={item.product_variants.products.image_url}
-                          alt={item.product_variants.products.name}
-                          fill
-                          sizes="96px"
-                          className="object-cover"
-                        />
-                      </div>
-                    )}
+                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-white sm:h-24 sm:w-24">
+                      <Image
+                        src={moodStyleFor(item.product_variants.products.name).catalogueSrc}
+                        alt={item.product_variants.products.name}
+                        fill
+                        sizes="96px"
+                        className="object-cover"
+                      />
+                    </div>
                     <div className="flex min-w-0 flex-1 flex-col justify-between">
                       <div className="flex items-start justify-between gap-2">
                         <span className="font-display text-base font-bold text-feelz-ink">{item.product_variants.products.name}</span>

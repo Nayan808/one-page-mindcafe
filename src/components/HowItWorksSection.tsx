@@ -20,7 +20,7 @@ const STEPS = [
 
 // Alternating tilt per card so the row reads as pinned-up photo prints
 // rather than perfectly aligned tiles.
-const TILTS = ["-rotate-3", "rotate-2", "-rotate-2", "rotate-3", "-rotate-2"];
+const TILTS = ["rotate-0", "rotate-0", "rotate-0", "rotate-0", "rotate-0"];
 
 // Polaroid clothesline instead of the more common connected-circle-node
 // timeline — five taped-up photo prints pinned along a string reads as
@@ -82,7 +82,7 @@ export function HowItWorksSection() {
                             sizes="(min-width: 640px) 18vw, 45vw"
                             className="object-cover"
                           />
-                          <span className="font-display absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-cream bg-ink text-[11px] font-bold text-cream">
+                          <span className="font-display absolute left-1.5 top-1.5 flex h-6 w-6 items-center justify-center border-2 border-cream bg-ink text-[11px] font-bold text-cream">
                             {index + 1}
                           </span>
                         </span>
