@@ -54,7 +54,8 @@ export function HeroCarousel({
   }, [emblaApi, onSelect]);
 
   return (
-    <div className="relative bg-feelz-cream">
+    <div className="bg-feelz-cream">
+      <div className="relative">
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {HERO_SLIDES.map((slide) => (
@@ -82,11 +83,11 @@ export function HeroCarousel({
                       This scrim guarantees contrast under the buttons no
                       matter which slide/photo is showing. */}
                   <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%]"
+                    className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[45%] sm:block"
                     style={{ background: "linear-gradient(to top, rgba(16,35,63,0.45) 0%, rgba(16,35,63,0) 100%)" }}
                     aria-hidden
                   />
-                  <div className="absolute bottom-[27%] left-[4%] flex flex-wrap items-center gap-2.5">
+                  <div className="absolute bottom-[27%] left-[4%] hidden flex-wrap items-center gap-2.5 sm:flex">
                     <button
                       type="button"
                       onClick={onShopClick}
@@ -128,7 +129,7 @@ export function HeroCarousel({
         <ChevronRight className="h-4 w-4" aria-hidden />
       </button>
 
-      <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5">
+      <div className="absolute bottom-3 left-1/2 hidden -translate-x-1/2 items-center gap-1.5 sm:flex">
         {HERO_SLIDES.map((slide, index) => (
           <button
             key={slide.key}
@@ -139,6 +140,44 @@ export function HeroCarousel({
           />
         ))}
       </div>
+      </div>
+
+      {/* Phones: the banner is only ~200px tall at this width, so overlaid
+          buttons sat right on top of each creative's baked-in headline and
+          product shots. Below sm they move out of the image into their
+          own row underneath instead. */}
+      <div className="flex items-center justify-center gap-1.5 pt-2.5 sm:hidden">
+        {HERO_SLIDES.map((slide, index) => (
+          <button
+            key={slide.key}
+            type="button"
+            onClick={() => emblaApi?.scrollTo(index)}
+            aria-label={`Show slide ${index + 1}`}
+            className={`h-1.5 rounded-full transition-all ${index === selectedIndex ? "w-6 bg-feelz-berry" : "w-1.5 bg-feelz-ink/20"}`}
+          />
+        ))}
+      </div>
+
+      {showButtons && (
+        <div className="flex gap-2.5 px-4 pb-1 pt-2.5 sm:hidden">
+          <button
+            type="button"
+            onClick={onShopClick}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-feelz-berry whitespace-nowrap px-3 py-3 text-xs font-semibold uppercase tracking-wider text-feelz-cream shadow-sm"
+          >
+            Shop Now
+            <ArrowRight className="h-3.5 w-3.5" aria-hidden />
+          </button>
+          <button
+            type="button"
+            onClick={onZostelClick}
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-feelz-ink/15 bg-feelz-paper whitespace-nowrap px-3 py-3 text-xs font-semibold uppercase tracking-wider text-feelz-ink shadow-sm"
+          >
+            <MapPin className="h-3.5 w-3.5" aria-hidden />
+            Find at Zostel
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -66,7 +66,7 @@ export function Header() {
       }`}
     >
       <div
-        className={`mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center transition-all duration-500 ${
+        className={`mx-auto flex max-w-7xl items-center justify-between transition-all duration-500 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] ${
           cinematic
             ? `liquid-glass liquid-glass-onlight rounded-full px-4 py-2.5 sm:px-6 sm:py-3 ${scrolled ? "liquid-glass-dense" : ""}`
             : "px-5 py-4 sm:px-8"
@@ -84,7 +84,7 @@ export function Header() {
           ))}
         </nav>
 
-        <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center justify-self-center gap-2 leading-none">
+        <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center gap-2 leading-none sm:justify-self-center">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/90 shadow-sm">
             <Image src="/mindcafe-icon.png" alt="" width={28} height={28} priority className="h-7 w-7" />
           </span>
