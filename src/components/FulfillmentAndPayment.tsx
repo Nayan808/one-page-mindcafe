@@ -18,6 +18,7 @@ import { useAddresses } from "@/lib/query/hooks";
 import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
 import { PhoneVerifyInline } from "@/components/PhoneVerifyInline";
 import { formatInr } from "@/lib/utils";
+import { MOOD_GRID, FEELZ_BUNDLE_PRICE } from "@/lib/moodStyles";
 import type { PickupLocation } from "@/types/domain";
 
 type Mode = "delivery" | "takeaway";
@@ -31,6 +32,23 @@ type Mode = "delivery" | "takeaway";
 // lives in the database.
 const AUTO_COUPON_CODE = "FEELZ10";
 const AUTO_COUPON_MIN_SUBTOTAL = 300;
+
+// A second auto-applied code — one of each of the four real moods in the
+// cart (the "bundle" picked on a product page, see FeelzProductPageContent
+// .tsx) gets 20% off instead of FEELZ10's 10%, same no-code-needed pattern.
+// Whichever of the two the cart currently qualifies for is computed below
+// (eligibleAutoCode) and only one is ever applied at a time — they never
+// stack, same as the coupon/quantity-discount rule above.
+const BUNDLE_COUPON_CODE = "BUNDLE20";
+
+// A second, independent automatic discount — buy 2+ packs (of anything,
+// summed across the whole cart), get 10% off, no code needed. Computed the
+// same way here and in create-order (the actual charge), and the two never
+// stack: whichever discount is larger wins, matching create-order's own
+// Math.max(couponDiscount, quantityDiscount) so this preview never shows a
+// number different from what's actually charged.
+const QUANTITY_DISCOUNT_MIN_QTY = 2;
+const QUANTITY_DISCOUNT_PERCENT = 0.1;
 
 // Delivery or takeaway pickup at a listed Zostel — payment is Razorpay
 // only in both cases (pay-online, no cash-on-pickup). No pre-existing
@@ -74,9 +92,25 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
-  // A successfully-applied manual code takes priority over the default —
+  // Guards the auto-apply effect below against retrying forever: if an
+  // auto code (FEELZ10/BUNDLE20) fails validation — e.g. not active in the
+  // database yet — appliedCoupon stays null, which used to make the
+  // effect immediately re-fire on every render, hammering the server in a
+  // tight loop and leaving the manual "Apply" button stuck on "Checking…"
+  // (shared isCheckingCoupon state). Once a given code has failed once
+  // this stops retrying it automatically; it resets the moment the
+  // eligible code changes (e.g. cart composition changes).
+  const [autoCodeFailed, setAutoCodeFailed] = useState<string | null>(null);
+  // A successfully-applied manual code takes priority over either default —
   // the auto-coupon effect below checks this before touching anything.
-  const hasManualCoupon = appliedCoupon !== null && appliedCoupon.code !== AUTO_COUPON_CODE;
+  const hasManualCoupon =
+    appliedCoupon !== null && appliedCoupon.code !== AUTO_COUPON_CODE && appliedCoupon.code !== BUNDLE_COUPON_CODE;
+
+  // One of each of the four real moods, by product name — matches how the
+  // bundle option on FeelzProductPageContent.tsx adds to cart (one unit of
+  // each product, not four of one).
+  const cartProductNames = new Set(items.map((item) => item.product_variants.products.name.trim().toLowerCase()));
+  const hasBundleInCart = MOOD_GRID.every((m) => cartProductNames.has(m.key));
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -124,9 +158,17 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     serviceability.serviceable
       ? serviceability.deliveryFee
       : 0;
-  // appliedCoupon is the single source of truth once set — nothing here
-  // silently invalidates it out from under the displayed discount anymore.
-  const discountAmount = appliedCoupon?.discountAmount ?? 0;
+  // appliedCoupon is the single source of truth for the COUPON discount —
+  // nothing here silently invalidates it out from under the displayed
+  // discount anymore. The quantity discount is entirely separate (no
+  // checkbox, no code, just cart quantity), so it can't be affected by
+  // anything in the coupon state machine above.
+  const couponDiscountAmount = appliedCoupon?.discountAmount ?? 0;
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+  const quantityDiscountAmount =
+    totalQuantity >= QUANTITY_DISCOUNT_MIN_QTY ? subtotal * QUANTITY_DISCOUNT_PERCENT : 0;
+  const quantityDiscountWins = quantityDiscountAmount > couponDiscountAmount;
+  const discountAmount = Math.max(couponDiscountAmount, quantityDiscountAmount);
   // Delivery is free for every customer right now — create-order applies
   // this server-side too (the FREESHIP coupon, looked up automatically,
   // no code entry from the customer), so the total shown here has to
@@ -149,6 +191,27 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     }
   }
 
+  // Deliberately separate from applyCoupon/isCheckingCoupon/couponError —
+  // those are the manual-input field's own state, and reusing them here
+  // made an auto-apply attempt show "Checking…" on the unrelated manual
+  // "Apply" button and surface its error under the manual field instead of
+  // next to the checkbox that actually triggered it. On failure this sets
+  // autoCodeFailed so the effect below stops retrying that code.
+  const [isAutoChecking, setIsAutoChecking] = useState(false);
+  async function applyAutoCoupon(code: string) {
+    setIsAutoChecking(true);
+    try {
+      const sb = createClient();
+      const result = await validateCoupon(sb, code, subtotal);
+      setAppliedCoupon(result);
+      setAutoCodeFailed(null);
+    } catch {
+      setAutoCodeFailed(code);
+    } finally {
+      setIsAutoChecking(false);
+    }
+  }
+
   async function handleApplyManualCoupon() {
     if (!manualCouponCode.trim()) return;
     const applied = await applyCoupon(manualCouponCode);
@@ -163,19 +226,31 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     if (hasManualCoupon) setAppliedCoupon(null);
   }
 
-  // Keeps FEELZ10 applied/removed in sync with the checkbox + ₹300
-  // threshold — but only while no manual code is active, so a customer's
-  // own coupon is never clobbered by this running again on some unrelated
-  // state change (item added, address picked, etc.).
+  // Whichever of the two auto codes the cart currently qualifies for —
+  // the bundle's 20% beats the ₹300+ 10% whenever both are available, so
+  // it takes priority rather than the two being compared by discount
+  // amount (they'd always resolve the same way anyway, since 20% of any
+  // subtotal that also clears ₹300 is larger than 10% of it).
+  const eligibleAutoCode = hasBundleInCart ? BUNDLE_COUPON_CODE : subtotal >= AUTO_COUPON_MIN_SUBTOTAL ? AUTO_COUPON_CODE : null;
+
+  // Keeps the eligible auto code applied/removed in sync with the checkbox
+  // + cart contents — but only while no manual code is active, so a
+  // customer's own coupon is never clobbered by this running again on some
+  // unrelated state change (item added, address picked, etc.). Skips any
+  // code that already failed this session (autoCodeFailed) instead of
+  // retrying it on every render — without that guard, a code that isn't
+  // valid yet (e.g. not active in the database) made this fire in a tight
+  // loop, since a failed attempt leaves appliedCoupon null, which looked
+  // identical to "never tried yet" on the very next render.
   useEffect(() => {
-    if (hasManualCoupon || isCheckingCoupon) return;
-    if (useAutoCoupon && subtotal >= AUTO_COUPON_MIN_SUBTOTAL) {
-      if (appliedCoupon?.code !== AUTO_COUPON_CODE) void applyCoupon(AUTO_COUPON_CODE);
-    } else if (appliedCoupon?.code === AUTO_COUPON_CODE) {
+    if (hasManualCoupon || isAutoChecking) return;
+    if (useAutoCoupon && eligibleAutoCode && eligibleAutoCode !== autoCodeFailed) {
+      if (appliedCoupon?.code !== eligibleAutoCode) void applyAutoCoupon(eligibleAutoCode);
+    } else if (appliedCoupon?.code === AUTO_COUPON_CODE || appliedCoupon?.code === BUNDLE_COUPON_CODE) {
       setAppliedCoupon(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useAutoCoupon, subtotal, hasManualCoupon, appliedCoupon, isCheckingCoupon]);
+  }, [useAutoCoupon, eligibleAutoCode, hasManualCoupon, appliedCoupon, isAutoChecking, autoCodeFailed]);
 
   const serviceabilityOk =
     serviceability !== "unchecked" &&
@@ -245,14 +320,14 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         <button
           type="button"
           onClick={() => setMode("delivery")}
-          className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium ${mode === "delivery" ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/70"}`}
+          className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium ${mode === "delivery" ? "border-feelz-ink bg-feelz-ink text-feelz-cream" : "border-feelz-ink/20 text-feelz-ink/70"}`}
         >
           DIRECT DELIVERY
         </button>
         <button
           type="button"
           onClick={() => setMode("takeaway")}
-          className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium ${mode === "takeaway" ? "border-ink bg-ink text-cream" : "border-ink/20 text-ink/70"}`}
+          className={`flex-1 rounded-full border px-4 py-2 text-sm font-medium ${mode === "takeaway" ? "border-feelz-ink bg-feelz-ink text-feelz-cream" : "border-feelz-ink/20 text-feelz-ink/70"}`}
         >
           TAKEAWAY FROM A ZOSTEL
         </button>
@@ -261,9 +336,9 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
       {!user && <PhoneVerifyInline label="Verify your phone to continue" />}
 
       {user && (user.phone || profile?.phone) && (
-        <p className="text-sm text-ink/60">
+        <p className="text-sm text-feelz-ink/60">
           We&apos;ll reach you about this order at{" "}
-          <span className="font-medium text-ink">{user.phone ? `+${user.phone}` : profile?.phone}</span>.
+          <span className="font-medium text-feelz-ink">{user.phone ? `+${user.phone}` : profile?.phone}</span>.
         </p>
       )}
 
@@ -276,7 +351,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
               {addresses.map((address) => (
                 <label
                   key={address.id}
-                  className="flex items-start gap-3 rounded-xl border border-ink/15 bg-white p-3 text-sm has-[:checked]:border-ink"
+                  className="flex items-start gap-3 rounded-xl border border-feelz-ink/15 bg-feelz-paper p-3 text-sm has-[:checked]:border-feelz-ink"
                 >
                   <input
                     type="radio"
@@ -289,8 +364,8 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                     className="mt-1"
                   />
                   <span>
-                    <span className="block font-medium text-ink">{address.full_name}</span>
-                    <span className="block text-ink/60">
+                    <span className="block font-medium text-feelz-ink">{address.full_name}</span>
+                    <span className="block text-feelz-ink/60">
                       {address.line1}, {address.city}, {address.state} {address.pincode}
                     </span>
                   </span>
@@ -299,7 +374,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
               <button
                 type="button"
                 onClick={() => setShowNewAddressForm(true)}
-                className="text-sm font-medium text-ink underline"
+                className="text-sm font-medium text-feelz-ink underline"
               >
                 + Use a New Address
               </button>
@@ -310,7 +385,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             <AddressForm onSubmit={handleAddAddress} isSubmitting={addAddress.isPending} />
           )}
 
-          {serviceability === "checking" && <p className="text-sm text-ink/60">Checking serviceability…</p>}
+          {serviceability === "checking" && <p className="text-sm text-feelz-ink/60">Checking serviceability…</p>}
           {serviceability === "error" && (
             <p className="text-sm text-red-700">
               {serviceabilityError ?? "Couldn't check delivery availability"} — please try again.
@@ -332,7 +407,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                   "free"
                 ) : (
                   <>
-                    <span className="text-ink/40 line-through">{formatInr(serviceability.deliveryFee)}</span>{" "}
+                    <span className="text-feelz-ink/40 line-through">{formatInr(serviceability.deliveryFee)}</span>{" "}
                     <span className="font-semibold">FREE</span>
                   </>
                 )}
@@ -351,22 +426,22 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
               : locations;
 
             if (locations.length === 0) {
-              return <p className="text-sm text-ink/60">Loading Zostel pickup points…</p>;
+              return <p className="text-sm text-feelz-ink/60">Loading Zostel pickup points…</p>;
             }
 
             if (selectedLocation && !showAllLocations) {
               return (
-                <div className="flex items-start justify-between gap-3 rounded-xl border border-ink bg-white p-3 text-sm">
+                <div className="flex items-start justify-between gap-3 rounded-xl border border-feelz-ink bg-feelz-paper p-3 text-sm">
                   <span>
-                    <span className="block font-medium text-ink">{selectedLocation.name}</span>
-                    <span className="block text-ink/60">
+                    <span className="block font-medium text-feelz-ink">{selectedLocation.name}</span>
+                    <span className="block text-feelz-ink/60">
                       {selectedLocation.address}, {selectedLocation.city}
                     </span>
                   </span>
                   <button
                     type="button"
                     onClick={() => setShowAllLocations(true)}
-                    className="shrink-0 text-xs font-medium text-ink underline"
+                    className="shrink-0 text-xs font-medium text-feelz-ink underline"
                   >
                     Change
                   </button>
@@ -377,7 +452,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             return (
               <div className="space-y-2">
                 <div className="relative">
-                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink/40" aria-hidden />
+                  <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-feelz-ink/40" aria-hidden />
                   <input
                     type="text"
                     value={locationSearch}
@@ -388,12 +463,12 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                 </div>
                 <div className="max-h-72 space-y-2 overflow-y-auto">
                   {filteredLocations.length === 0 ? (
-                    <p className="text-sm text-ink/60">No Zostel matches &ldquo;{locationSearch}&rdquo;.</p>
+                    <p className="text-sm text-feelz-ink/60">No Zostel matches &ldquo;{locationSearch}&rdquo;.</p>
                   ) : (
                     filteredLocations.map((location) => (
                       <label
                         key={location.id}
-                        className="flex items-start gap-3 rounded-xl border border-ink/15 bg-white p-3 text-sm has-[:checked]:border-ink"
+                        className="flex items-start gap-3 rounded-xl border border-feelz-ink/15 bg-feelz-paper p-3 text-sm has-[:checked]:border-feelz-ink"
                       >
                         <input
                           type="radio"
@@ -406,8 +481,8 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                           className="mt-1"
                         />
                         <span>
-                          <span className="block font-medium text-ink">{location.name}</span>
-                          <span className="block text-ink/60">
+                          <span className="block font-medium text-feelz-ink">{location.name}</span>
+                          <span className="block text-feelz-ink/60">
                             {location.address}, {location.city}
                           </span>
                         </span>
@@ -420,7 +495,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           })()}
 
           <div>
-            <label className="mb-1 block text-sm text-ink/70">Pickup slot (optional)</label>
+            <label className="mb-1 block text-sm text-feelz-ink/70">Pickup slot (optional)</label>
             <input
               value={pickupSlot}
               onChange={(event) => setPickupSlot(event.target.value)}
@@ -432,7 +507,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
       )}
 
       <div className="space-y-3">
-        <label className="flex items-center gap-2 rounded-xl border border-ink/15 bg-cream p-3 text-sm">
+        <label className="flex items-center gap-2 rounded-xl border border-feelz-ink/15 bg-feelz-cream p-3 text-sm">
           <input
             type="checkbox"
             checked={useAutoCoupon}
@@ -440,15 +515,27 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
             className="h-4 w-4 shrink-0"
           />
           <span>
-            Apply 10% off (<span className="font-medium text-ink">{AUTO_COUPON_CODE}</span>)
-            {subtotal < AUTO_COUPON_MIN_SUBTOTAL && (
-              <span className="text-ink/50"> — add {formatInr(AUTO_COUPON_MIN_SUBTOTAL - subtotal)} more to qualify</span>
+            {hasBundleInCart ? (
+              <>
+                Apply bundle price — <span className="font-medium text-feelz-ink">{formatInr(FEELZ_BUNDLE_PRICE)}</span> for one of each mood (
+                <span className="font-medium text-feelz-ink">{BUNDLE_COUPON_CODE}</span>)
+              </>
+            ) : (
+              <>
+                Apply 10% off (<span className="font-medium text-feelz-ink">{AUTO_COUPON_CODE}</span>)
+                {subtotal < AUTO_COUPON_MIN_SUBTOTAL && (
+                  <span className="text-feelz-ink/50"> — add {formatInr(AUTO_COUPON_MIN_SUBTOTAL - subtotal)} more to qualify</span>
+                )}
+              </>
             )}
           </span>
         </label>
+        {autoCodeFailed && autoCodeFailed === eligibleAutoCode && !hasManualCoupon && (
+          <p className="text-sm text-red-600">That offer isn&apos;t available right now — the 2+ packs discount still applies if your cart qualifies.</p>
+        )}
 
         <div>
-          <label className="mb-1 block text-sm text-ink/70">Have a different coupon code? (optional)</label>
+          <label className="mb-1 block text-sm text-feelz-ink/70">Have a different coupon code? (optional)</label>
           <div className="flex gap-2">
             <input
               value={manualCouponCode}
@@ -484,19 +571,21 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
 
         {discountAmount > 0 && (
           <p className="text-sm text-emerald-700">
-            &ldquo;{appliedCoupon!.code}&rdquo; applied, {formatInr(discountAmount)} off
+            {quantityDiscountWins
+              ? `10% off applied for 2+ packs, ${formatInr(discountAmount)} off`
+              : `"${appliedCoupon!.code}" applied, ${formatInr(discountAmount)} off`}
           </p>
         )}
       </div>
 
-      <div className="rounded-xl border border-ink/15 bg-white p-4 text-sm">
+      <div className="rounded-xl border border-feelz-ink/15 bg-feelz-paper p-4 text-sm">
         <div className="flex justify-between">
           <span>Subtotal</span>
           <span>{formatInr(subtotal)}</span>
         </div>
         {discountAmount > 0 && (
           <div className="flex justify-between text-emerald-700">
-            <span>Coupon ({appliedCoupon!.code})</span>
+            <span>{quantityDiscountWins ? "2+ packs discount" : `Coupon (${appliedCoupon!.code})`}</span>
             <span>−{formatInr(discountAmount)}</span>
           </div>
         )}
@@ -504,14 +593,14 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
           <span>{mode === "delivery" ? "Delivery fee" : "Pickup"}</span>
           {mode === "delivery" && deliveryFee > 0 ? (
             <span>
-              <span className="text-ink/40 line-through">{formatInr(deliveryFee)}</span>{" "}
+              <span className="text-feelz-ink/40 line-through">{formatInr(deliveryFee)}</span>{" "}
               <span className="font-semibold text-emerald-700">FREE</span>
             </span>
           ) : (
             <span>Free</span>
           )}
         </div>
-        <div className="mt-2 flex justify-between border-t border-ink/10 pt-2 font-medium">
+        <div className="mt-2 flex justify-between border-t border-feelz-ink/10 pt-2 font-medium">
           <span>Total</span>
           <span>{formatInr(total)}</span>
         </div>

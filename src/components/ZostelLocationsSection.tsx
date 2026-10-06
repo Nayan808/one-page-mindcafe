@@ -4,7 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, ChevronRight, MapPin, Search, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Search, ShoppingBag, Store, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getActivePickupLocations } from "@/lib/api";
 import type { PickupLocation } from "@/types/domain";
@@ -23,7 +23,39 @@ function mapsUrl(location: PickupLocation): string {
   return location.maps_url ?? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(location.address)}`;
 }
 
+// Real property photography — eight of these are the actual Zostel-supplied
+// photos from "Zostel Properties/" (resized to webp, full frame kept, no
+// pre-cropping), Jaipur is the one exception still sourced from the
+// client's reference creative (public/feelz-creative/09-find-feelz-at-
+// selected-zostel-sites.webp) since no source photo was supplied for it.
+// Keyed by a normalized substring of the real pickup_locations.name values
+// (see supabase/setup.sql and supabase/data-imports/
+// pickup_location_maps_url_2026-08-04.sql), so a photo only ever shows on
+// the location it actually depicts — any location without a confirmed
+// name match falls back to the plain icon header rather than showing a
+// mismatched or generic hostel photo.
+const LOCATION_PHOTOS: Record<string, string> = {
+  manali: "/feelz-creative/zostel/manali.webp",
+  goa: "/feelz-creative/zostel/goa.webp",
+  jaipur: "/feelz-creative/zostel/jaipur.webp",
+  mumbai: "/feelz-creative/zostel/mumbai.webp",
+  gokarna: "/feelz-creative/zostel/gokarna.webp",
+  dharamkot: "/feelz-creative/zostel/dharamkot.webp",
+  mcleodganj: "/feelz-creative/zostel/mcleodganj.webp",
+  gurgaon: "/feelz-creative/zostel/hq-gurgaon.webp",
+  poombarai: "/feelz-creative/zostel/poombarai.webp",
+};
+
+function photoForLocation(location: PickupLocation): string | null {
+  const normalized = location.name.toLowerCase().replace(/\s+/g, " ").trim();
+  for (const [key, src] of Object.entries(LOCATION_PHOTOS)) {
+    if (normalized.includes(key)) return src;
+  }
+  return null;
+}
+
 function LocationCard({ location, wide }: { location: PickupLocation; wide?: boolean }) {
+  const photo = photoForLocation(location);
   // Card's primary action is now "order here" (straight into scan-and-order
   // pre-scoped to this Zostel via ?location=, which ScanOrderContent.tsx
   // already reads to skip its location-picker step) rather than opening
@@ -33,26 +65,43 @@ function LocationCard({ location, wide }: { location: PickupLocation; wide?: boo
   // another <a>/interactive element, so this is a shared `relative`
   // wrapper with the icon absolutely positioned on top instead.
   return (
-    <div className={`relative shrink-0 ${wide ? "w-64" : "w-56"}`}>
+    <div className={`relative shrink-0 ${wide ? "w-72" : "w-60"}`}>
       <Link
         href={`/scan-order?location=${location.id}`}
-        className="block rounded-2xl border border-ink bg-white p-4 text-left text-ink shadow-lg transition hover:bg-ink/5"
+        className="block overflow-hidden rounded-2xl border border-ink bg-white text-left text-ink shadow-lg transition hover:bg-ink/5"
       >
-        <div className="relative h-8 w-8 overflow-hidden rounded-full border border-ink/10">
-          <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+        {photo ? (
+          <div className="relative aspect-[3/2] w-full overflow-hidden bg-feelz-ink">
+            <Image
+              src={photo}
+              alt={`${location.name} property photo`}
+              fill
+              sizes="256px"
+              className="object-contain"
+            />
+          </div>
+        ) : null}
+        <div className="p-4">
+          {!photo && (
+            <div className="relative h-8 w-8 overflow-hidden rounded-full border border-ink/10">
+              <Image src="/press/zostel.png" alt="" fill className="object-cover" />
+            </div>
+          )}
+          <p className={`font-display text-base font-bold ${photo ? "" : "mt-2.5"}`}>{location.name}</p>
+          <p className="mt-1.5 flex items-start gap-1.5 pr-6 text-xs text-ink/70">{location.address}</p>
+          <span className="mt-3 inline-block rounded-full border border-ink px-3 py-1 text-[11px] font-medium">
+            {location.city}
+          </span>
         </div>
-        <p className="font-display mt-2.5 text-base font-bold">{location.name}</p>
-        <p className="mt-1.5 flex items-start gap-1.5 pr-6 text-xs text-ink/70">{location.address}</p>
-        <span className="mt-3 inline-block rounded-full border border-ink px-3 py-1 text-[11px] font-medium">
-          {location.city}
-        </span>
       </Link>
       <a
         href={mapsUrl(location)}
         target="_blank"
         rel="noreferrer"
         aria-label={`Open ${location.name} in Google Maps`}
-        className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border border-ink/15 bg-white text-ink/60 hover:text-ink"
+        className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full border text-ink/60 hover:text-ink ${
+          photo ? "border-white/40 bg-white/90 backdrop-blur-sm" : "border-ink/15 bg-white"
+        }`}
       >
         <MapPin className="h-3.5 w-3.5" aria-hidden />
       </a>
@@ -89,20 +138,17 @@ export function ZostelLocationsSection() {
   }, [locations, trimmedQuery]);
 
   return (
-    <section id="zostel-locations">
-      <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-16 text-center sm:px-6">
-      <div className="relative mx-auto flex h-16 w-16 items-center justify-center overflow-hidden rounded-full shadow-lg">
-        <Image src="/press/zostel.png" alt="Zostel" fill className="object-cover" />
-      </div>
-      <div className="mx-auto mt-4 flex w-fit items-center gap-3">
+    <section id="zostel-locations" className="bg-brand-blush/20">
+      <div className="mx-auto w-full min-w-0 max-w-[96rem] px-4 py-16 text-center sm:px-6">
+      <div className="mx-auto flex w-fit items-center gap-3">
         <span className="h-px w-10 bg-ink/20" aria-hidden />
         <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
         <span className="h-px w-10 bg-ink/20" aria-hidden />
       </div>
       <p className="mt-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">Available Now</p>
 
-      <h2 className="font-display mx-auto mt-4 max-w-2xl text-4xl font-bold leading-[1.1] text-ink sm:text-5xl">
-        Feelz travels with you
+      <h2 className="font-display mx-auto mt-4 max-w-full text-2xl font-bold leading-[1.1] text-ink sm:text-3xl md:whitespace-nowrap md:text-3xl lg:text-4xl xl:text-5xl">
+        Find Feelz at <span className="text-brand">Selected Zostel Sites</span>
       </h2>
       <p className="mx-auto mt-3 max-w-xl text-sm text-ink/60 sm:text-base">
         Forgot to pack your Feelz? Find us at Zostel.
@@ -126,6 +172,25 @@ export function ZostelLocationsSection() {
             <X className="h-4 w-4" aria-hidden />
           </button>
         )}
+      </div>
+
+      <div className="scrollbar-hide mx-auto mt-5 max-w-full overflow-x-auto px-4">
+        <div className="mx-auto flex w-max flex-nowrap items-center justify-center gap-x-2.5 whitespace-nowrap text-[11px] text-ink/60 sm:gap-x-5 sm:text-xs">
+          <span className="flex items-center gap-1.5">
+            <Store className="h-3.5 w-3.5 shrink-0 text-ink/40" aria-hidden />
+            Built with Zostel
+          </span>
+          <span className="h-3 w-px shrink-0 bg-ink/15" aria-hidden />
+          <span className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0 text-ink/40" aria-hidden />
+            Ask at reception
+          </span>
+          <span className="h-3 w-px shrink-0 bg-ink/15" aria-hidden />
+          <button type="button" onClick={scrollToProducts} className="flex items-center gap-1.5 hover:text-ink">
+            <ShoppingBag className="h-3.5 w-3.5 shrink-0 text-ink/40" aria-hidden />
+            Order online
+          </button>
+        </div>
       </div>
 
       {locationsQuery.isLoading ? (
@@ -171,14 +236,14 @@ export function ZostelLocationsSection() {
             </div>
           </div>
 
-          {/* Desktop / tablet: horizontal scroll, width capped to ~3 cards
+          {/* Desktop / tablet: horizontal scroll, width capped to ~4 cards
               so the rest are a deliberate scroll away rather than all laid
               out at once on wide screens. The scrollbar itself is hidden
               (scrollbar-hide), so without the two arrow buttons here
-              there's no visible sign there's anything past the first 3
+              there's no visible sign there's anything past the first 4
               cards — arrows call scrollBy on the tracked ref, same
               destination the trackpad/scrollbar already reaches. */}
-          <div className="relative mx-auto mt-10 hidden max-w-[50rem] items-center gap-2 sm:flex">
+          <div className="relative mx-auto mt-10 hidden max-w-[92rem] items-center gap-2 sm:flex">
             {locations.length > 3 && (
               <button
                 type="button"

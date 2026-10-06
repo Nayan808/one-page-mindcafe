@@ -18,6 +18,8 @@
     "@supabase/supabase-js": "^2.109.0",
     "@tanstack/react-query": "^5.101.2",
     "clsx": "^2.1.1",
+    "embla-carousel-autoplay": "^8.6.0",
+    "embla-carousel-react": "^8.6.0",
     "jsqr": "^1.4.0",
     "lucide-react": "^1.24.0",
     "motion": "^12.42.2",

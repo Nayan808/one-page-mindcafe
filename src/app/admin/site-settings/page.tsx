@@ -11,7 +11,11 @@ import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import type { SiteSetting } from "@/types/domain";
 
 const KNOWN_KEYS = [
-  { key: "announcement_bar", example: '{ "text": "Feelz now at Zostel!", "enabled": true, "href": "/feelz" }' },
+  {
+    key: "announcement_bar",
+    example:
+      '{ "enabled": true, "messages": [ { "text": "10% off applied automatically at checkout", "href": "/feelz" }, { "text": "Book a 1:1 session with a certified counsellor", "href": "/book-appointment" } ] }',
+  },
   { key: "homepage_stats", example: '{ "chips": ["10 strips per box", "₹29 per strip", "1.5g total", "4 moods x 2.5mg"] }' },
 ];
 

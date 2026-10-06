@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { subscribeToNewsletter } from "@/lib/api";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { StaggerGroup } from "@/components/motion/primitives";
+import { MOOD_GRID } from "@/lib/moodStyles";
 
 // lucide-react has no brand icons in this version (see the comment below),
 // but this exact glyph — rounded square, lens circle, flash dot — is the
@@ -93,58 +94,45 @@ function NewsletterForm() {
 export function Footer() {
   const { openAuthModal } = useAuthModal();
   return (
-    <footer className="mx-3 mb-3 rounded-2xl border border-cream/10 bg-brand-wine px-6 py-8 text-center text-cream sm:mx-6 sm:mb-6 sm:px-10 sm:text-left">
+    <footer className="mx-3 mb-3 rounded-2xl border border-ink/10 bg-brand-blush/15 px-6 py-8 text-center text-ink sm:mx-6 sm:mb-6 sm:px-10 sm:text-left">
       {/* Quiet closure: columns arrive in sequence rather than as one block. */}
       <StaggerGroup className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4" gap={0.11}>
         <div>
           <p className="font-display text-2xl font-bold">Feelz</p>
-          <p className="mx-auto mt-2 max-w-xs text-sm text-cream/60 sm:mx-0">
+          <p className="mx-auto mt-2 max-w-xs text-sm text-ink/60 sm:mx-0">
             Sublingual mood strips, made by Mindcafe, incubated at Zo World, distributed by Zostel.
           </p>
-          <ul className="mt-3 space-y-1 text-sm text-cream/70">
-            <li>
-              <Link href="/feelz#focus" className="hover:text-cream hover:underline">
-                focus
-              </Link>
-            </li>
-            <li>
-              <Link href="/feelz#extrovert" className="hover:text-cream hover:underline">
-                extrovert
-              </Link>
-            </li>
-            <li>
-              <Link href="/feelz#joy" className="hover:text-cream hover:underline">
-                joy
-              </Link>
-            </li>
-            <li>
-              <Link href="/feelz#rest" className="hover:text-cream hover:underline">
-                rest
-              </Link>
-            </li>
+          <ul className="mt-3 space-y-1 text-sm text-ink/70">
+            {MOOD_GRID.map((mood) => (
+              <li key={mood.key}>
+                <Link href={`/feelz/${mood.key}`} className="hover:text-brand hover:underline">
+                  {mood.label.toLowerCase()}
+                </Link>
+              </li>
+            ))}
           </ul>
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Counselling</p>
-          <ul className="mt-2 space-y-1 text-sm text-cream/70">
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Counselling</p>
+          <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
-              <Link href="/counselling" className="hover:text-cream hover:underline">
+              <Link href="/counselling" className="hover:text-brand hover:underline">
                 1:1 counselling
               </Link>
             </li>
             <li>
-              <Link href="/book-appointment" className="hover:text-cream hover:underline">
+              <Link href="/book-appointment" className="hover:text-brand hover:underline">
                 book a session
               </Link>
             </li>
             <li>
-              <Link href="/self-assessment" className="hover:text-cream hover:underline">
+              <Link href="/self-assessment" className="hover:text-brand hover:underline">
                 self-assessment tests
               </Link>
             </li>
             <li>
-              <Link href="/business" className="hover:text-cream hover:underline">
+              <Link href="/business" className="hover:text-brand hover:underline">
                 for business
               </Link>
             </li>
@@ -152,25 +140,25 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Company</p>
-          <ul className="mt-2 space-y-1 text-sm text-cream/70">
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Company</p>
+          <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
-              <Link href="/about" className="hover:text-cream hover:underline">
+              <Link href="/about" className="hover:text-brand hover:underline">
                 about
               </Link>
             </li>
             <li>
-              <a href="mailto:team@mindcafe.app" className="hover:text-cream hover:underline">
+              <a href="mailto:team@mindcafe.app" className="hover:text-brand hover:underline">
                 contact
               </a>
             </li>
             <li>
-              <Link href="/trust" className="hover:text-cream hover:underline">
+              <Link href="/trust" className="hover:text-brand hover:underline">
                 trust & safety
               </Link>
             </li>
             <li>
-              <Link href="/awards" className="hover:text-cream hover:underline">
+              <Link href="/awards" className="hover:text-brand hover:underline">
                 awards
               </Link>
             </li>
@@ -178,20 +166,20 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Accounts</p>
-          <ul className="mt-2 space-y-1 text-sm text-cream/70">
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Accounts</p>
+          <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
-              <button type="button" onClick={openAuthModal} className="hover:text-cream hover:underline">
+              <button type="button" onClick={openAuthModal} className="hover:text-brand hover:underline">
                 login
               </button>
             </li>
             <li>
-              <Link href="/expert/login" className="hover:text-cream hover:underline">
+              <Link href="/expert/login" className="hover:text-brand hover:underline">
                 expert login
               </Link>
             </li>
             <li>
-              <Link href="/employer/login" className="hover:text-cream hover:underline">
+              <Link href="/employer/login" className="hover:text-brand hover:underline">
                 employer login
               </Link>
             </li>
@@ -200,17 +188,17 @@ export function Footer() {
       </StaggerGroup>
 
       <StaggerGroup
-        className="mt-8 grid gap-8 border-t border-cream/10 pt-8 sm:grid-cols-2 lg:grid-cols-4"
+        className="mt-8 grid gap-8 border-t border-ink/10 pt-8 sm:grid-cols-2 lg:grid-cols-4"
         gap={0.11}
       >
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Stay in the Loop</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Stay in the Loop</p>
           <NewsletterForm />
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Trust &amp; Quality</p>
-          <ul className="mt-2 space-y-3 text-sm text-cream/70">
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Trust &amp; Quality</p>
+          <ul className="mt-2 space-y-3 text-sm text-ink/70">
             <li className="flex items-center justify-center gap-2 sm:justify-start">
               <Image
                 src="/certifications/fssai-logo.png"
@@ -235,24 +223,24 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Contact</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Contact</p>
           <ul className="mt-2 space-y-3 text-sm">
             <li>
               <a
                 href="mailto:team@mindcafe.app"
-                className="flex items-center justify-center gap-1.5 text-cream hover:underline sm:justify-start"
+                className="flex items-center justify-center gap-1.5 text-ink hover:text-brand hover:underline sm:justify-start"
               >
-                <Mail className="h-3.5 w-3.5 text-cream/40" aria-hidden />
+                <Mail className="h-3.5 w-3.5 text-ink/40" aria-hidden />
                 team@mindcafe.app
               </a>
-              <span className="mt-0.5 block text-xs text-cream/50">response within 24 hours</span>
+              <span className="mt-0.5 block text-xs text-ink/50">response within 24 hours</span>
             </li>
             <li>
               <a
                 href="tel:+917566007770"
-                className="flex items-center justify-center gap-1.5 text-cream hover:underline sm:justify-start"
+                className="flex items-center justify-center gap-1.5 text-ink hover:text-brand hover:underline sm:justify-start"
               >
-                <Phone className="h-3.5 w-3.5 text-cream/40" aria-hidden />
+                <Phone className="h-3.5 w-3.5 text-ink/40" aria-hidden />
                 +91 75660 07770
               </a>
             </li>
@@ -260,7 +248,7 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-label text-cream/50">Follow</p>
+          <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Follow</p>
           {/* lucide-react has no brand icons in this version — Facebook and
               Instagram get their own real glyphs via FacebookIcon/
               InstagramIcon above. */}
@@ -270,7 +258,7 @@ export function Footer() {
               target="_blank"
               rel="noreferrer"
               aria-label="Facebook"
-              className="text-cream/60 hover:text-cream"
+              className="text-ink/60 hover:text-brand"
             >
               <FacebookIcon className="h-4 w-4" />
             </a>
@@ -279,7 +267,7 @@ export function Footer() {
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram: feelzbymindcafe"
-              className="flex items-center gap-1 text-xs text-cream/60 hover:text-cream"
+              className="flex items-center gap-1 text-xs text-ink/60 hover:text-brand"
             >
               <InstagramIcon className="h-4 w-4" />
               feelzbymindcafe
@@ -289,16 +277,16 @@ export function Footer() {
         </div>
       </StaggerGroup>
 
-      <div className="mt-8 flex flex-col items-center gap-3 border-t border-cream/10 pt-6 text-xs text-cream/50 sm:flex-row sm:items-center sm:justify-between">
+      <div className="mt-8 flex flex-col items-center gap-3 border-t border-ink/10 pt-6 text-xs text-ink/50 sm:flex-row sm:items-center sm:justify-between">
         <p>© 2026 Mindcafe, a venture of Sneh Care Club Pvt. Ltd. All rights reserved.</p>
         <div className="flex gap-4">
-          <Link href="/legal/privacy" className="hover:text-cream hover:underline">
+          <Link href="/legal/privacy" className="hover:text-brand hover:underline">
             privacy
           </Link>
-          <Link href="/legal/terms" className="hover:text-cream hover:underline">
+          <Link href="/legal/terms" className="hover:text-brand hover:underline">
             terms
           </Link>
-          <Link href="/legal/refund" className="hover:text-cream hover:underline">
+          <Link href="/legal/refund" className="hover:text-brand hover:underline">
             refund & cancellation
           </Link>
         </div>

@@ -2,8 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Check, Loader2, ShoppingBag } from "lucide-react";
+import { Check, Loader2, ShoppingBag } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
@@ -11,21 +13,17 @@ import { useCartContext } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
-import { Modal } from "@/components/Modal";
-import { moodStyleFor } from "@/lib/moodStyles";
+import { HeroCarousel } from "@/components/feelz/HeroCarousel";
+import { MeetFeelzSection } from "@/components/feelz/MeetFeelzSection";
+import { MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
+import { FEELZ_PRODUCT_PAGES } from "@/lib/feelzProductPages";
+import type { FeelzMoodKey } from "@/lib/feelzIngredients";
 import { formatInr } from "@/lib/utils";
 import type { ProductWithVariants } from "@/types/domain";
 
 function scrollTo(id: string) {
   document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
-
-const MOOD_GRID = [
-  { key: "extrovert", label: "Extrovert", src: "/products/extrovert.png" },
-  { key: "focus", label: "Focus", src: "/products/focus.png" },
-  { key: "joy", label: "Joy", src: "/products/joy.png" },
-  { key: "rest", label: "Rest", src: "/products/rest.png" },
-];
 
 const revealVariants = {
   visible: (i: number) => ({
@@ -46,13 +44,17 @@ const revealVariants = {
 
 export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
-  const [detailKey, setDetailKey] = useState<string | null>(null);
+  // Which product card in the grid below is currently hovered — fed down
+  // to MeetFeelzSection above so its "Your brain needs" word jumps to
+  // match whatever's being hovered, instead of only auto-cycling.
+  const [hoveredMoodKey, setHoveredMoodKey] = useState<string | null>(null);
   // Which mood was being added when "Add to Cart" was clicked signed out —
   // resumed automatically once sign-in completes (see the effect below).
   // Matches MoodProductCard.tsx's pendingAfterAuth pattern; only actually
@@ -101,23 +103,14 @@ export function Hero() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingAdd, user, isReady, cartId]);
 
-  // Footer links (and anything else linking straight to a product) use
-  // /feelz#focus etc. — scrolling to that mood's grid card is the browser's
-  // native behavior for a URL hash, but landing in the middle of the full
-  // grid isn't the same as opening that product's own description, which
-  // is what those links are meant for. Opening the matching detail modal
-  // on load (and again if the hash changes while already on this page,
-  // since Next.js doesn't remount this component for a same-route
-  // navigation) covers both.
+  // Older links (bookmarks, anything not yet updated) may still point at
+  // /feelz#focus from before each mood got its own real page — redirect
+  // those straight to /feelz/focus instead of scrolling to a hash that no
+  // longer opens anything here.
   useEffect(() => {
-    function openFromHash() {
-      const key = window.location.hash.replace("#", "");
-      if (MOOD_GRID.some((mood) => mood.key === key)) setDetailKey(key);
-    }
-    openFromHash();
-    window.addEventListener("hashchange", openFromHash);
-    return () => window.removeEventListener("hashchange", openFromHash);
-  }, []);
+    const key = window.location.hash.replace("#", "");
+    if (MOOD_GRID.some((mood) => mood.key === key)) router.replace(`/feelz/${key}`);
+  }, [router]);
 
   async function handleAddToCart(moodKey: string, product: ProductWithVariants | undefined) {
     if (!user) {
@@ -129,203 +122,40 @@ export function Hero() {
   }
 
   return (
-    <section ref={timelineRef} className="relative overflow-hidden">
-      {/* This wrapper — not the outer <section> — owns the background image.
-          The section also contains the "Our Strips" grid below, so an
-          absolutely-positioned image/overlay placed directly on the section
-          would stretch to cover the section's full height (hero + grid
-          combined) instead of just the hero banner. Scoping it to a div
-          sized by just the hero content keeps the photo confined to this
-          banner only. */}
-      <div
-        // isolate: the light layers below blend in screen mode, and that has
-        // to resolve against the banner's own stack, not the whole page.
-        className="relative isolate overflow-hidden text-[#f6efe4]"
-        style={{ backgroundColor: "#150c1c" }}
+    <section ref={timelineRef} className="relative -mt-8 overflow-hidden sm:-mt-[76px]">
+      {/* Real marketing creatives (see public/feelz-creative), not a
+          from-scratch CSS hero — per the brief, these photographs ARE the
+          design system here. TimelineContent's entrance stagger doesn't
+          apply to a carousel the way it did to the old text banner, so the
+          carousel just fades in as a single unit.
+
+          The negative top margin pulls the carousel up underneath the
+          floating header (which is sticky + z-30, so it stays on top and
+          stays clickable) instead of leaving a solid white strip above it —
+          the header's "liquid glass" pill is translucent/blurred by design,
+          so the hero image now shows through it as originally intended. */}
+      <TimelineContent
+        as="div"
+        animationNum={1}
+        timelineRef={timelineRef}
+        customVariants={revealVariants}
       >
-        {/* Layering follows HomeHero, back to front: base colour, artwork,
-            readability scrims, atmosphere, vignette. The banner ends on a
-            clean edge — no fade into the grid below. The artwork is left
-            uncovered on the right so the lamp and desk read as a photograph
-            rather than something behind a veil.
+        <HeroCarousel onShopClick={() => scrollTo("mood-picks")} onZostelClick={() => scrollTo("zostel-locations")} />
+      </TimelineContent>
 
-            The banner is deliberately still — no parallax, no Ken Burns, no
-            pulsing light. Everything here is a fixed paint. */}
-        <Image
-          src="/feelz-hero-v2.png"
-          alt=""
-          fill
-          priority
-          quality={90}
-          sizes="100vw"
-          // Narrow screens bias the crop left, onto the empty wall and the
-          // light trail, so the copy never lands on the busy desk.
-          className="object-cover object-[38%_center] md:object-center"
-        />
+      <MeetFeelzSection hoveredKey={hoveredMoodKey} />
 
-        {/* Readability. Clears completely by ~76% rather than veiling the
-            whole frame — a blanket scrim is what flattened this before. */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(97deg, rgba(21,12,28,0.94) 0%, rgba(21,12,28,0.86) 24%, rgba(21,12,28,0.52) 44%, rgba(21,12,28,0.16) 62%, rgba(0,0,0,0) 76%)",
-          }}
-          aria-hidden
-        />
-        {/* Mobile needs more: the copy sits over the artwork instead of
-            beside it, so a vertical scrim is added only at small sizes. */}
-        <div
-          className="absolute inset-0 md:hidden"
-          style={{
-            background:
-              "linear-gradient(to bottom, rgba(21,12,28,0.88) 0%, rgba(21,12,28,0.6) 45%, rgba(21,12,28,0.82) 100%)",
-          }}
-          aria-hidden
-        />
-
-        {/* Atmosphere. Both sit ABOVE the readability scrims, blended in screen
-            mode so they can only ADD light where the photograph is already
-            lit — over the lamp and over the pool it throws on the desk. A
-            normal overlay here would read as a grey film; this reads as the
-            lamp being on. Fixed opacity: they are lighting, not animation. */}
-        <div
-          className="pointer-events-none absolute hidden md:block"
-          style={{
-            right: "1%",
-            top: "-6%",
-            width: "30%",
-            height: "48%",
-            opacity: 0.8,
-            mixBlendMode: "screen",
-            background:
-              "radial-gradient(closest-side, rgba(255,211,148,0.34) 0%, rgba(255,183,104,0.15) 44%, rgba(0,0,0,0) 100%)",
-          }}
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute hidden md:block"
-          style={{
-            right: "8%",
-            bottom: "4%",
-            width: "44%",
-            height: "36%",
-            opacity: 0.7,
-            mixBlendMode: "screen",
-            background:
-              "radial-gradient(closest-side, rgba(255,196,132,0.2) 0%, rgba(214,140,110,0.08) 50%, rgba(0,0,0,0) 100%)",
-          }}
-          aria-hidden
-        />
-
-        {/* Soft vignette to seat the frame. */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{ boxShadow: "inset 0 0 180px 40px rgba(10,6,14,0.55)" }}
-          aria-hidden
-        />
-
-        <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-start px-4 pb-16 pt-16 sm:px-6 sm:pb-20 sm:pt-20">
-        <TimelineContent
-          as="button"
-          animationNum={1}
-          timelineRef={timelineRef}
-          customVariants={revealVariants}
-          onClick={() => scrollTo("products")}
-          className="flex w-fit items-center gap-1 rounded-full border-4 border-ink/5 bg-white py-0.5 pl-0.5 pr-3 text-xs"
-        >
-          <span className="rounded-full bg-ink px-2 py-1 text-[11px] font-semibold uppercase tracking-label text-cream">
-            new
+      <div className="bg-brand-blush/15">
+      <div id="mood-picks" className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
+        <div className="mb-6 flex justify-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-feelz-berry/[0.2] px-4 py-1.5 text-xs font-semibold uppercase tracking-label text-feelz-berry">
+            Get 10% off on purchases of ₹300 or more
           </span>
-          <span className="inline-flex items-center px-1 text-ink sm:text-sm">
-            incubated at Zo World
-            <span className="ml-1 inline-flex items-center gap-1 font-semibold">
-              · distributed by Zostel
-            </span>
-          </span>
-          <ArrowRight className="h-3 w-3 text-ink" aria-hidden />
-        </TimelineContent>
-
-        <TimelineContent
-          as="h1"
-          animationNum={2}
-          timelineRef={timelineRef}
-          customVariants={revealVariants}
-          className="font-display mt-6 max-w-3xl text-[25px] leading-[1.05] font-bold tracking-tight text-[#f6efe4] sm:text-[42px] xl:text-[50px]"
-        >
-          <span className="block">Feelz better.</span>
-          <span className="block">
-            Wherever{" "}
-            <span className="bg-gradient-to-r from-brand via-brand-blush to-brand-navy bg-clip-text text-transparent">
-              the day takes you
-            </span>
-            .
-          </span>
-        </TimelineContent>
-
-        <div className="mt-6 h-px w-12 bg-[#f6efe4]/25" aria-hidden />
-
-        <TimelineContent
-          as="p"
-          animationNum={3}
-          timelineRef={timelineRef}
-          customVariants={revealVariants}
-          className="font-tagline mt-6 max-w-xl text-lg italic text-[#f4ead9]/70 sm:text-xl"
-        >
-          Fast-dissolving Nutraceutical strips designed to support focus, confidence, inner happiness, and rest —
-          anytime, anywhere.
-        </TimelineContent>
-
-        <TimelineContent
-          as="div"
-          animationNum={4}
-          timelineRef={timelineRef}
-          customVariants={revealVariants}
-          className="mt-8 flex flex-wrap items-center gap-3"
-        >
-          <button onClick={() => scrollTo("mood-picks")} className="btn-cine-primary">
-            Shop Feelz ↓
-          </button>
-          <button onClick={() => scrollTo("zostel-locations")} className="btn-cine-secondary">
-            <span className="relative h-5 w-5 shrink-0">
-              <Image src="/press/zostel-star.png" alt="" fill className="object-contain" />
-            </span>
-            Find at Zostel
-          </button>
-        </TimelineContent>
-
-        <TimelineContent
-          as="div"
-          animationNum={5}
-          timelineRef={timelineRef}
-          customVariants={revealVariants}
-          className="mt-6 flex max-w-lg flex-wrap items-center gap-2"
-        >
-          {["FSSAI ✓", "No Sugar", "No Water Needed", "Made in India"].map((tag) => (
-            <span key={tag} className="badge-pill">
-              {tag}
-            </span>
-          ))}
-        </TimelineContent>
         </div>
-      </div>
-
-      <div>
-      <div id="mood-picks" className="mx-auto max-w-5xl px-4 pb-16 sm:px-6">
-        <div className="text-center">
-          <div className="mx-auto flex w-fit items-center gap-3">
-            <span className="h-px w-10 bg-ink/20" aria-hidden />
-            <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
-            <span className="h-px w-10 bg-ink/20" aria-hidden />
-          </div>
-          <h2 className="font-display mt-4 text-3xl font-bold uppercase tracking-[0.3em] text-ink sm:text-4xl">
-            Our Strips
-          </h2>
-        </div>
-
-        <div className="mt-12 grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">
           {MOOD_GRID.map((mood, index) => {
-            const style = moodStyleFor(mood.key);
+            const feelzStyle = MOOD_STYLES[mood.key];
+            const colors = FEELZ_COLOR_CLASSES[feelzStyle.feelzColor];
             const product = catalogQuery.data?.find((p) => p.name.trim().toLowerCase() === mood.key);
             const variant = product?.product_variants[0];
             const price = variant ? (variant.price_override ?? product.price) : null;
@@ -339,82 +169,66 @@ export function Hero() {
                 as="div"
                 key={mood.key}
                 id={mood.key}
-                animationNum={index + 6}
+                animationNum={index + 2}
                 timelineRef={timelineRef}
                 customVariants={revealVariants}
-                className="group flex scroll-mt-24 flex-col overflow-hidden rounded-2xl border border-ink/10 bg-white shadow-[0_1px_2px_rgba(17,17,16,0.04),0_16px_32px_-16px_rgba(17,17,16,0.25)] transition-shadow duration-300 hover:shadow-[0_1px_2px_rgba(17,17,16,0.06),0_20px_40px_-16px_rgba(17,17,16,0.3)]"
+                onMouseEnter={() => setHoveredMoodKey(mood.key)}
+                onMouseLeave={() => setHoveredMoodKey((current) => (current === mood.key ? null : current))}
+                className="group flex scroll-mt-24 flex-col overflow-hidden bg-feelz-paper shadow-[0_1px_2px_rgba(16,35,63,0.08),0_16px_32px_-16px_rgba(16,35,63,0.35)] transition-shadow duration-300 hover:shadow-[0_1px_2px_rgba(16,35,63,0.1),0_20px_40px_-16px_rgba(16,35,63,0.4)]"
               >
-                <button
-                  type="button"
-                  onClick={() => setDetailKey(mood.key)}
-                  className="relative block aspect-[4/5] w-full overflow-hidden"
-                  aria-label={`View details for Feelz ${mood.label}`}
+                <Link
+                  href={`/feelz/${mood.key}`}
+                  className="relative block aspect-square w-full overflow-hidden"
+                  aria-label={`View Feelz ${mood.label}`}
                 >
+                  <span className="absolute right-3 top-3 z-10 rounded-full bg-feelz-cream px-3 py-1 text-[10px] font-bold uppercase tracking-label text-feelz-ink shadow-sm">
+                    Strip
+                  </span>
                   <Image
-                    src={mood.src}
+                    src={hoveredMoodKey === mood.key ? FEELZ_PRODUCT_PAGES[mood.key as FeelzMoodKey].images[1] : feelzStyle.catalogueSrc}
                     alt={`Feelz ${mood.label} mood strip box`}
                     fill
                     sizes="(min-width: 768px) 22vw, 45vw"
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
                   />
+                </Link>
 
-                  <div className="pointer-events-none absolute inset-0 flex flex-col justify-end bg-gradient-to-t from-ink/95 via-ink/75 to-ink/10 p-4 text-left opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-label text-cream/60">For:</p>
-                    <p className="mt-1 text-xs leading-snug text-cream/95 sm:text-[13px]">{style.description}</p>
-                    <p className="mt-2 text-[10px] leading-snug text-cream/55">{style.ingredients.join(" · ")}</p>
-                  </div>
-                </button>
+                <div className="flex flex-1 flex-col gap-4 p-5 text-center text-feelz-ink">
+                  <Link href={`/feelz/${mood.key}`}>
+                    <h3 className="font-display text-lg font-bold leading-tight sm:text-xl">{mood.label}</h3>
+                    <p className="mt-1 text-xs leading-none text-feelz-ink/50">(Pack of 10)</p>
+                    <p className="mt-1.5 text-lg font-bold leading-tight text-feelz-ink/70">
+                      {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
+                    </p>
+                  </Link>
 
-                <div className="flex flex-1 flex-col justify-between gap-3 p-4 text-left">
-                  <div>
-                    <h3 className="font-display text-lg font-bold leading-none text-ink sm:text-xl">
-                      {mood.label}
-                    </h3>
-                    <p className="font-tagline mt-1 text-xs italic text-ink/60 sm:text-sm">{style.tagline}</p>
+                  {cartItem ? (
                     <button
                       type="button"
-                      onClick={() => setDetailKey(mood.key)}
-                      className="mt-1.5 text-[11px] font-semibold uppercase tracking-label text-ink/50 underline underline-offset-2 transition hover:text-ink"
+                      onClick={openDrawer}
+                      className={`inline-flex w-full items-center justify-center gap-1.5 rounded-full ${colors.bgCard} py-3 text-xs font-bold uppercase tracking-label text-feelz-cream transition hover:opacity-90`}
                     >
-                      view details
+                      <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
+                      cart · {cartItem.quantity}
                     </button>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-sm font-semibold text-ink">
-                        {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
-                      </span>
-
-                      {cartItem ? (
-                        <button
-                          type="button"
-                          onClick={openDrawer}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-ink/10 px-3.5 py-2 text-[11px] font-semibold uppercase tracking-label text-ink transition hover:bg-ink/15"
-                        >
-                          <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                          cart · {cartItem.quantity}
-                        </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => handleAddToCart(mood.key, product)}
+                      disabled={!variant || !isReady || !cartId || isPending}
+                      className={`inline-flex w-full items-center justify-center gap-1.5 rounded-full ${colors.bgCard} py-3 text-xs font-bold uppercase tracking-label text-feelz-cream transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40`}
+                    >
+                      {isPending ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+                      ) : isAdded ? (
+                        <Check className="h-3.5 w-3.5" aria-hidden />
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => handleAddToCart(mood.key, product)}
-                          disabled={!variant || !isReady || !cartId || isPending}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-ink px-3.5 py-2 text-[11px] font-semibold uppercase tracking-label text-cream transition hover:bg-ink/85 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          {isPending ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-                          ) : isAdded ? (
-                            <Check className="h-3.5 w-3.5" aria-hidden />
-                          ) : (
-                            <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                          )}
-                          {isAdded ? "added" : "add"}
-                        </button>
+                        <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
                       )}
-                    </div>
-                    {hasError && <p className="mt-1.5 text-[10px] font-medium text-red-700/80">couldn&apos;t add, try again</p>}
-                  </div>
+                      {isAdded ? "Added" : "Add to Cart"}
+                    </button>
+                  )}
+                  {hasError && <p className="text-[10px] font-medium text-red-600">couldn&apos;t add, try again</p>}
                 </div>
               </TimelineContent>
             );
@@ -426,7 +240,7 @@ export function Hero() {
             <button
               type="button"
               onClick={openDrawer}
-              className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold uppercase tracking-label text-cream transition hover:bg-ink/85"
+              className="inline-flex items-center gap-2 rounded-full bg-feelz-ink px-6 py-3 text-sm font-semibold uppercase tracking-label text-feelz-cream transition hover:bg-feelz-ink/85"
             >
               <ShoppingBag className="h-4 w-4" aria-hidden />
               Proceed to Cart · {items.reduce((sum, item) => sum + item.quantity, 0)}
@@ -435,60 +249,6 @@ export function Hero() {
         )}
       </div>
       </div>
-
-      {(() => {
-        const mood = MOOD_GRID.find((m) => m.key === detailKey);
-        if (!mood) return null;
-        const style = moodStyleFor(mood.key);
-        const product = catalogQuery.data?.find((p) => p.name.trim().toLowerCase() === mood.key);
-        const variant = product?.product_variants[0];
-        const price = variant ? (variant.price_override ?? product.price) : null;
-        const cartItem = variant ? items.find((item) => item.variant_id === variant.id) : undefined;
-        const isPending = pendingKey === mood.key;
-        const isAdded = addedKey === mood.key;
-
-        return (
-          <Modal isOpen={!!detailKey} onClose={() => setDetailKey(null)} title={mood.label} panelClassName="max-w-md">
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-2xl">
-              <Image src={mood.src} alt={`Feelz ${mood.label} mood strip box`} fill sizes="28rem" className="object-cover" />
-            </div>
-
-            <p className="font-tagline mt-3 text-sm italic text-ink/60">{style.tagline}</p>
-
-            <div className="mt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">For:</p>
-              <p className="mt-1 text-sm text-ink/80">{style.description}</p>
-            </div>
-
-            <div className="mt-3">
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Ingredients</p>
-              <p className="mt-1 text-sm text-ink/70">{style.ingredients.join(" · ")}</p>
-            </div>
-
-            <div className="mt-4 flex items-center justify-between gap-2 border-t border-ink/10 pt-4">
-              <span className="text-base font-semibold text-ink">
-                {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
-              </span>
-              {cartItem ? (
-                <button type="button" onClick={openDrawer} className="pill-btn gap-1.5 !py-2 text-xs">
-                  <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
-                  Cart · {cartItem.quantity}
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => handleAddToCart(mood.key, product)}
-                  disabled={!variant || !isReady || !cartId || isPending}
-                  className="pill-btn gap-1.5 !py-2 text-xs disabled:opacity-40"
-                >
-                  {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : isAdded ? <Check className="h-3.5 w-3.5" aria-hidden /> : <ShoppingBag className="h-3.5 w-3.5" aria-hidden />}
-                  {isAdded ? "Added" : "Add to Cart"}
-                </button>
-              )}
-            </div>
-          </Modal>
-        );
-      })()}
     </section>
   );
 }

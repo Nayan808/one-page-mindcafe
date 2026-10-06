@@ -1,38 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --cream: #faf4f7;
+  /* Base page background/text token, sitewide — flat white rather than the
+     earlier warm cream/skin tone. Still called --cream since it's also the
+     TEXT colour on every dark band (text-cream); white reads cleanly there
+     too, so this one token still covers both roles. */
+  --cream: #ffffff;
   --ink: #111110;
 
-  /* The page surface: a warm sand, and deliberately a true beige rather
-     than a tinted white. Flat #fff made the long stretches between the
-     dark hero bands read as empty rather than quiet, and gave the white
-     cards nothing to sit against — on this they read as raised.
-
-     A separate token rather than a repointed --cream, because --cream is
-     also the TEXT colour on every dark band (text-cream); moving that
-     would recolour type across the whole site.
-
-     Note this sits a real step away from --cream, so any surface still
-     painted bg-cream reads as a distinctly lighter panel on top of it,
-     not as the same tone. That is intended for raised panels; a band
-     meant to BE the page should carry no background at all. */
-  --surface: #f2ece2;
-
-  /* The alternating band, for the stat rows and the testimonial section.
-
-     It separates by HUE, not by brightness. --surface is a yellow-warm
-     sand; this turns that warmth toward --brand-mauve at roughly the same
-     lightness. Two earlier attempts went the brightness route and both
-     failed: a near-white band read as a pale slab dropped between two
-     warm sections, and a merely-darker one (#e9ded8, ~4% down) read as
-     the same colour with a smudge on it. A band that shifts hue instead
-     reads as a second surface that was chosen, which is what lets it sit
-     against sand without either colour looking like a mistake.
-
-     Paired with the hairline border-y on the stat rows — the rule marks
-     the edge, the colour carries the separation. */
-  --surface-alt: #ead9da;
+  /* Previously a warm sand tone distinct from --cream, for alternating
+     bands and raised cards. Flattened to white along with --cream — those
+     surfaces now separate by border/shadow alone rather than by a tint
+     shift. */
+  --surface: #ffffff;
+  --surface-alt: #ffffff;
 
   /* Brand palette (client-supplied, matches the mauve in mindcafe-icon.png
      almost exactly — #96667c sampled vs. #986178 specified). Mauve is the
@@ -47,6 +28,23 @@
   --brand-blush: #cf96af;
   --brand-purple: #a66c98;
   --brand-wine: #4d2a39;
+
+  /* Feelz sub-brand palette — sampled from the real product packaging/
+     creative photography (public/feelz-creative). Scoped under its own
+     token names rather than repointing --ink/--cream/--brand-*, since only
+     the Feelz-facing surfaces (hero, /feelz, /ingredients) use this
+     palette; the rest of the site keeps the mauve/navy system untouched.
+     --feelz-cream is flat white, matching the sitewide --cream change. */
+  --feelz-ink: #10233f;
+  --feelz-cream: #ffffff;
+  --feelz-paper: #ffffff;
+  --feelz-berry: #8f4266;
+  --feelz-berry-dark: #4b2037;
+  --feelz-yellow: #f7c74d;
+  --feelz-orange: #db8b1d;
+  --feelz-joy: #b783a2;
+  --feelz-navy: #243b7d;
+  --feelz-rest: #4a3f7a;
 }
 
 @theme inline {
@@ -61,6 +59,16 @@
   --color-brand-blush: var(--brand-blush);
   --color-brand-purple: var(--brand-purple);
   --color-brand-wine: var(--brand-wine);
+  --color-feelz-ink: var(--feelz-ink);
+  --color-feelz-cream: var(--feelz-cream);
+  --color-feelz-paper: var(--feelz-paper);
+  --color-feelz-berry: var(--feelz-berry);
+  --color-feelz-berry-dark: var(--feelz-berry-dark);
+  --color-feelz-yellow: var(--feelz-yellow);
+  --color-feelz-orange: var(--feelz-orange);
+  --color-feelz-joy: var(--feelz-joy);
+  --color-feelz-navy: var(--feelz-navy);
+  --color-feelz-rest: var(--feelz-rest);
   --font-display: var(--font-display);
   --font-serif-italic: var(--font-serif-italic);
   --font-serif-display: var(--font-serif-display);
@@ -124,16 +132,14 @@ h2.font-display {
   @apply w-full rounded-xl border border-ink/20 bg-white px-3 py-2 text-sm text-ink placeholder:text-ink/40 focus:border-brand focus:outline-none;
 }
 
+/* The one button language site-wide. A small shadow was added here so
+   these read with a touch more lift against the light page surfaces. */
 .pill-btn {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-cream transition hover:opacity-90 disabled:opacity-40;
+  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-brand px-5 py-2.5 text-sm font-medium text-cream shadow-sm transition hover:opacity-90 hover:shadow disabled:opacity-40 disabled:shadow-none;
 }
 
 .pill-btn-outline {
   @apply inline-flex items-center justify-center gap-1.5 rounded-full border border-brand/40 bg-transparent px-5 py-2.5 text-sm font-medium text-brand transition hover:bg-brand/5 disabled:opacity-40;
-}
-
-.pill-btn-white {
-  @apply inline-flex items-center justify-center gap-1.5 rounded-full bg-cream px-6 py-3 text-sm font-medium text-brand shadow-sm transition hover:opacity-90;
 }
 
 /* ---- Liquid Glass -------------------------------------------------------
@@ -245,7 +251,7 @@ h2.font-display {
 
    Scoped away from the footer's buttons and logo links so they keep their
    own treatment. */
-footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-cine-secondary):not(:has(img)) {
+footer a:not(.pill-btn):not(.pill-btn-outline):not(:has(img)) {
   background-image: linear-gradient(currentColor, currentColor);
   background-size: 0% 1px;
   background-repeat: no-repeat;
@@ -255,7 +261,7 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-c
     background-size 0.4s cubic-bezier(0.22, 0.61, 0.36, 1),
     color 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-cine-secondary):not(:has(img)):hover {
+footer a:not(.pill-btn):not(.pill-btn-outline):not(:has(img)):hover {
   background-size: 100% 1px;
 }
 
@@ -295,173 +301,6 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-c
   }
 }
 
-/* ---- Hero artwork light animation --------------------------------------
-   Drives HeroLightFlow. Kept in CSS rather than JS because these run
-   continuously on ~30 SVG nodes — the compositor handles them without any
-   per-frame JavaScript at all. */
-@keyframes hero-flow-travel {
-  to {
-    stroke-dashoffset: 0;
-  }
-}
-
-@keyframes hero-spark-twinkle {
-  0%,
-  100% {
-    opacity: 0.1;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 0.85;
-    transform: scale(1.18);
-  }
-}
-
-.hero-flow {
-  animation-name: hero-flow-travel;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-.hero-spark {
-  animation-name: hero-spark-twinkle;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-}
-
-/* The sun in the artwork, breathing. Long period and a tiny scale change:
-   sunlight swells and settles, it does not pulse. */
-@keyframes hero-bloom-breathe {
-  0%,
-  100% {
-    opacity: 0.26;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.52;
-    transform: scale(1.06);
-  }
-}
-.hero-bloom {
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: hero-bloom-breathe 13s ease-in-out infinite;
-}
-
-/* Warm haze over the cloud band, drifting sideways slowly enough that you
-   only notice it if you stare — the air moving, not a shape sliding. */
-@keyframes hero-haze-drift {
-  0%,
-  100% {
-    opacity: 0.14;
-    transform: translateX(0);
-  }
-  50% {
-    opacity: 0.28;
-    transform: translateX(-26px);
-  }
-}
-.hero-haze {
-  transform-box: fill-box;
-  animation: hero-haze-drift 34s ease-in-out infinite;
-}
-
-/* Motes lifting through the dark side. They fade in, rise, and fade out —
-   never looping visibly, because they are invisible at both ends. */
-@keyframes hero-mote-rise {
-  0% {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  18% {
-    opacity: 0.5;
-  }
-  82% {
-    opacity: 0.28;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-86px);
-  }
-}
-.hero-mote {
-  transform-box: fill-box;
-  animation: hero-mote-rise linear infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-bloom,
-  .hero-haze,
-  .hero-mote {
-    animation: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero-flow,
-  .hero-spark {
-    animation: none;
-  }
-}
-
-/* ---- Cinematic button system -------------------------------------------
-   One shared language for the dark hero world: the navbar's Talk to Expert /
-   Log In and the hero's two CTAs all use these, so they read as one design
-   system with three levels of hierarchy rather than four unrelated buttons.
-   Shared: radius, type scale, 300ms easing, tiny lift on hover. Different:
-   surface weight only.
-
-   These are additive — the existing .pill-btn family is untouched and still
-   used by the rest of the light-themed site. */
-/* NOTE: the shared base is written out longhand in each class rather than
-   via `@apply .btn-cine`. Tailwind v4's @apply only accepts UTILITIES —
-   applying another custom class silently produces nothing, which is exactly
-   how the first version of these buttons ended up with no surface at all. */
-.btn-cine-primary,
-.btn-cine-secondary,
-.btn-cine-ghost,
-.btn-cine-solid {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border-radius: 9999px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  transition: all 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
-}
-
-/* PRIMARY — warm cream surface, the strongest action on the page. */
-.btn-cine-primary {
-  @apply bg-[#f4ead9] px-6 py-3 text-[13px] text-[#1a1016] shadow-[0_1px_2px_rgba(0,0,0,0.25)];
-}
-.btn-cine-primary:hover {
-  @apply -translate-y-px bg-[#fdf6e9] shadow-[0_10px_26px_-12px_rgba(244,234,217,0.6)];
-}
-
-/* SECONDARY — outlined, understated, identical geometry to primary. */
-.btn-cine-secondary {
-  @apply border border-[#f4ead9]/25 bg-[#f4ead9]/[0.05] px-6 py-3 text-[13px] text-[#f4ead9];
-}
-.btn-cine-secondary:hover {
-  @apply -translate-y-px border-[#f4ead9]/50 bg-[#f4ead9]/10;
-}
-
-/* TERTIARY — compact utility, for the navbar. */
-.btn-cine-ghost {
-  @apply border border-[#f4ead9]/20 px-4 py-2 text-[12px] text-[#f4ead9]/85;
-}
-.btn-cine-ghost:hover {
-  @apply border-[#f4ead9]/45 bg-[#f4ead9]/[0.07] text-[#f4ead9];
-}
-
-.btn-cine-solid {
-  @apply bg-[#f4ead9] px-4 py-2 text-[12px] text-[#1a1016];
-}
-.btn-cine-solid:hover {
-  @apply -translate-y-px bg-[#fdf6e9];
-}
-
 /* Nav link with a hairline underline that wipes in from the left. */
 .nav-cine {
   @apply relative uppercase transition-colors duration-300 ease-out;
@@ -485,9 +324,6 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-c
 
 @media (prefers-reduced-motion: reduce) {
   .nav-cine::after {
-    transition: none;
-  }
-  .btn-cine {
     transition: none;
   }
 }
@@ -514,6 +350,20 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-c
    The duration is set per-instance via inline style (varies with content
    length), so this class only carries the reduced-motion override — which
    needs !important specifically because it must beat that inline style. */
+/* The word-swap in MeetFeelzSection's "Your brain needs: ___" centrepiece —
+   keyed by mood so React remounts the text node on every tab change,
+   retriggering this. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes marquee {
   from {
     transform: translateX(0);
@@ -522,6 +372,7 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(.btn-cine-primary):not(.btn-c
     transform: translateX(-50%);
   }
 }
+
 
 @media (prefers-reduced-motion: reduce) {
   .marquee-track {

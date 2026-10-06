@@ -72,16 +72,14 @@ const OTHER_RECOGNITION = [
 export default function AwardsPage() {
   return (
     <div>
-      <section className="bg-ink text-cream">
+      <section className="bg-cream text-ink">
         <div className="mx-auto max-w-3xl px-4 py-20 text-center sm:px-6">
-          <span className="rounded-full border border-cream/25 px-4 py-1.5 text-[11px] font-semibold uppercase tracking-label text-cream/70">
-            Since December 2021
-          </span>
+          <span className="badge-pill">Since December 2021</span>
           <h1 className="font-display mx-auto mt-6 max-w-xl text-5xl font-bold leading-[1.05] sm:text-6xl">
             Awards &amp; <span className="font-tagline italic text-brand">achievements.</span>
           </h1>
-          <p className="mx-auto mt-4 max-w-lg text-sm text-cream/70 sm:text-base">
-            From a single startup in Bhopal to a <strong className="text-cream">nationally recognised mental
+          <p className="mx-auto mt-4 max-w-lg text-sm text-ink/70 sm:text-base">
+            From a single startup in Bhopal to a <strong className="text-ink">nationally recognised mental
             wellness platform</strong>, every milestone is a reflection of the community that made it possible.
           </p>
 
@@ -94,7 +92,7 @@ export default function AwardsPage() {
             ].map((stat) => (
               <div key={stat.label} className="text-center">
                 <p className="font-display text-2xl font-bold sm:text-3xl">{stat.value}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-label text-cream/60">{stat.label}</p>
+                <p className="mt-1 text-[11px] uppercase tracking-label text-ink/50">{stat.label}</p>
               </div>
             ))}
           </div>
