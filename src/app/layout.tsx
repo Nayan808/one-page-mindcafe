@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Bodoni_Moda, Inter } from "next/font/google";
+import { Suspense } from "react";
 import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
@@ -8,6 +9,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
 import { AppLoadingOverlay } from "@/components/AppLoadingOverlay";
+import { MetaPixel } from "@/components/MetaPixel";
 
 const display = Space_Grotesk({ variable: "--font-display", subsets: ["latin"], weight: ["500", "700"] });
 // Bodoni Moda: extreme thin/thick hairline contrast, high-fashion
@@ -65,6 +67,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             gtag('config', 'G-KR5X0X6734');
           `}
         </Script>
+        {/* Meta Pixel — Suspense because it reads useSearchParams to
+            catch client-side navigations. */}
+        <Suspense fallback={null}>
+          <MetaPixel />
+        </Suspense>
         <AppLoadingOverlay />
         <Providers>
           <AnnouncementBar />

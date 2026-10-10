@@ -54,6 +54,8 @@ export interface Database {
           price: number;
           image_url: string | null;
           is_active: boolean;
+          /** The Feelz Bundle — fixed price, excluded from the automatic 10%. */
+          is_bundle: boolean;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["products"]["Row"]> & {

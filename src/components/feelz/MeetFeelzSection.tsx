@@ -88,7 +88,7 @@ export function MeetFeelzSection({ hoveredKey }: { hoveredKey?: string | null })
       <p className="text-xs font-semibold uppercase tracking-label text-feelz-berry">Meet FEELZ</p>
 
       <div className="relative mx-auto mt-3 flex min-h-[7rem] flex-col items-center justify-center rounded-[2rem] bg-feelz-paper p-5">
-        <p className="text-xs font-semibold uppercase tracking-label text-feelz-ink/40">Your brain wants:</p>
+        <p className="text-xs font-semibold uppercase tracking-label text-feelz-ink/40">Your brain needs:</p>
         <p className={`font-display mt-2 min-h-[1.2em] text-4xl font-bold sm:text-5xl ${colors.text}`}>
           {displayedWord}
           <span className="animate-pulse">|</span>

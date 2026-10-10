@@ -14,7 +14,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAuthModal } from "@/contexts/AuthModalContext";
 import { Reveal } from "@/components/Reveal";
 import { AccordionFaq } from "@/components/AccordionFaq";
-import { MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES, FEELZ_BUNDLE_PRICE } from "@/lib/moodStyles";
+import { MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
+import { useAddBundle } from "@/lib/useAddBundle";
+import { HowToUseSection } from "@/components/feelz/HowToUseSection";
+import { FeelDifferenceSection } from "@/components/feelz/FeelDifferenceSection";
+import { ClosingCtaSection } from "@/components/feelz/ClosingCtaSection";
 import { FEELZ_INGREDIENTS, type FeelzMoodKey } from "@/lib/feelzIngredients";
 import { FEELZ_PRODUCT_PAGES } from "@/lib/feelzProductPages";
 import { formatInr } from "@/lib/utils";
@@ -110,10 +114,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
   const [isPending, setIsPending] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [bundlePending, setBundlePending] = useState(false);
-  const [bundleAdded, setBundleAdded] = useState(false);
-  const [bundleError, setBundleError] = useState(false);
-  const [pendingAdd, setPendingAdd] = useState<"cart" | "buy" | "bundle" | false>(false);
+  const [pendingAdd, setPendingAdd] = useState<"cart" | "buy" | false>(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [openSection, setOpenSection] = useState<"description" | "benefits" | "info" | null>(null);
   const [faqTab, setFaqTab] = useState<"product" | "shipping">("product");
@@ -173,17 +174,19 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
   const price = variant ? (variant.price_override ?? product.price) : null;
   const cartItem = variant ? items.find((item) => item.variant_id === variant.id) : undefined;
 
-  // The bundle is one sachet of each of the four real moods — not four of
-  // this one — so it's built from the full catalog (already fetched above)
-  // rather than a separate bundle SKU in Supabase, which doesn't exist.
-  const bundleProducts = MOOD_GRID.map((m) => catalogQuery.data?.find((p) => p.name.trim().toLowerCase() === m.key));
-  const bundleReady = bundleProducts.every((p): p is ProductWithVariants => !!p?.product_variants[0]);
-  // Real sum of the four moods' own prices — shown struck through next to
-  // the flat FEELZ_BUNDLE_PRICE so the saving is visible, without this
-  // number itself ever being what's charged (BUNDLE20 at checkout is).
-  const bundleOriginalPrice = bundleReady
-    ? (bundleProducts as ProductWithVariants[]).reduce((sum, p) => sum + (p.product_variants[0].price_override ?? p.price), 0)
-    : null;
+  // The Feelz Bundle is its own product (products.is_bundle) with its own
+  // price and stock — useAddBundle adds that one line, handling sign-in the
+  // same way as the single-mood buttons. bundleOriginalPrice is what the
+  // four moods cost separately, shown struck through to make the saving
+  // visible.
+  const bundle = useAddBundle();
+  const bundleReady = bundle.isAvailable && bundle.inStock;
+  const bundlePending = bundle.isPending;
+  const bundleAdded = bundle.isAdded;
+  const bundleError = bundle.hasError;
+  const bundleOriginalPrice = bundle.regularPrice;
+  const bundlePrice = bundle.price;
+  const handleAddBundle = bundle.addBundle;
 
   const reviewsQuery = useQuery({ queryKey: ["reviews", "recent", "pdp"], queryFn: () => getRecentReviews(createClient(), 3) });
   const summaryQuery = useQuery({ queryKey: ["reviews", "summary", "pdp"], queryFn: () => getReviewsSummary(createClient()) });
@@ -214,36 +217,11 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
     }
   }
 
-  async function performAddBundle() {
-    if (!bundleReady || !isReady || !cartId) return;
-    setBundlePending(true);
-    setBundleError(false);
-    try {
-      for (const bundleProduct of bundleProducts as ProductWithVariants[]) {
-        const bundleVariant = bundleProduct.product_variants[0];
-        await addItem.mutateAsync({
-          variant: bundleVariant,
-          product: { id: bundleProduct.id, name: bundleProduct.name, image_url: bundleProduct.image_url, price: bundleProduct.price },
-          quantity: 1,
-        });
-      }
-      setBundleAdded(true);
-      window.setTimeout(() => setBundleAdded(false), 1800);
-    } catch (error) {
-      console.error("Failed to add bundle to cart", error);
-      setBundleError(true);
-      window.setTimeout(() => setBundleError(false), 2400);
-    } finally {
-      setBundlePending(false);
-    }
-  }
-
   useEffect(() => {
     if (pendingAdd && user && isReady && cartId) {
       const action = pendingAdd;
       setPendingAdd(false);
-      if (action === "bundle") void performAddBundle();
-      else void performAddToCart(product, action === "buy");
+      void performAddToCart(product, action === "buy");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingAdd, user, isReady, cartId]);
@@ -255,15 +233,6 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
       return;
     }
     await performAddToCart(product, thenBuy);
-  }
-
-  async function handleAddBundle() {
-    if (!user) {
-      setPendingAdd("bundle");
-      openAuthModal();
-      return;
-    }
-    await performAddBundle();
   }
 
   return (
@@ -441,12 +410,9 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                 <p className={`mt-1.5 text-[10px] font-semibold ${colors.text}`}>10% off at checkout</p>
               </button>
 
-              {/* Variety bundle — one real sachet of each of the four
-                  moods (Focus, Joy, Extrovert, Rest), not four of this
-                  one. Built from the four existing products already in
-                  the catalog (fetched above) rather than a separate
-                  bundle SKU, since no such product/variant exists in
-                  Supabase. Adds all four to the cart in one tap. */}
+              {/* Variety bundle — the Feelz Bundle product (one pack of
+                  each mood, its own price and stock), added as a single
+                  cart line in one tap. */}
               <button
                 type="button"
                 onClick={handleAddBundle}
@@ -471,7 +437,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                   {bundleOriginalPrice !== null && (
                     <span className="text-sm font-bold text-feelz-ink/40 line-through">{formatInr(bundleOriginalPrice)}</span>
                   )}
-                  <span className="text-xl font-bold text-feelz-ink sm:text-2xl">{formatInr(FEELZ_BUNDLE_PRICE)}</span>
+                  <span className="text-xl font-bold text-feelz-ink sm:text-2xl">{formatInr(bundlePrice)}</span>
                 </div>
                 <p className="mt-0.5 text-[10px] text-feelz-ink/40">40 strips</p>
                 {bundleError && <p className="mt-1 text-xs font-medium text-red-600">couldn&apos;t add, try again</p>}
@@ -602,7 +568,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
               disabled={!bundleReady || !isReady || !cartId || bundlePending}
               className="relative mt-6 block aspect-[1774/887] w-full overflow-hidden rounded-2xl text-left transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Image src="/feelz-creative/bundle-banner-949.webp" alt={`Get the FEELZ bundle — ${formatInr(FEELZ_BUNDLE_PRICE)}`} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+              <Image src="/feelz-creative/bundle-banner-949.webp" alt={`Get the FEELZ bundle — ${formatInr(bundlePrice)}`} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
             </button>
           </div>
         </div>
@@ -661,59 +627,102 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
       {/* 02b. The other three moods — cross-sell straight off the pain
           point, before committing to "Feel the difference" below, so
           someone who isn't sure this is the right mood can switch pages
-          here instead of bouncing back to /feelz first. */}
-      <Reveal className="mx-auto max-w-7xl px-4 pb-14 text-center sm:px-6">
-        <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Not quite your mood?</p>
-        <h3 className="font-display mt-1 text-xl font-bold text-feelz-ink sm:text-2xl">Explore the other FEELZ strips.</h3>
-        <div className="mx-auto mt-8 grid max-w-6xl grid-cols-3 gap-10 sm:gap-16">
-          {MOOD_GRID.filter((m) => m.key !== mood).map((otherMood) => {
+          here instead of bouncing back to /feelz first. A fourth tile
+          offers the all-moods bundle (same handleAddBundle as the bundle
+          option above), shown as a 2×2 of the four packs since there's no
+          square bundle photo. Motion: staggered fade-up, then on hover a
+          small lift, a slow image zoom and the arrow nudging forward. */}
+      <section className="mx-auto max-w-7xl px-4 pb-16 text-center sm:px-6">
+        <Reveal>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.25em] text-feelz-ink/40">Not quite your mood?</p>
+          <h3 className="font-display mt-2 text-xl font-bold text-feelz-ink sm:text-2xl">Explore the other FEELZ strips.</h3>
+        </Reveal>
+        <div className="mx-auto mt-10 grid max-w-6xl grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-8">
+          {MOOD_GRID.filter((m) => m.key !== mood).map((otherMood, index) => {
             const otherStyle = MOOD_STYLES[otherMood.key];
             const otherColors = FEELZ_COLOR_CLASSES[otherStyle.feelzColor];
             return (
-              <Link
-                key={otherMood.key}
-                href={`/feelz/${otherMood.key}`}
-                className="group mx-auto flex w-full max-w-[17rem] flex-col overflow-hidden border border-feelz-ink/10 bg-feelz-paper shadow-sm transition hover:-translate-y-1 hover:shadow-lg sm:max-w-[22rem]"
-              >
-                <div className="relative aspect-square w-full overflow-hidden">
-                  <Image
-                    src={otherStyle.catalogueSrc}
-                    alt={`FEELZ ${otherMood.label}`}
-                    fill
-                    sizes="(min-width: 640px) 320px, 256px"
-                    className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                </div>
-                <div className="p-3 text-center sm:p-4">
-                  <p className="font-display text-base font-bold text-feelz-ink sm:text-lg">{otherMood.label}</p>
-                  <p className={`mt-1 text-xs font-semibold uppercase tracking-label ${otherColors.text}`}>Shop now →</p>
-                </div>
-              </Link>
+              <Reveal key={otherMood.key} delayMs={index * 90}>
+                <Link
+                  href={`/feelz/${otherMood.key}`}
+                  className="group flex h-full w-full flex-col overflow-hidden border border-feelz-ink/10 bg-feelz-paper shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_rgba(16,35,63,0.35)]"
+                >
+                  <div className="relative aspect-square w-full overflow-hidden">
+                    <Image
+                      src={otherStyle.catalogueSrc}
+                      alt={`FEELZ ${otherMood.label}`}
+                      fill
+                      sizes="(min-width: 640px) 280px, 45vw"
+                      className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col justify-center p-3 sm:p-4">
+                    <p className="font-display text-base font-bold text-feelz-ink">{otherMood.label}</p>
+                    <p className={`mt-1 text-[10px] font-semibold uppercase tracking-[0.25em] ${otherColors.text}`}>
+                      Shop now <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    </p>
+                  </div>
+                </Link>
+              </Reveal>
             );
           })}
-        </div>
-      </Reveal>
 
-      {/* 03. Feel the difference */}
-      <section className={`${colors.bg} py-14 text-feelz-cream`}>
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">Feel the difference.</h2>
-          <p className="mt-3 max-w-lg text-sm text-feelz-cream/75">
-            A thoughtfully crafted blend to support your {label.toLowerCase()} — for the moments that matter.
-          </p>
-          <div className="mt-8 grid grid-cols-3 gap-4 sm:gap-6">
-            {copy.benefits.map((benefit) => (
-              <div key={benefit.label} className="text-center">
-                <div className="relative mx-auto aspect-square w-full max-w-[8rem] overflow-hidden rounded-2xl border border-feelz-cream/15 shadow-sm sm:max-w-[11rem]">
-                  <Image src={benefit.image} alt={benefit.label} fill sizes="176px" className="object-cover" />
+          <Reveal delayMs={3 * 90}>
+            <button
+              type="button"
+              onClick={handleAddBundle}
+              disabled={!bundleReady || !isReady || !cartId || bundlePending}
+              className="group flex h-full w-full flex-col overflow-hidden border border-feelz-ink/10 bg-feelz-paper text-center shadow-sm transition duration-500 hover:-translate-y-1 hover:shadow-[0_20px_40px_-20px_rgba(16,35,63,0.35)] disabled:cursor-not-allowed"
+            >
+              <div className="relative aspect-square w-full overflow-hidden">
+                <div className="grid h-full w-full grid-cols-2 gap-px bg-feelz-paper transition-[gap] duration-500 group-hover:gap-1">
+                  {MOOD_GRID.map((m) => (
+                    <div key={m.key} className="relative overflow-hidden">
+                      <Image
+                        src={MOOD_STYLES[m.key].catalogueSrc}
+                        alt=""
+                        fill
+                        sizes="(min-width: 640px) 140px, 22vw"
+                        className="object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
+                      />
+                    </div>
+                  ))}
                 </div>
-                <p className="mt-3 text-xs font-semibold sm:text-sm">{benefit.label}</p>
-                <p className="text-[11px] text-feelz-cream/70 sm:text-xs">{benefit.sub}</p>
+                {bundleOriginalPrice !== null && bundleOriginalPrice > bundlePrice && (
+                  <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-feelz-paper/95 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-feelz-ink shadow-sm backdrop-blur">
+                    Save {formatInr(bundleOriginalPrice - bundlePrice)}
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
+              <div className="flex flex-1 flex-col justify-center p-3 sm:p-4">
+                <p className="font-display text-base font-bold text-feelz-ink">
+                  Bundle <span className="font-sans text-sm font-semibold text-feelz-ink/50">· {formatInr(bundlePrice)}</span>
+                </p>
+                <p className="mt-1 inline-flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-feelz-berry">
+                  {bundlePending ? (
+                    <>
+                      <Loader2 className="h-3 w-3 animate-spin" aria-hidden /> Adding
+                    </>
+                  ) : bundleAdded ? (
+                    <>
+                      <Check className="h-3 w-3" aria-hidden /> Added
+                    </>
+                  ) : bundleError ? (
+                    "Try again"
+                  ) : (
+                    <>
+                      Add all 4 <span className="inline-block transition-transform duration-300 group-hover:translate-x-1">→</span>
+                    </>
+                  )}
+                </p>
+              </div>
+            </button>
+          </Reveal>
         </div>
       </section>
+
+      {/* 03. Feel the difference */}
+      <FeelDifferenceSection label={label} bgClass={colors.bg} benefits={copy.benefits} />
 
       {/* 04. Comparison — two standalone cards (the alternative vs FEELZ)
           instead of a paired-row table. The old table forced the two
@@ -761,67 +770,71 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
       </Reveal>
 
       {/* 05. Ingredients */}
-      <section className="border-y border-feelz-ink/10 bg-feelz-paper py-14">
+      {/* Minimal, editorial layout — no boxes. Each ingredient sits inside a
+          soft mood-tinted disc. The shots have a baked-in white background
+          (no alpha), so they're multiply-blended into the disc, zoomed past
+          their empty white margins and clipped to the circle, so nothing
+          overflows. Blending only works while the image shares a stacking
+          context with the disc, so nothing between them may carry a
+          transform/animation. Motion is just a staggered fade-up on scroll
+          (Reveal) and a slow zoom on hover. */}
+      <section className="border-y border-feelz-ink/10 bg-feelz-paper py-20 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <h2 className="font-display text-2xl font-bold text-feelz-ink sm:text-3xl">
-            {ingredients.length} ingredients. One {mood === "focus" ? "focused" : mood === "joy" ? "brighter" : mood === "extrovert" ? "bolder" : "calmer"} you.
-          </h2>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-            {ingredients.map((ingredient) => (
-              <div key={ingredient.name} className={`overflow-hidden border ${colors.borderSoft} ${colors.bgSoft}`}>
-                {ingredient.image && (
-                  <div className="relative h-20 w-full bg-white">
-                    <Image src={ingredient.image} alt={ingredient.name} fill sizes="200px" className="object-contain p-2" />
-                  </div>
-                )}
-                <div className="p-4">
-                  <p className="font-display text-sm font-bold text-feelz-ink">{ingredient.name}</p>
-                  <p className="text-xs text-feelz-ink/50">{ingredient.amount}</p>
-                  <p className="mt-1.5 text-xs leading-snug text-feelz-ink/60">{ingredient.cardHeadline}</p>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className={`text-[11px] font-semibold uppercase tracking-[0.3em] ${colors.text}`}>What&apos;s inside</p>
+            <h2 className="font-display mt-4 text-3xl font-bold leading-tight text-feelz-ink sm:text-5xl">
+              {ingredients.length} ingredients. One {mood === "focus" ? "focused" : mood === "joy" ? "brighter" : mood === "extrovert" ? "bolder" : "calmer"} you.
+            </h2>
+            <div className={`mx-auto mt-6 h-px w-12 ${colors.bg} opacity-50`} aria-hidden />
+          </div>
+          <div className={`mt-16 grid grid-cols-2 gap-x-6 gap-y-14 sm:gap-x-10 ${ingredients.length >= 5 ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
+            {ingredients.map((ingredient, index) => (
+              <Reveal
+                key={ingredient.name}
+                delayMs={index * 90}
+                className={ingredients.length % 2 === 1 && index === ingredients.length - 1 ? "max-lg:col-span-2" : ""}
+              >
+                <div className="group flex h-full flex-col items-center text-center">
+                  {ingredient.image && (
+                    <div className={`relative aspect-square w-full max-w-[13rem] overflow-hidden rounded-full ${colors.bgSoft}`}>
+                      <Image
+                        src={ingredient.image}
+                        alt={ingredient.name}
+                        fill
+                        sizes="(min-width: 1024px) 208px, 45vw"
+                        className="scale-[1.35] object-contain mix-blend-multiply transition-transform duration-[1200ms] ease-out group-hover:scale-[1.45]"
+                      />
+                    </div>
+                  )}
+
+                  <p className={`mt-7 text-[10px] font-semibold uppercase tracking-[0.3em] ${colors.text}`}>
+                    {String(index + 1).padStart(2, "0")} — {ingredient.amount}
+                  </p>
+                  <p className="font-display mt-2 text-lg font-bold leading-tight text-feelz-ink sm:text-xl">{ingredient.name}</p>
+                  <p className="mt-2 max-w-[16rem] text-sm leading-relaxed text-feelz-ink/55">{ingredient.cardHeadline}</p>
                   <button
                     type="button"
                     onClick={() => buyPanelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
-                    className={`mx-auto mt-3 flex items-center justify-center gap-1 text-[11px] font-semibold uppercase tracking-label ${colors.text} hover:underline`}
+                    className="mt-4 inline-flex items-center gap-1 border-b border-feelz-ink/20 pb-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-feelz-ink/70 transition-colors duration-300 hover:border-feelz-ink hover:text-feelz-ink"
                   >
                     View Product
                     <ArrowUpRight className="h-3 w-3" aria-hidden />
                   </button>
                 </div>
-              </div>
+              </Reveal>
             ))}
           </div>
-          <Link href={`/ingredients#${mood}`} className={`mt-6 inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-label ${colors.text} hover:underline`}>
-            Explore the research
-            <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-          </Link>
+          <div className="mt-16 text-center">
+            <Link href={`/ingredients#${mood}`} className={`inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-[0.25em] ${colors.text} hover:underline`}>
+              Explore the research
+              <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* 06. How to use */}
-      <section className={`${colors.bg} py-14 text-feelz-cream`}>
-        <div className="mx-auto max-w-4xl px-4 sm:px-6">
-          <h2 className="font-display text-2xl font-bold sm:text-3xl">Open. Place. Dissolve. Go.</h2>
-          <p className="mt-2 text-sm text-feelz-cream/70">A simple, no-fuss routine. No water. No waiting.</p>
-          <div className="mt-8 grid grid-cols-2 gap-12 sm:grid-cols-4 sm:gap-16">
-            {[
-              { step: "Tear open the sachet", image: "/feelz-creative/steps/open.webp" },
-              { step: "Place one strip on your tongue", image: "/feelz-creative/steps/place.webp" },
-              { step: "Let it dissolve in seconds", image: "/feelz-creative/steps/dissolve.webp" },
-              { step: `Get on with your ${label.toLowerCase()} moment`, image: "/feelz-creative/steps/go.webp" },
-            ].map((item, index) => (
-              <div key={item.step} className="overflow-hidden rounded-xl">
-                <div className="relative aspect-[4/5] w-full overflow-hidden rounded-xl bg-feelz-cream/20">
-                  <Image src={item.image} alt={item.step} fill sizes="200px" className="object-cover" />
-                  <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-feelz-cream text-[11px] font-bold text-feelz-ink shadow">
-                    {index + 1}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs leading-snug text-feelz-cream/85">{item.step}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <HowToUseSection label={label} bgClass={colors.bg} />
 
       {/* 07. Real life moments */}
       <Reveal className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
@@ -898,40 +911,25 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
       />
 
       {/* 10. Closing CTA */}
-      <section className={`relative overflow-hidden ${colors.bg} py-16 text-center text-feelz-cream`}>
-        {/* Decorative only — several small faded ingredient photos
-            scattered around the edges, not a content block, so none of
-            them need a caption or need to be individually readable. */}
-        {ingredients
+      <ClosingCtaSection
+        label={label}
+        bgClass={colors.bg}
+        headline={copy.closingHeadline}
+        sub={copy.closingSub}
+        ingredientImages={ingredients
           .filter((ingredient) => ingredient.image)
-          .slice(0, 4)
-          .map((ingredient, index) => {
-            const positions = [
-              "-left-4 -top-4 h-28 w-28 -rotate-6 sm:h-36 sm:w-36",
-              "-right-6 -top-8 h-24 w-24 rotate-12 sm:h-32 sm:w-32",
-              "-bottom-8 -left-8 h-32 w-32 rotate-6 sm:h-40 sm:w-40",
-              "-bottom-6 -right-4 h-24 w-24 -rotate-12 sm:h-32 sm:w-32",
-            ];
-            return (
-              <div key={ingredient.name} className={`pointer-events-none absolute opacity-30 ${positions[index]}`} aria-hidden>
-                <Image src={ingredient.image!} alt="" fill className="object-contain" />
-              </div>
-            );
-          })}
-        <div className="relative mx-auto max-w-xl px-4 sm:px-6">
-          <h2 className="font-display text-3xl font-bold sm:text-4xl">{copy.closingHeadline}</h2>
-          <p className="mt-2 text-sm text-feelz-cream/70">{copy.closingSub}</p>
-          <button
-            type="button"
-            onClick={() => handleAddToCart(false)}
-            disabled={!variant || !isReady || !cartId || isPending}
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-feelz-cream px-6 py-3 text-sm font-semibold text-feelz-ink transition hover:opacity-90 disabled:opacity-40"
-          >
-            <ShoppingBag className="h-4 w-4" aria-hidden />
-            Add to Cart
-          </button>
-        </div>
-      </section>
+          .map((ingredient) => ({ name: ingredient.name, image: ingredient.image! }))}
+        price={price}
+        onAdd={() => handleAddToCart(false)}
+        addDisabled={!variant || !isReady || !cartId || isPending}
+        addPending={isPending}
+        addDone={isAdded}
+        bundlePrice={bundlePrice}
+        onAddBundle={handleAddBundle}
+        bundleDisabled={!bundleReady || !isReady || !cartId || bundlePending}
+        bundlePending={bundlePending}
+        bundleDone={bundleAdded}
+      />
 
       {lightboxOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-feelz-ink/60 p-4" onClick={() => setLightboxOpen(false)}>

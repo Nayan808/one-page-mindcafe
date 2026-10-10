@@ -107,6 +107,21 @@ export const FEELZ_COLOR_CLASSES: Record<
   "feelz-rest": { bg: "bg-feelz-rest", bgCard: "bg-feelz-rest/80", bgTint: "bg-feelz-rest/[0.2]", bgSoft: "bg-feelz-rest/[0.2]", borderSoft: "border-feelz-rest/30", text: "text-feelz-rest", border: "border-feelz-rest" },
 };
 
+// The Feelz Bundle is its own product now (products.is_bundle, see the
+// 20261007000000_feelz_bundle_product migration) — not a mood, but it
+// still needs a style wherever cart/checkout lines look one up by name.
+// catalogueSrc is a 2×2 of the four packs (catalogue/bundle.webp).
+MOOD_STYLES["feelz bundle"] = {
+  ...MOOD_STYLES.focus,
+  tagline: "All four moods.",
+  description: "One pack of each mood — Extrovert, Focus, Joy and Rest.",
+  ingredients: [],
+  feelzColor: "feelz-berry",
+  heroSrc: "/feelz-creative/00-feelz-bundle-hero-v4.webp",
+  catalogueSrc: "/feelz-creative/catalogue/bundle.webp",
+  stateLine: "Every mood, covered.",
+};
+
 const FALLBACK: MoodStyle = MOOD_STYLES.focus;
 
 export function moodStyleFor(productName: string): MoodStyle {
@@ -117,17 +132,17 @@ export function moodStyleFor(productName: string): MoodStyle {
 // every place that lists them: the Feelz product grid (Hero.tsx), the
 // footer's Feelz links, and the header's Shop mega-menu. Previously
 // hand-copied in three places, which is exactly how they'd drift out of
-// sync if a mood were ever added/renamed.
+// sync if a mood were ever added/renamed. `src` is the current pack
+// (a crop of the real product photography — the old /products/*.png
+// renders show a retired black pack design).
 export const MOOD_GRID: { key: string; label: string; src: string }[] = [
-  { key: "extrovert", label: "Extrovert", src: "/products/extrovert.png" },
-  { key: "focus", label: "Focus", src: "/products/focus.png" },
-  { key: "joy", label: "Joy", src: "/products/joy.png" },
-  { key: "rest", label: "Rest", src: "/products/rest.png" },
+  { key: "extrovert", label: "Extrovert", src: "/feelz-creative/packs/extrovert.webp" },
+  { key: "focus", label: "Focus", src: "/feelz-creative/packs/focus.webp" },
+  { key: "joy", label: "Joy", src: "/feelz-creative/packs/joy.webp" },
+  { key: "rest", label: "Rest", src: "/feelz-creative/packs/rest.webp" },
 ];
 
-// Flat, marketed price for one of each mood — not a computed 4x/20%-off
-// figure. Single source of truth for both the bundle option on
-// FeelzProductPageContent.tsx and the matching BUNDLE20 coupon's fixed
-// discount amount in supabase/migrations (kept in sync by hand, same as
-// any other real-world price: 4 × ₹290 − ₹949 = ₹211 off).
+// Fallback display price for the Feelz Bundle, used only until the
+// catalog (where the real price lives, on the bundle's own product row)
+// has loaded. Keep in sync with that row's price.
 export const FEELZ_BUNDLE_PRICE = 949;

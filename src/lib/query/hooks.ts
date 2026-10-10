@@ -66,7 +66,11 @@ export function useCart(cartId: string | null) {
   const settle = () => queryClient.invalidateQueries({ queryKey });
 
   const addItem = useMutation({
-    mutationFn: (args: { variant: ProductVariant; product: Pick<Product, "id" | "name" | "image_url" | "price">; quantity: number }) =>
+    mutationFn: (args: {
+      variant: ProductVariant;
+      product: Pick<Product, "id" | "name" | "image_url" | "price"> & { is_bundle?: boolean };
+      quantity: number;
+    }) =>
       addCartItem(sb, cartId!, args.variant.id, args.quantity),
     onMutate: (args) =>
       optimisticUpdate((items) => {
