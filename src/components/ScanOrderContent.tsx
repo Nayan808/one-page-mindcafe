@@ -152,7 +152,8 @@ function ProductsStep({ onProceedToPay }: { onProceedToPay: () => void }) {
         <p className="mt-6 text-sm text-ink/60">Loading strips…</p>
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-3 sm:gap-4">
-          {(catalogQuery.data ?? []).map((product) => {
+          {/* Loose mood packs only — the Feelz Bundle is an online product. */}
+          {(catalogQuery.data ?? []).filter((product) => !product.is_bundle).map((product) => {
             const variant = product.product_variants[0];
             const price = variant ? (variant.price_override ?? product.price) : product.price;
             const cartItem = variant ? items.find((item) => item.variant_id === variant.id) : undefined;

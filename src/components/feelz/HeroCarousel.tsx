@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useReducedMotion } from "motion/react";
-import { ChevronLeft, ChevronRight, ArrowRight, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 import { MOOD_GRID, MOOD_STYLES } from "@/lib/moodStyles";
 
 // Shared by Hero.tsx (/feelz, full-bleed, scrolls within the same page) and
@@ -19,18 +20,27 @@ import { MOOD_GRID, MOOD_STYLES } from "@/lib/moodStyles";
 // whole carousel there is already a clickable-feeling preview that leads
 // to /feelz via its own "Shop Feelz" CTA beside it — /feelz itself always
 // shows them since that's where shopping actually happens.
+//
+// The whole slide is also a link: each mood's creative opens that mood's
+// product page, and the bundle creative (there's no bundle product page)
+// jumps to the bundle card under the /feelz product grid (Hero.tsx).
+// Embla swallows the click that ends a swipe, so dragging never navigates.
 const HERO_SLIDES = [
-  { key: "bundle", src: "/feelz-creative/00-feelz-bundle-hero-v4.webp" },
-  ...MOOD_GRID.map((m) => ({ key: m.key, src: MOOD_STYLES[m.key].heroSrc })),
+  { key: "bundle", src: "/feelz-creative/00-feelz-bundle-hero-v4.webp", href: "/feelz#bundle", label: "Shop the Feelz bundle" },
+  ...MOOD_GRID.map((m) => ({ key: m.key, src: MOOD_STYLES[m.key].heroSrc, href: `/feelz/${m.key}`, label: `Shop Feelz ${m.label}` })),
 ];
 
 export function HeroCarousel({
   onShopClick,
   onZostelClick,
+  onBundleClick,
   showButtons = true,
 }: {
   onShopClick: () => void;
   onZostelClick: () => void;
+  /** When set (on /feelz itself), the bundle slide smooth-scrolls to the
+   * bundle card in place instead of following its /feelz#bundle link. */
+  onBundleClick?: () => void;
   showButtons?: boolean;
 }) {
   const prefersReduced = useReducedMotion();
@@ -67,7 +77,18 @@ export function HeroCarousel({
                   here since several of these bake headline text right up
                   against the left edge, which a mismatched container
                   ratio would crop into. */}
-              <Image src={slide.src} alt="" fill priority={slide.key === "bundle"} className="object-cover" sizes="100vw" />
+              <Link
+                href={slide.href}
+                aria-label={slide.label}
+                onClick={(event) => {
+                  if (slide.key !== "bundle" || !onBundleClick) return;
+                  event.preventDefault();
+                  onBundleClick();
+                }}
+                className="absolute inset-0 block"
+              >
+                <Image src={slide.src} alt="" fill priority={slide.key === "bundle"} className="object-cover" sizes="100vw" />
+              </Link>
 
               {/* Real, visible buttons — not invisible hit-zones sitting
                   silently on top of the photo's own "Shop Now" graphic.
@@ -101,7 +122,7 @@ export function HeroCarousel({
                       onClick={onZostelClick}
                       className="inline-flex items-center gap-1.5 rounded-full border border-feelz-ink/15 bg-feelz-paper/95 px-4 py-2.5 text-xs font-semibold uppercase tracking-label text-feelz-ink shadow-[0_4px_14px_rgba(0,0,0,0.35)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.4)] sm:px-5 sm:py-3 sm:text-sm"
                     >
-                      <MapPin className="h-3.5 w-3.5" aria-hidden />
+                      <Image src="/press/zostel-star.png" alt="" width={20} height={19} className="h-4 w-4 object-contain sm:h-[18px] sm:w-[18px]" />
                       Find at Zostel
                     </button>
                   </div>
@@ -173,7 +194,7 @@ export function HeroCarousel({
             onClick={onZostelClick}
             className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border border-feelz-ink/15 bg-feelz-paper whitespace-nowrap px-3 py-3 text-xs font-semibold uppercase tracking-wider text-feelz-ink shadow-sm"
           >
-            <MapPin className="h-3.5 w-3.5" aria-hidden />
+            <Image src="/press/zostel-star.png" alt="" width={20} height={19} className="h-4 w-4 object-contain sm:h-[18px] sm:w-[18px]" />
             Find at Zostel
           </button>
         </div>

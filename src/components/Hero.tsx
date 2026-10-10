@@ -16,6 +16,7 @@ import { TimelineContent } from "@/components/ui/timeline-animation";
 import { HeroCarousel } from "@/components/feelz/HeroCarousel";
 import { MeetFeelzSection } from "@/components/feelz/MeetFeelzSection";
 import { MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
+import { useAddBundle } from "@/lib/useAddBundle";
 import { FEELZ_PRODUCT_PAGES } from "@/lib/feelzProductPages";
 import type { FeelzMoodKey } from "@/lib/feelzIngredients";
 import { formatInr } from "@/lib/utils";
@@ -140,7 +141,9 @@ export function Hero() {
         timelineRef={timelineRef}
         customVariants={revealVariants}
       >
-        <HeroCarousel onShopClick={() => scrollTo("mood-picks")} onZostelClick={() => scrollTo("zostel-locations")} />
+        <HeroCarousel onShopClick={() => scrollTo("mood-picks")} onZostelClick={() => scrollTo("zostel-locations")}
+          onBundleClick={() => scrollTo("bundle")}
+        />
       </TimelineContent>
 
       <MeetFeelzSection hoveredKey={hoveredMoodKey} />
@@ -233,6 +236,8 @@ export function Hero() {
               </TimelineContent>
             );
           })}
+
+          <BundleCard />
         </div>
 
         {items.length > 0 && (
@@ -250,5 +255,72 @@ export function Hero() {
       </div>
       </div>
     </section>
+  );
+}
+
+// Full-width tile for the Feelz Bundle product under the single-mood grid
+// — the same bundle the product pages sell, so it's buyable straight from
+// the shop grid too (useAddBundle adds the one bundle line).
+function BundleCard() {
+  const { openDrawer } = useCartContext();
+  const bundle = useAddBundle();
+
+  return (
+    <div id="bundle" className="col-span-2 flex scroll-mt-24 flex-col overflow-hidden bg-feelz-paper shadow-[0_1px_2px_rgba(16,35,63,0.08),0_16px_32px_-16px_rgba(16,35,63,0.35)] md:col-span-4 md:flex-row">
+      <div className="relative aspect-[1774/887] w-full md:w-1/2">
+        <Image
+          src="/feelz-creative/bundle-banner-949.webp"
+          alt={`FEELZ bundle — all four moods for ${formatInr(bundle.price)}`}
+          fill
+          sizes="(min-width: 768px) 45vw, 90vw"
+          className="object-cover"
+        />
+        {bundle.savings > 0 && (
+          <span className="absolute left-3 top-3 rounded-full bg-emerald-600 px-3 py-1 text-[10px] font-bold uppercase tracking-label text-white shadow-sm">
+            Save {formatInr(bundle.savings)}
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 p-5 text-center text-feelz-ink sm:p-8">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-label text-feelz-berry">Best value</p>
+          <h3 className="font-display mt-1 text-xl font-bold leading-tight sm:text-2xl">Feelz Bundle</h3>
+          <p className="mt-1 text-xs text-feelz-ink/50">Extrovert · Focus · Joy · Rest — 40 strips</p>
+          <p className="mt-2 flex items-baseline justify-center gap-2">
+            {bundle.regularPrice !== null && (
+              <span className="text-sm font-semibold text-feelz-ink/40 line-through">{formatInr(bundle.regularPrice)}</span>
+            )}
+            <span className="text-2xl font-bold">{formatInr(bundle.price)}</span>
+          </p>
+        </div>
+
+        {bundle.cartItem ? (
+          <button
+            type="button"
+            onClick={openDrawer}
+            className="inline-flex w-full max-w-xs items-center justify-center gap-1.5 rounded-full bg-feelz-ink py-3 text-xs font-bold uppercase tracking-label text-feelz-cream transition hover:opacity-90"
+          >
+            <Check className="h-3.5 w-3.5" aria-hidden />
+            Bundle in cart · {bundle.cartItem.quantity}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={bundle.addBundle}
+            disabled={!bundle.canAdd}
+            className="inline-flex w-full max-w-xs items-center justify-center gap-1.5 rounded-full bg-feelz-ink py-3 text-xs font-bold uppercase tracking-label text-feelz-cream transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {bundle.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
+            ) : (
+              <ShoppingBag className="h-3.5 w-3.5" aria-hidden />
+            )}
+            {bundle.isAdded ? "Added" : bundle.inStock ? "Add bundle to cart" : "Out of stock"}
+          </button>
+        )}
+        {bundle.hasError && <p className="text-[10px] font-medium text-red-600">couldn&apos;t add, try again</p>}
+      </div>
+    </div>
   );
 }
