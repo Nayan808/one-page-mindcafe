@@ -64,6 +64,6 @@ export type OrderWithItemDetails = Order & { order_items: OrderItemWithVariant[]
 // instead — see the `Order` base type this extends).
 export type OrderWithItemDetailsAndLocation = OrderWithItemDetails & {
   pickup_locations: Pick<PickupLocation, "name" | "city"> | null;
-  addresses: Pick<Address, "city" | "pincode"> | null;
+  addresses: Pick<Address, "city" | "pincode" | "phone"> | null;
   profiles: Pick<Profile, "full_name" | "phone"> | null;
 };
