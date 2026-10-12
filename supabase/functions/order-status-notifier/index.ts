@@ -85,6 +85,26 @@ async function resolveCustomerEmail(
   return { email, order_number: order.order_number };
 }
 
+// Copy for the counselling add-on promised with every Feelz Bundle. The
+// coupon itself is created and handed out manually by the team (a printed
+// card in the package) — this email only tells the customer to expect it.
+const BUNDLE_ADDON_MESSAGE =
+  "A little something extra for your well-being! As part of your Feelz Bundle purchase, you'll receive a special card with your package containing a coupon code for 2 FREE one-on-one counselling sessions with Mindcafe. ❤️";
+
+// True if any line on the order is a bundle product (products.is_bundle,
+// see 20261007000000_feelz_bundle_product.sql). Fails closed to false —
+// a lookup problem must never block the order email itself.
+async function orderHasBundle(sb: ReturnType<typeof serviceRoleClient>, orderId: string): Promise<boolean> {
+  const { data, error } = await sb
+    .from("order_items")
+    .select("product_variants(products(is_bundle))")
+    .eq("order_id", orderId);
+  if (error || !data) return false;
+  return (data as { product_variants: { products: { is_bundle: boolean } | null } | null }[]).some(
+    (item) => item.product_variants?.products?.is_bundle === true,
+  );
+}
+
 async function recordNotificationOutcome(
   sb: ReturnType<typeof serviceRoleClient>,
   orderId: string,
@@ -146,6 +166,8 @@ Deno.serve(async (req) => {
   const statusChanged = record.status !== old_record?.status;
   const paymentChanged = record.payment_status !== old_record?.payment_status;
 
+  const hasBundle = statusChanged && record.status === "confirmed" ? await orderHasBundle(sb, record.id) : false;
+
   if (statusChanged && record.status === "confirmed") {
     // Feelz order alerts go to the Feelz mailbox specifically, not the
     // general admin_notification_email (team@mindcafe.app — that one
@@ -153,7 +175,10 @@ Deno.serve(async (req) => {
     const adminEmail = "feelz@mindcafe.app";
     const { text, html } = renderEmail({
       heading: `New order: ${record.order_number}`,
-      paragraphs: [`A new ${record.fulfillment_type} order was confirmed and paid — total ₹${record.total}.`],
+      paragraphs: [
+        `A new ${record.fulfillment_type} order was confirmed and paid — total ₹${record.total}.`,
+        ...(hasBundle ? ["Includes a Feelz Bundle — pack the counselling coupon card (2 free sessions) with this order."] : []),
+      ],
       cta: { label: "view in admin", url: `${SITE_URL}/admin/orders` },
     });
     // Not tracked via recordNotificationOutcome — that's reserved for the
@@ -171,6 +196,9 @@ Deno.serve(async (req) => {
     }
     if (SHOW_ETD_FOR.has(record.status) && record.estimated_delivery) {
       paragraphs.push(`Estimated delivery: ${record.estimated_delivery}.`);
+    }
+    if (record.status === "confirmed" && hasBundle) {
+      paragraphs.push(BUNDLE_ADDON_MESSAGE);
     }
 
     const cta =
