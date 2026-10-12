@@ -238,7 +238,7 @@ export async function getOrdersAdmin(
   let query = sb
     .from("orders")
     .select(
-      "*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city), addresses:address_id(city, pincode)",
+      "*, order_items(*, product_variants(variant_label, products(name))), pickup_locations(name, city), addresses:address_id(city, pincode, phone)",
       { count: "exact" },
     );
   if (options.status) {

@@ -128,6 +128,13 @@ export default function AdminOrdersPage() {
     for (const u of usersQuery.data ?? []) map.set(u.id, u.email);
     return map;
   }, [usersQuery.data]);
+  // Phone-OTP sign-ins keep the number on auth.users, not always on the
+  // profile — used as a fallback when the profile's phone is empty.
+  const authPhoneByUserId = useMemo(() => {
+    const map = new Map<string, string | null>();
+    for (const u of usersQuery.data ?? []) map.set(u.id, u.phone);
+    return map;
+  }, [usersQuery.data]);
 
   // Live: new orders / status changes show up without a manual refresh —
   // broad invalidate, same rationale as the admin appointments page.
@@ -275,14 +282,25 @@ export default function AdminOrdersPage() {
         // phone number and optionally an email, both stored on the order
         // row. A logged-in order has neither — name/phone come from the
         // profile, email from the auth.users lookup above.
+        // Phone falls back profile → sign-in phone → delivery address
+        // (every saved address requires one), so delivery orders always
+        // have a contact number even when the profile's is empty. Phone
+        // and email are both shown, not one-or-the-other.
         const name = o.user_id ? o.profiles?.full_name : o.guest_name;
-        const phone = o.user_id ? o.profiles?.phone : o.guest_phone;
+        const phone = o.user_id
+          ? o.profiles?.phone || authPhoneByUserId.get(o.user_id) || o.addresses?.phone
+          : o.guest_phone || o.addresses?.phone;
         const email = o.user_id ? emailByUserId.get(o.user_id) : o.guest_email;
         if (!name && !phone && !email) return <span className="text-ink/30">—</span>;
         return (
           <div className="space-y-0.5 text-xs">
             {name && <p className="font-medium text-ink">{name}</p>}
-            <p className="text-ink/60">{phone || email || "—"}</p>
+            {phone && (
+              <a href={`tel:${phone}`} className="block text-ink/70 hover:underline">
+                {phone}
+              </a>
+            )}
+            {email && <p className="break-all text-ink/50">{email}</p>}
           </div>
         );
       },
