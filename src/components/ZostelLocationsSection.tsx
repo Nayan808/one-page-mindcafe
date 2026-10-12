@@ -167,13 +167,17 @@ function Mountains() {
       <g className="zostel-sun" style={{ transformOrigin: "262px 44px" }}>
         {Array.from({ length: 12 }).map((_, i) => {
           const a = (i / 12) * Math.PI * 2;
+          // Rounded: Math.cos/sin can differ in the last digits between
+          // Node (server render) and the browser, which React reports as
+          // a hydration mismatch.
+          const r = (n: number) => Math.round(n * 100) / 100;
           return (
             <line
               key={i}
-              x1={262 + Math.cos(a) * 26}
-              y1={44 + Math.sin(a) * 26}
-              x2={262 + Math.cos(a) * 36}
-              y2={44 + Math.sin(a) * 36}
+              x1={r(262 + Math.cos(a) * 26)}
+              y1={r(44 + Math.sin(a) * 26)}
+              x2={r(262 + Math.cos(a) * 36)}
+              y2={r(44 + Math.sin(a) * 36)}
               stroke="#F7B53B"
               strokeWidth="3.5"
               strokeLinecap="round"
