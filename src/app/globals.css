@@ -380,6 +380,855 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(:has(img)):hover {
   }
 }
 
+/* HowToUseSection — ambient background (always slow, never busy) plus a
+   one-time, left → right entrance once the row gets [data-inview]. */
+@keyframes howto-drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(60px, -40px) scale(1.08);
+  }
+}
+@keyframes howto-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes howto-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-14px) rotate(calc(var(--r, 0deg) + 6deg));
+  }
+}
+.howto-glow {
+  animation: howto-drift 22s ease-in-out infinite;
+}
+.howto-glow-alt {
+  animation-duration: 28s;
+  animation-direction: reverse;
+}
+.howto-ring {
+  animation: howto-spin 90s linear infinite;
+}
+.howto-strip {
+  animation: howto-float 11s ease-in-out infinite;
+}
+.howto-seal {
+  animation: howto-spin 24s linear infinite;
+}
+
+.howto {
+  --howto-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.howto-step {
+  --howto-delay: calc(120ms + var(--i, 0) * 220ms);
+}
+.howto-arch {
+  clip-path: inset(100% 0 0 0 round 999px 999px 28px 28px);
+  transition: clip-path 1.3s var(--howto-ease) var(--howto-delay);
+}
+.howto-photo {
+  scale: 1.15;
+  transition: scale 1.8s var(--howto-ease) var(--howto-delay);
+}
+.howto-caption {
+  opacity: 0;
+  transform: translateY(12px);
+  transition:
+    opacity 0.9s var(--howto-ease) calc(var(--howto-delay) + 500ms),
+    transform 0.9s var(--howto-ease) calc(var(--howto-delay) + 500ms);
+}
+.howto-hairline {
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 2.2s var(--howto-ease) 200ms;
+}
+.howto[data-inview] .howto-arch {
+  clip-path: inset(0 0 0 0 round 999px 999px 28px 28px);
+}
+.howto[data-inview] .howto-photo {
+  scale: 1;
+}
+/* Hover: slow zoom, no entrance delay. */
+.howto[data-inview] .howto-step:hover .howto-photo {
+  scale: 1.06;
+  transition: scale 1.4s var(--howto-ease) 0s;
+}
+.howto[data-inview] .howto-caption {
+  opacity: 1;
+  transform: none;
+}
+.howto[data-inview] .howto-hairline {
+  transform: scaleX(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .howto-glow,
+  .howto-ring,
+  .howto-strip,
+  .howto-seal {
+    animation: none;
+  }
+  .howto-arch,
+  .howto-photo,
+  .howto-caption,
+  .howto-hairline {
+    transition: none !important;
+    clip-path: none !important;
+    scale: 1 !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* FeelDifferenceSection — leaf frames open vertically from their centre,
+   left → right, once the row gets [data-inview]; chips rise after.
+   (Ambient background is the shared .howto-* set via MoodAmbience.) */
+.feeldiff {
+  --feeldiff-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.feeldiff-item {
+  --feeldiff-delay: calc(120ms + var(--i, 0) * 240ms);
+}
+.feeldiff-capsule {
+  clip-path: inset(50% 0 50% 0 round var(--leaf));
+  transition: clip-path 1.3s var(--feeldiff-ease) var(--feeldiff-delay);
+}
+.feeldiff-photo {
+  scale: 1.18;
+  transition: scale 1.9s var(--feeldiff-ease) var(--feeldiff-delay);
+}
+.feeldiff-outline {
+  opacity: 0;
+  transform: translateX(10px) rotate(5deg);
+  transition:
+    opacity 1s var(--feeldiff-ease) calc(var(--feeldiff-delay) + 400ms),
+    transform 0.7s ease-out;
+}
+.feeldiff-chip {
+  opacity: 0;
+  translate: 0 16px;
+  transition:
+    opacity 0.9s var(--feeldiff-ease) calc(var(--feeldiff-delay) + 650ms),
+    translate 0.9s var(--feeldiff-ease) calc(var(--feeldiff-delay) + 650ms);
+}
+.feeldiff[data-inview] .feeldiff-capsule {
+  clip-path: inset(0 0 0 0 round var(--leaf));
+}
+.feeldiff[data-inview] .feeldiff-photo {
+  scale: 1;
+}
+.feeldiff[data-inview] .feeldiff-outline {
+  opacity: 1;
+}
+.feeldiff[data-inview] .feeldiff-chip {
+  opacity: 1;
+  translate: 0 0;
+}
+/* Hover: slow photo zoom and the askew outline straightens. */
+.feeldiff[data-inview] .feeldiff-item:hover .feeldiff-photo {
+  scale: 1.06;
+  transition: scale 1.4s var(--feeldiff-ease) 0s;
+}
+.feeldiff-item:hover .feeldiff-outline {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .feeldiff-capsule,
+  .feeldiff-photo,
+  .feeldiff-outline,
+  .feeldiff-chip {
+    transition: none !important;
+    clip-path: none !important;
+    scale: 1 !important;
+    opacity: 1 !important;
+    translate: none !important;
+  }
+}
+
+/* FeelDifferenceSection header — once [data-inview]: the headline's
+   lines rise from behind a mask and the index rows fade up in turn. The
+   active index row "inks in": its outlined word fills with white via a
+   background-clip:text sweep, and its italic sub-line slides in. */
+.feeldiff-head {
+  --feeldiff-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.feeldiff-word {
+  transform: translateY(110%);
+  transition: transform 1.1s var(--feeldiff-ease) calc(150ms + var(--w, 0) * 150ms);
+}
+.feeldiff-headcopy {
+  opacity: 0;
+  transition: opacity 1.2s var(--feeldiff-ease) 700ms;
+}
+.feeldiff-index-row {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 1s var(--feeldiff-ease) calc(300ms + var(--w, 0) * 140ms),
+    transform 1s var(--feeldiff-ease) calc(300ms + var(--w, 0) * 140ms);
+}
+.feeldiff-index-word {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.6);
+  background-image: linear-gradient(white, white);
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition: background-size 1.1s var(--feeldiff-ease);
+}
+.feeldiff-index-sub {
+  opacity: 0;
+  translate: -8px 0;
+  transition:
+    opacity 0.7s ease-out,
+    translate 0.7s var(--feeldiff-ease);
+}
+.feeldiff-index-row[data-active] .feeldiff-index-word {
+  background-size: 100% 100%;
+}
+.feeldiff-index-row[data-active] .feeldiff-index-sub {
+  opacity: 1;
+  translate: 0 0;
+  transition-delay: 0.25s;
+}
+.feeldiff-head[data-inview] .feeldiff-word {
+  transform: none;
+}
+.feeldiff-head[data-inview] .feeldiff-headcopy {
+  opacity: 1;
+}
+.feeldiff-head[data-inview] .feeldiff-index-row {
+  opacity: 1;
+  transform: none;
+}
+/* The card matching the active index row: its askew outline straightens
+   and it gains a soft glow. */
+.feeldiff-item[data-active] .feeldiff-outline {
+  transform: none;
+}
+.feeldiff-capsule {
+  transition-property: clip-path, box-shadow;
+}
+.feeldiff-item[data-active] .feeldiff-capsule {
+  box-shadow: 0 30px 70px -25px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+@media (prefers-reduced-motion: reduce) {
+  .feeldiff-word,
+  .feeldiff-headcopy,
+  .feeldiff-index-row,
+  .feeldiff-index-word,
+  .feeldiff-index-sub {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .feeldiff-index-sub {
+    translate: none !important;
+  }
+}
+
+/* NotSureHowSection — entrance once [data-inview] (blobs bloom, photos
+   rise into their tilt, arrows draw, notes and copy follow), then ambient
+   motion: blobs morph, rings turn, photos/strips drift, button sheen. */
+@keyframes notsure-morph {
+  0%,
+  100% {
+    border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+  }
+  33% {
+    border-radius: 45% 55% 40% 60% / 60% 40% 55% 45%;
+  }
+  66% {
+    border-radius: 52% 48% 62% 38% / 42% 55% 45% 58%;
+  }
+}
+@keyframes notsure-drift {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes notsure-strip {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-12px) rotate(calc(var(--r, 0deg) + 8deg));
+  }
+}
+@keyframes notsure-sheen {
+  0%,
+  70% {
+    translate: 0 0;
+  }
+  100% {
+    translate: 420% 0;
+  }
+}
+.notsure {
+  --notsure-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.notsure-blob {
+  opacity: 0;
+  scale: 0.7;
+  border-radius: 60% 40% 55% 45% / 50% 60% 40% 50%;
+  transition:
+    opacity 1.2s var(--notsure-ease) calc(var(--side, 0) * 150ms),
+    scale 1.6s var(--notsure-ease) calc(var(--side, 0) * 150ms);
+  animation: notsure-morph 14s ease-in-out infinite;
+}
+.notsure-ring {
+  opacity: 0;
+  transition: opacity 1.4s ease-out calc(300ms + var(--side, 0) * 150ms);
+  animation: howto-spin 60s linear infinite;
+}
+.notsure-photo {
+  opacity: 0;
+  translate: 0 30px;
+  rotate: 0deg;
+  transition:
+    opacity 1s var(--notsure-ease) calc(250ms + var(--side, 0) * 150ms),
+    translate 1.3s var(--notsure-ease) calc(250ms + var(--side, 0) * 150ms),
+    rotate 1.6s var(--notsure-ease) calc(250ms + var(--side, 0) * 150ms);
+}
+.notsure-drift {
+  animation: notsure-drift 7s ease-in-out infinite;
+}
+.notsure-strip {
+  opacity: 0;
+  transition: opacity 1s ease-out calc(700ms + var(--side, 0) * 150ms);
+  animation: notsure-strip 9s ease-in-out infinite;
+}
+.notsure-arrow {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 1s var(--notsure-ease) calc(900ms + var(--side, 0) * 150ms);
+}
+.notsure-arrow-head {
+  transition-delay: calc(1.7s + var(--side, 0) * 150ms);
+  transition-duration: 0.4s;
+}
+.notsure-note {
+  opacity: 0;
+  translate: 0 8px;
+  transition:
+    opacity 0.9s ease-out calc(1s + var(--side, 0) * 150ms),
+    translate 0.9s var(--notsure-ease) calc(1s + var(--side, 0) * 150ms);
+}
+.notsure-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.1em;
+}
+.notsure-rise {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 1.1s var(--notsure-ease) var(--d, 0ms);
+}
+.notsure-fade {
+  opacity: 0;
+  translate: 0 12px;
+  transition:
+    opacity 1s var(--notsure-ease) var(--d, 0ms),
+    translate 1s var(--notsure-ease) var(--d, 0ms);
+}
+.notsure-sheen {
+  animation: notsure-sheen 6s ease-in-out 2.5s infinite;
+}
+.notsure[data-inview] .notsure-blob {
+  opacity: 1;
+  scale: 1;
+}
+.notsure[data-inview] .notsure-ring,
+.notsure[data-inview] .notsure-strip,
+.notsure[data-inview] .notsure-note {
+  opacity: 1;
+  translate: 0 0;
+}
+.notsure[data-inview] .notsure-photo {
+  opacity: 1;
+  translate: 0 0;
+  rotate: var(--tilt, 0deg);
+}
+.notsure[data-inview] .notsure-arrow {
+  stroke-dashoffset: 0;
+}
+.notsure[data-inview] .notsure-rise {
+  transform: none;
+}
+.notsure[data-inview] .notsure-fade {
+  opacity: 1;
+  translate: 0 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .notsure-blob,
+  .notsure-ring,
+  .notsure-drift,
+  .notsure-strip,
+  .notsure-sheen {
+    animation: none !important;
+  }
+  .notsure-blob,
+  .notsure-ring,
+  .notsure-photo,
+  .notsure-strip,
+  .notsure-arrow,
+  .notsure-note,
+  .notsure-rise,
+  .notsure-fade {
+    transition: none !important;
+    opacity: 1 !important;
+    scale: 1 !important;
+    translate: none !important;
+    transform: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .notsure-photo {
+    rotate: var(--tilt, 0deg) !important;
+  }
+}
+
+/* ClosingCtaSection — the dashed orbit slowly flows (always, gently);
+   once [data-inview]: headline lines rise from behind a mask, label/sub
+   fade, the orbit fades in, coins settle one by one, then the buttons. */
+@keyframes closing-flow {
+  to {
+    stroke-dashoffset: -320;
+  }
+}
+.closing {
+  --closing-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.closing-orbit-flow {
+  animation: closing-flow 40s linear infinite;
+}
+.closing-orbit {
+  opacity: 0;
+  scale: 0.92;
+  transition:
+    opacity 1.6s var(--closing-ease) 300ms,
+    scale 1.8s var(--closing-ease) 300ms;
+}
+.closing-coin {
+  opacity: 0;
+  scale: 0.7;
+  transition:
+    opacity 0.9s var(--closing-ease) calc(700ms + var(--i, 0) * 160ms),
+    scale 1.1s var(--closing-ease) calc(700ms + var(--i, 0) * 160ms);
+}
+.closing-line {
+  transform: translateY(110%);
+  transition: transform 1.1s var(--closing-ease) calc(150ms + var(--w, 0) * 160ms);
+}
+.closing-fade {
+  opacity: 0;
+  transition: opacity 1.2s var(--closing-ease) 500ms;
+}
+.closing-actions {
+  opacity: 0;
+  translate: 0 12px;
+  transition:
+    opacity 1s var(--closing-ease) 900ms,
+    translate 1s var(--closing-ease) 900ms;
+}
+.closing[data-inview] .closing-orbit,
+.closing[data-inview] .closing-coin {
+  opacity: 1;
+  scale: 1;
+}
+.closing[data-inview] .closing-line {
+  transform: none;
+}
+.closing[data-inview] .closing-fade,
+.closing[data-inview] .closing-actions {
+  opacity: 1;
+  translate: 0 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .closing-orbit-flow {
+    animation: none;
+  }
+  .closing-orbit,
+  .closing-coin,
+  .closing-line,
+  .closing-fade,
+  .closing-actions {
+    transition: none !important;
+    opacity: 1 !important;
+    scale: 1 !important;
+    translate: none !important;
+    transform: none !important;
+  }
+}
+
+/* CalmerYouSection — the active panel glides open (flex-grow) while its
+   photo settles from a slight zoom and its caption chip rises; folded
+   panels show a tint and a vertical label. The active story bar fills
+   over --dwell; the timeline's colour fill eases to the active step. */
+@keyframes calmer-bar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+@keyframes calmer-caption-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.calmer-panel {
+  flex: 1 1 0%;
+  transition: flex-grow 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.calmer-panel[data-active] {
+  flex-grow: 7;
+}
+.calmer-panel-img {
+  scale: 1.12;
+  transition: scale 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.calmer-panel[data-active] .calmer-panel-img {
+  scale: 1;
+}
+.calmer-panel-veil,
+.calmer-panel-label {
+  transition: opacity 0.5s ease-out;
+}
+.calmer-panel[data-active] .calmer-panel-veil,
+.calmer-panel[data-active] .calmer-panel-label {
+  opacity: 0;
+}
+.calmer-panel:not([data-active]):hover .calmer-panel-veil {
+  opacity: 0.7;
+}
+.calmer-panel-chip {
+  opacity: 0;
+  translate: 0 10px;
+  transition:
+    opacity 0.4s ease-out,
+    translate 0.4s ease-out;
+}
+.calmer-panel[data-active] .calmer-panel-chip {
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.35s,
+    translate 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.35s;
+}
+.calmer-caption {
+  animation: calmer-caption-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.calmer-bar-run {
+  animation: calmer-bar var(--dwell, 5s) linear both;
+}
+.calmer-track-fill {
+  transition: height 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .calmer-panel,
+  .calmer-panel-img,
+  .calmer-track-fill {
+    transition: none !important;
+    scale: 1 !important;
+  }
+  .calmer-caption,
+  .calmer-bar-run {
+    animation: none !important;
+  }
+}
+
+/* ZostelLocationsSection — travel routes "march" along their dashes, map
+   pins bob, the sun turns slowly, birds drift; cards fade up as they
+   (re)render, e.g. after a search filters the row. */
+@keyframes zostel-march {
+  to {
+    stroke-dashoffset: -34;
+  }
+}
+@keyframes zostel-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-7px);
+  }
+}
+@keyframes zostel-spin {
+  to {
+    rotate: 360deg;
+  }
+}
+@keyframes zostel-drift {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, -4px);
+  }
+}
+@keyframes zostel-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.zostel-route {
+  animation: zostel-march 2.4s linear infinite;
+}
+.zostel-pin {
+  animation: zostel-bob 2.8s ease-in-out infinite;
+}
+.zostel-pin-alt {
+  animation-delay: -1.4s;
+}
+.zostel-sun {
+  animation: zostel-spin 40s linear infinite;
+}
+.zostel-birds {
+  animation: zostel-drift 7s ease-in-out infinite;
+}
+.zostel-card-in {
+  animation: zostel-card-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .zostel-route,
+  .zostel-pin,
+  .zostel-sun,
+  .zostel-birds,
+  .zostel-card-in {
+    animation: none;
+  }
+}
+
+/* AncientWisdomSection ("A thoughtful journey") — once the stage gets
+   [data-inview]: the wall settles from a slight zoom, torn papers fade in,
+   the copper wire draws left → right (pathLength=1), and each object
+   (--i 0–4) rises into place in step with the wire, its caption after.
+   Then only ambient motion: leaf shadows sway, the strip hovers, the
+   moment breathes. */
+.journey {
+  --journey-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.journey-item,
+.journey-caption,
+.journey-cap {
+  --journey-step: calc(350ms + var(--i, 0) * 280ms);
+}
+/* Caption + heading text reveal: lines rise from behind a mask, the
+   step's hairline draws out from the number, the body fades up softly —
+   each caption timed to its object's arrival (--journey-step). */
+.journey-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.12em;
+  padding-right: 0.08em;
+}
+.journey-rise {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 1.1s var(--journey-ease) calc(var(--journey-step, 0ms) + 500ms);
+}
+.journey-hairline {
+  scale: 0 1;
+  transition: scale 0.9s var(--journey-ease) calc(var(--journey-step, 0ms) + 450ms);
+}
+.journey-cap > p:first-child {
+  opacity: 0;
+  transition: opacity 0.8s ease-out calc(var(--journey-step, 0ms) + 400ms);
+}
+.journey-body {
+  opacity: 0;
+  translate: 0 8px;
+  filter: blur(3px);
+  transition:
+    opacity 1s var(--journey-ease) calc(var(--journey-step, 0ms) + 750ms),
+    translate 1s var(--journey-ease) calc(var(--journey-step, 0ms) + 750ms),
+    filter 1s var(--journey-ease) calc(var(--journey-step, 0ms) + 750ms);
+}
+.journey[data-inview] .journey-rise {
+  transform: none;
+}
+.journey[data-inview] .journey-hairline {
+  scale: 1 1;
+}
+.journey[data-inview] .journey-cap > p:first-child,
+.journey[data-inview] .journey-body {
+  opacity: 1;
+  translate: 0 0;
+  filter: blur(0);
+}
+.journey-wall {
+  scale: 1.05;
+  transition: scale 2.4s var(--journey-ease);
+}
+.journey-papers {
+  opacity: 0;
+  transition: opacity 1.4s ease-out 200ms;
+}
+/* Same duration/delay/easing as the bead's animateMotion and the
+   per-object arrival times in AncientWisdomSection.tsx (WIRE_MS,
+   WIRE_DELAY_MS) — keep them in sync. */
+.journey-wire {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset 3.2s cubic-bezier(0.45, 0, 0.2, 1) 400ms;
+}
+/* After the draw: a faint highlight glides along the copper, forever. */
+@keyframes journey-glide {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.journey-shimmer {
+  stroke-dasharray: 0.035 0.965;
+  stroke-dashoffset: 1;
+  opacity: 0;
+  transition: opacity 1s ease-out 3.6s;
+}
+.journey[data-inview] .journey-shimmer {
+  opacity: 0.85;
+  animation: journey-glide 9s linear 3.6s infinite;
+}
+.journey-item {
+  opacity: 0;
+  translate: 0 36px;
+  filter: blur(6px);
+  transition:
+    opacity 1.1s var(--journey-ease) var(--journey-step),
+    translate 1.3s var(--journey-ease) var(--journey-step),
+    filter 1.1s var(--journey-ease) var(--journey-step);
+}
+.journey-caption,
+.journey-fade {
+  opacity: 0;
+  translate: 0 14px;
+  transition:
+    opacity 1s var(--journey-ease) calc(var(--journey-step, 0ms) + 450ms),
+    translate 1s var(--journey-ease) calc(var(--journey-step, 0ms) + 450ms);
+}
+.journey-fade {
+  transition-delay: 100ms;
+}
+.journey[data-inview] .journey-wall {
+  scale: 1;
+}
+.journey[data-inview] .journey-papers {
+  opacity: 1;
+}
+.journey[data-inview] .journey-wire {
+  stroke-dashoffset: 0;
+}
+.journey[data-inview] .journey-item {
+  opacity: 1;
+  translate: 0 0;
+  filter: blur(0);
+}
+.journey[data-inview] .journey-caption,
+.journey[data-inview] .journey-fade {
+  opacity: 1;
+  translate: 0 0;
+}
+@keyframes journey-sway {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate(30px, 12px) rotate(4deg);
+  }
+}
+@keyframes journey-hover {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(calc(var(--amp, 6px) * -1));
+  }
+}
+@keyframes journey-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.015);
+  }
+}
+.journey-leaf {
+  animation: journey-sway 14s ease-in-out infinite;
+}
+.journey-leaf-alt {
+  animation-duration: 18s;
+  animation-direction: reverse;
+}
+/* One shared 7s cycle; each object's delay (set inline) phase-shifts it
+   so the row drifts as a slow wave. */
+.journey-float {
+  animation: journey-hover 7s ease-in-out infinite both;
+}
+.journey-breathe {
+  transform-origin: 50% 100%;
+  animation: journey-breathe 7s ease-in-out 3s infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .journey-wall,
+  .journey-papers,
+  .journey-wire,
+  .journey-item,
+  .journey-caption,
+  .journey-fade,
+  .journey-rise,
+  .journey-hairline,
+  .journey-cap > p:first-child,
+  .journey-body {
+    transition: none !important;
+    opacity: 1 !important;
+    scale: 1 !important;
+    translate: none !important;
+    filter: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .journey-leaf,
+  .journey-float,
+  .journey-breathe,
+  .journey-shimmer {
+    animation: none !important;
+  }
+  .journey-shimmer {
+    opacity: 0 !important;
+  }
+}
 /* Scroll-reveal entrance, applied via the <Reveal> wrapper component.
    .reveal-visible is added by IntersectionObserver the first time an
    element scrolls into view. Reduced-motion gets the final state

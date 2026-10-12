@@ -38,15 +38,23 @@ export function ShopMenu({ linkClassName }: { linkClassName: string }) {
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >
-      <button
-        type="button"
-        onClick={() => setIsOpen((open) => !open)}
-        aria-expanded={isOpen}
-        className={`flex items-center gap-1 ${linkClassName}`}
-      >
-        Feelz
-        <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden />
-      </button>
+      {/* "Feelz" itself is a real link to the /feelz landing page; hovering
+          still opens the menu, and the chevron is a separate toggle for
+          touch/keyboard users who can't hover. */}
+      <div className="flex items-center gap-1">
+        <Link href="/feelz" onClick={() => setIsOpen(false)} className={linkClassName}>
+          Feelz
+        </Link>
+        <button
+          type="button"
+          onClick={() => setIsOpen((open) => !open)}
+          aria-expanded={isOpen}
+          aria-label={isOpen ? "Close Feelz menu" : "Open Feelz menu"}
+          className={`flex items-center ${linkClassName}`}
+        >
+          <ChevronDown className={`h-3 w-3 transition-transform ${isOpen ? "rotate-180" : ""}`} aria-hidden />
+        </button>
+      </div>
 
       {isOpen && (
         // The pt-3 gap (rather than mt-3 on the inner panel) keeps the
@@ -71,8 +79,8 @@ export function ShopMenu({ linkClassName }: { linkClassName: string }) {
                   onClick={() => setIsOpen(false)}
                   className="group flex items-center gap-3 rounded-xl p-2 transition hover:bg-cream"
                 >
-                  <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-cream">
-                    <Image src={mood.src} alt="" fill sizes="48px" className="object-cover" />
+                  <span className="relative h-14 w-[42px] shrink-0 overflow-hidden rounded-md bg-cream shadow-sm ring-1 ring-ink/10 transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
+                    <Image src={mood.src} alt="" fill sizes="42px" className="object-cover" />
                   </span>
                   <span className="text-sm font-medium text-ink group-hover:text-brand">{mood.label}</span>
                 </Link>

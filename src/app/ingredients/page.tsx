@@ -101,13 +101,16 @@ export default function IngredientsPage() {
             return (
               <div key={ingredient.name} className={`group flex flex-col border ${colors.borderSoft} ${colors.bgSoft} p-5 text-left shadow-sm transition hover:shadow-lg`}>
                 {ingredient.image && (
-                  <div className="relative mb-4 h-28 w-full overflow-hidden bg-white">
+                  // Multiply-blend so the shot's baked-in white background
+                  // drops out to the card's mood tint (see IngredientsTeaserSection).
+                  // Subject fills ~60% of each shot, hence the 1.5× zoom.
+                  <div className="relative mb-4 h-36 w-full">
                     <Image
                       src={ingredient.image}
                       alt={ingredient.name}
                       fill
                       sizes="(min-width: 1024px) 20vw, 45vw"
-                      className="object-contain p-2 transition-transform duration-500 group-hover:scale-105"
+                      className="scale-150 object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-[1.6]"
                     />
                   </div>
                 )}

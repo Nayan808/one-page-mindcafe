@@ -18,37 +18,17 @@ import { useAddresses } from "@/lib/query/hooks";
 import { AddressForm, type AddressFormValues } from "@/components/AddressForm";
 import { PhoneVerifyInline } from "@/components/PhoneVerifyInline";
 import { formatInr } from "@/lib/utils";
-import { MOOD_GRID, FEELZ_BUNDLE_PRICE } from "@/lib/moodStyles";
+import { AUTO_DISCOUNT_MIN_SUBTOTAL, autoDiscountFor, discountableSubtotal, isBundleLine } from "@/lib/pricing";
 import type { PickupLocation } from "@/types/domain";
 
 type Mode = "delivery" | "takeaway";
 
-// Auto-applied once the cart crosses this subtotal — delivery/takeaway
-// checkout only. Scan-and-order uses its own separate payment component
-// (ScanOrderPayment.tsx) that never runs this file's logic at all, so it's
-// naturally excluded rather than special-cased here. The ₹300 minimum is
-// also enforced server-side via the coupon row's own min_order_amount, so
-// this constant is just what triggers the auto-fill — the actual gate
-// lives in the database.
-const AUTO_COUPON_CODE = "FEELZ10";
-const AUTO_COUPON_MIN_SUBTOTAL = 300;
-
-// A second auto-applied code — one of each of the four real moods in the
-// cart (the "bundle" picked on a product page, see FeelzProductPageContent
-// .tsx) gets 20% off instead of FEELZ10's 10%, same no-code-needed pattern.
-// Whichever of the two the cart currently qualifies for is computed below
-// (eligibleAutoCode) and only one is ever applied at a time — they never
-// stack, same as the coupon/quantity-discount rule above.
-const BUNDLE_COUPON_CODE = "BUNDLE20";
-
-// A second, independent automatic discount — buy 2+ packs (of anything,
-// summed across the whole cart), get 10% off, no code needed. Computed the
-// same way here and in create-order (the actual charge), and the two never
-// stack: whichever discount is larger wins, matching create-order's own
-// Math.max(couponDiscount, quantityDiscount) so this preview never shows a
-// number different from what's actually charged.
-const QUANTITY_DISCOUNT_MIN_QTY = 2;
-const QUANTITY_DISCOUNT_PERCENT = 0.1;
+// The automatic discount — 10% off the non-bundle items once they alone
+// reach ₹300, no code needed — is computed and charged server-side by
+// create-order; this component only previews it via lib/pricing.ts, which
+// mirrors that rule. The Feelz Bundle is a fixed-price product it never
+// touches. A customer's own coupon can still be applied; create-order then
+// uses whichever of the two is larger, never both, and so does the preview.
 
 // Delivery or takeaway pickup at a listed Zostel — payment is Razorpay
 // only in both cases (pay-online, no cash-on-pickup). No pre-existing
@@ -80,37 +60,13 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
   // once one's chosen, and search only makes sense while still choosing.
   const [showAllLocations, setShowAllLocations] = useState(true);
 
-  // The 10% coupon is a checkbox the customer controls directly (default
-  // on, once eligible) rather than something that silently refills a text
-  // field — that's what caused it to reappear right after being erased:
-  // clearing the input also cleared `appliedCoupon`, which made the old
-  // auto-apply effect's "nothing applied yet" condition true again on the
-  // very next render. manualCouponCode is now a separate, always-erasable
-  // field that never gets auto-filled by anything.
-  const [useAutoCoupon, setUseAutoCoupon] = useState(true);
   const [manualCouponCode, setManualCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<CouponPreview | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [isCheckingCoupon, setIsCheckingCoupon] = useState(false);
-  // Guards the auto-apply effect below against retrying forever: if an
-  // auto code (FEELZ10/BUNDLE20) fails validation — e.g. not active in the
-  // database yet — appliedCoupon stays null, which used to make the
-  // effect immediately re-fire on every render, hammering the server in a
-  // tight loop and leaving the manual "Apply" button stuck on "Checking…"
-  // (shared isCheckingCoupon state). Once a given code has failed once
-  // this stops retrying it automatically; it resets the moment the
-  // eligible code changes (e.g. cart composition changes).
-  const [autoCodeFailed, setAutoCodeFailed] = useState<string | null>(null);
-  // A successfully-applied manual code takes priority over either default —
-  // the auto-coupon effect below checks this before touching anything.
-  const hasManualCoupon =
-    appliedCoupon !== null && appliedCoupon.code !== AUTO_COUPON_CODE && appliedCoupon.code !== BUNDLE_COUPON_CODE;
-
-  // One of each of the four real moods, by product name — matches how the
-  // bundle option on FeelzProductPageContent.tsx adds to cart (one unit of
-  // each product, not four of one).
-  const cartProductNames = new Set(items.map((item) => item.product_variants.products.name.trim().toLowerCase()));
-  const hasBundleInCart = MOOD_GRID.every((m) => cartProductNames.has(m.key));
+  const hasManualCoupon = appliedCoupon !== null;
+  const hasBundle = items.some(isBundleLine);
+  const singlesSubtotal = discountableSubtotal(items);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -158,15 +114,10 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     serviceability.serviceable
       ? serviceability.deliveryFee
       : 0;
-  // appliedCoupon is the single source of truth for the COUPON discount —
-  // nothing here silently invalidates it out from under the displayed
-  // discount anymore. The quantity discount is entirely separate (no
-  // checkbox, no code, just cart quantity), so it can't be affected by
-  // anything in the coupon state machine above.
+  // appliedCoupon is the single source of truth for the COUPON discount;
+  // the automatic 10% is entirely separate (no code, just cart contents).
   const couponDiscountAmount = appliedCoupon?.discountAmount ?? 0;
-  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
-  const quantityDiscountAmount =
-    totalQuantity >= QUANTITY_DISCOUNT_MIN_QTY ? subtotal * QUANTITY_DISCOUNT_PERCENT : 0;
+  const quantityDiscountAmount = autoDiscountFor(items);
   const quantityDiscountWins = quantityDiscountAmount > couponDiscountAmount;
   const discountAmount = Math.max(couponDiscountAmount, quantityDiscountAmount);
   // Delivery is free for every customer right now — create-order applies
@@ -180,7 +131,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     setCouponError(null);
     try {
       const sb = createClient();
-      const result = await validateCoupon(sb, code, subtotal);
+      const result = await validateCoupon(sb, code, subtotal, singlesSubtotal);
       setAppliedCoupon(result);
       return true;
     } catch (err) {
@@ -191,33 +142,9 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     }
   }
 
-  // Deliberately separate from applyCoupon/isCheckingCoupon/couponError —
-  // those are the manual-input field's own state, and reusing them here
-  // made an auto-apply attempt show "Checking…" on the unrelated manual
-  // "Apply" button and surface its error under the manual field instead of
-  // next to the checkbox that actually triggered it. On failure this sets
-  // autoCodeFailed so the effect below stops retrying that code.
-  const [isAutoChecking, setIsAutoChecking] = useState(false);
-  async function applyAutoCoupon(code: string) {
-    setIsAutoChecking(true);
-    try {
-      const sb = createClient();
-      const result = await validateCoupon(sb, code, subtotal);
-      setAppliedCoupon(result);
-      setAutoCodeFailed(null);
-    } catch {
-      setAutoCodeFailed(code);
-    } finally {
-      setIsAutoChecking(false);
-    }
-  }
-
   async function handleApplyManualCoupon() {
     if (!manualCouponCode.trim()) return;
-    const applied = await applyCoupon(manualCouponCode);
-    // A real manual code takes over from the default — matches the
-    // requested behavior: applying another code deselects FEELZ10.
-    if (applied) setUseAutoCoupon(false);
+    await applyCoupon(manualCouponCode);
   }
 
   function handleRemoveManualCoupon() {
@@ -225,32 +152,6 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
     setCouponError(null);
     if (hasManualCoupon) setAppliedCoupon(null);
   }
-
-  // Whichever of the two auto codes the cart currently qualifies for —
-  // the bundle's 20% beats the ₹300+ 10% whenever both are available, so
-  // it takes priority rather than the two being compared by discount
-  // amount (they'd always resolve the same way anyway, since 20% of any
-  // subtotal that also clears ₹300 is larger than 10% of it).
-  const eligibleAutoCode = hasBundleInCart ? BUNDLE_COUPON_CODE : subtotal >= AUTO_COUPON_MIN_SUBTOTAL ? AUTO_COUPON_CODE : null;
-
-  // Keeps the eligible auto code applied/removed in sync with the checkbox
-  // + cart contents — but only while no manual code is active, so a
-  // customer's own coupon is never clobbered by this running again on some
-  // unrelated state change (item added, address picked, etc.). Skips any
-  // code that already failed this session (autoCodeFailed) instead of
-  // retrying it on every render — without that guard, a code that isn't
-  // valid yet (e.g. not active in the database) made this fire in a tight
-  // loop, since a failed attempt leaves appliedCoupon null, which looked
-  // identical to "never tried yet" on the very next render.
-  useEffect(() => {
-    if (hasManualCoupon || isAutoChecking) return;
-    if (useAutoCoupon && eligibleAutoCode && eligibleAutoCode !== autoCodeFailed) {
-      if (appliedCoupon?.code !== eligibleAutoCode) void applyAutoCoupon(eligibleAutoCode);
-    } else if (appliedCoupon?.code === AUTO_COUPON_CODE || appliedCoupon?.code === BUNDLE_COUPON_CODE) {
-      setAppliedCoupon(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [useAutoCoupon, eligibleAutoCode, hasManualCoupon, appliedCoupon, isAutoChecking, autoCodeFailed]);
 
   const serviceabilityOk =
     serviceability !== "unchecked" &&
@@ -507,35 +408,24 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
       )}
 
       <div className="space-y-3">
-        <label className="flex items-center gap-2 rounded-xl border border-feelz-ink/15 bg-feelz-cream p-3 text-sm">
-          <input
-            type="checkbox"
-            checked={useAutoCoupon}
-            onChange={(event) => setUseAutoCoupon(event.target.checked)}
-            className="h-4 w-4 shrink-0"
-          />
-          <span>
-            {hasBundleInCart ? (
-              <>
-                Apply bundle price — <span className="font-medium text-feelz-ink">{formatInr(FEELZ_BUNDLE_PRICE)}</span> for one of each mood (
-                <span className="font-medium text-feelz-ink">{BUNDLE_COUPON_CODE}</span>)
-              </>
-            ) : (
-              <>
-                Apply 10% off (<span className="font-medium text-feelz-ink">{AUTO_COUPON_CODE}</span>)
-                {subtotal < AUTO_COUPON_MIN_SUBTOTAL && (
-                  <span className="text-feelz-ink/50"> — add {formatInr(AUTO_COUPON_MIN_SUBTOTAL - subtotal)} more to qualify</span>
-                )}
-              </>
-            )}
-          </span>
-        </label>
-        {autoCodeFailed && autoCodeFailed === eligibleAutoCode && !hasManualCoupon && (
-          <p className="text-sm text-red-600">That offer isn&apos;t available right now — the 2+ packs discount still applies if your cart qualifies.</p>
-        )}
+        <p className="rounded-xl border border-feelz-ink/15 bg-feelz-cream p-3 text-sm">
+          {quantityDiscountAmount > 0 ? (
+            <>
+              10% off{hasBundle ? " your non-bundle items" : ""} is applied automatically
+              {hasBundle ? " — the Feelz Bundle is already at its bundle price." : "."}
+            </>
+          ) : singlesSubtotal > 0 ? (
+            <span className="text-feelz-ink/60">
+              Add {formatInr(AUTO_DISCOUNT_MIN_SUBTOTAL - singlesSubtotal)} more{hasBundle ? " (besides the bundle)" : ""} to get 10% off
+              automatically.
+            </span>
+          ) : (
+            <span className="text-feelz-ink/60">The Feelz Bundle is already at its bundle price.</span>
+          )}
+        </p>
 
         <div>
-          <label className="mb-1 block text-sm text-feelz-ink/70">Have a different coupon code? (optional)</label>
+          <label className="mb-1 block text-sm text-feelz-ink/70">Have a coupon code? (optional)</label>
           <div className="flex gap-2">
             <input
               value={manualCouponCode}
@@ -572,7 +462,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         {discountAmount > 0 && (
           <p className="text-sm text-emerald-700">
             {quantityDiscountWins
-              ? `10% off applied for 2+ packs, ${formatInr(discountAmount)} off`
+              ? `10% off applied automatically, ${formatInr(discountAmount)} off`
               : `"${appliedCoupon!.code}" applied, ${formatInr(discountAmount)} off`}
           </p>
         )}
@@ -585,7 +475,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         </div>
         {discountAmount > 0 && (
           <div className="flex justify-between text-emerald-700">
-            <span>{quantityDiscountWins ? "2+ packs discount" : `Coupon (${appliedCoupon!.code})`}</span>
+            <span>{quantityDiscountWins ? "10% off" : `Coupon (${appliedCoupon!.code})`}</span>
             <span>−{formatInr(discountAmount)}</span>
           </div>
         )}

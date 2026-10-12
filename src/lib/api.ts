@@ -83,6 +83,8 @@ export async function getFeelzTeaser(sb: Sb, limit = 4): Promise<Pick<Product, "
     .from("products")
     .select("id, name, image_url")
     .eq("is_active", true)
+    // The bundle isn't a mood — this teaser shows the four moods only.
+    .eq("is_bundle", false)
     .order("name")
     .limit(limit);
   throwOnError("getFeelzTeaser", error);
@@ -123,7 +125,7 @@ export async function getOrCreateCart(
 export async function getCartItems(sb: Sb, cartId: string): Promise<CartItemWithVariant[]> {
   const { data, error } = await sb
     .from("cart_items")
-    .select("*, product_variants(*, products(id, name, image_url, price))")
+    .select("*, product_variants(*, products(id, name, image_url, price, is_bundle))")
     .eq("cart_id", cartId);
   throwOnError("getCartItems", error);
   return (data as unknown as CartItemWithVariant[]) ?? [];
@@ -830,7 +832,16 @@ export type CouponPreview = { code: string; discountAmount: number };
 // usage_limit, which this preview can't safely enforce client-side
 // without a race) server-side at pay time regardless of what this
 // returns, so there's nothing to trust here beyond UX.
-export async function validateCoupon(sb: Sb, code: string, subtotal: number): Promise<CouponPreview> {
+// `discountableSubtotal` is the part a coupon may actually discount —
+// everything except the fixed-price Feelz Bundle (see lib/pricing.ts and
+// create-order, which computes it the same way). The minimum-order check
+// still uses the full subtotal.
+export async function validateCoupon(
+  sb: Sb,
+  code: string,
+  subtotal: number,
+  discountableSubtotal: number = subtotal,
+): Promise<CouponPreview> {
   const normalized = code.trim().toUpperCase();
   if (!normalized) throw new ApiError("validateCoupon", { message: "Enter a coupon code" });
 
@@ -850,9 +861,11 @@ export async function validateCoupon(sb: Sb, code: string, subtotal: number): Pr
   }
 
   let discountAmount =
-    coupon.discount_type === "percent" ? subtotal * (Number(coupon.discount_value) / 100) : Number(coupon.discount_value);
+    coupon.discount_type === "percent"
+      ? discountableSubtotal * (Number(coupon.discount_value) / 100)
+      : Number(coupon.discount_value);
   if (coupon.max_discount_amount !== null) discountAmount = Math.min(discountAmount, Number(coupon.max_discount_amount));
-  discountAmount = Math.min(discountAmount, subtotal);
+  discountAmount = Math.min(discountAmount, discountableSubtotal);
 
   return { code: coupon.code, discountAmount };
 }

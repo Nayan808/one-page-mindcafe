@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
   const variantIds = items.map((i) => i.variant_id);
   const { data: variants, error: variantsError } = await sb
     .from("product_variants")
-    .select("id, price_override, weight_grams, products(id, name, price, is_active)")
+    .select("id, price_override, weight_grams, products(id, name, price, is_active, is_bundle)")
     .in("id", variantIds);
 
   if (variantsError || !variants) return jsonResponse({ error: "Failed to look up products" }, 500);
@@ -159,13 +159,16 @@ Deno.serve(async (req) => {
     id: string;
     price_override: number | null;
     weight_grams: number | null;
-    products: { id: string; name: string; price: number; is_active: boolean } | null;
+    products: { id: string; name: string; price: number; is_active: boolean; is_bundle: boolean } | null;
   }]));
 
   const FALLBACK_WEIGHT_GRAMS = 500;
   let subtotal = 0;
+  // Everything except the Feelz Bundle (products.is_bundle) — the bundle
+  // is always exactly its own price, so neither the automatic discount
+  // nor any coupon below ever takes money off it.
+  let discountableSubtotal = 0;
   let totalWeightGrams = 0;
-  let totalQuantity = 0;
   const orderItemsInput: { variantId: string; quantity: number; unitPrice: number }[] = [];
 
   for (const item of items) {
@@ -176,19 +179,23 @@ Deno.serve(async (req) => {
     }
     const unitPrice = Number(variant.price_override ?? variant.products.price);
     subtotal += unitPrice * quantity;
+    if (!variant.products.is_bundle) discountableSubtotal += unitPrice * quantity;
     totalWeightGrams += (variant.weight_grams ?? FALLBACK_WEIGHT_GRAMS) * quantity;
-    totalQuantity += quantity;
     orderItemsInput.push({ variantId: item.variant_id, quantity, unitPrice });
   }
 
-  // Buy 2+ (summed across the whole cart), get 10% off — automatic, no
-  // code needed. Computed here so it's real (enforced on the actual
-  // charge), not just a banner claim; kept separate from the coupons table
-  // entirely (no schema change) and resolved against any coupon below by
-  // taking whichever discount is larger, never both at once.
-  const QUANTITY_DISCOUNT_MIN_QTY = 2;
-  const QUANTITY_DISCOUNT_PERCENT = 0.1;
-  const quantityDiscountAmount = totalQuantity >= QUANTITY_DISCOUNT_MIN_QTY ? subtotal * QUANTITY_DISCOUNT_PERCENT : 0;
+  // 10% off the non-bundle items once they alone total ₹300+ — automatic,
+  // no code needed (e.g. 2 × Joy = ₹580 → ₹58 off; bundle + 1 Joy → no
+  // discount). Computed here so it's real (enforced on the actual charge);
+  // kept out of the coupons table entirely and resolved against any coupon
+  // below by taking whichever is larger, never both. Mirrored for display
+  // in the storefront's src/lib/pricing.ts — keep the two in sync.
+  const AUTO_DISCOUNT_MIN_SUBTOTAL = 300;
+  const AUTO_DISCOUNT_PERCENT = 0.1;
+  const quantityDiscountAmount =
+    discountableSubtotal >= AUTO_DISCOUNT_MIN_SUBTOTAL
+      ? Math.round(discountableSubtotal * AUTO_DISCOUNT_PERCENT * 100) / 100
+      : 0;
 
   // --- Fulfillment-specific validation ---
   let addressId: string | null = null;
@@ -307,16 +314,20 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: `This coupon needs a minimum order of ₹${coupon.min_order_amount}` }, 400);
     }
 
+    // Priced against the non-bundle items only (the bundle is fixed-price);
+    // the minimum-order check above still uses the full subtotal.
     couponDiscountAmount =
-      coupon.discount_type === "percent" ? subtotal * (Number(coupon.discount_value) / 100) : Number(coupon.discount_value);
+      coupon.discount_type === "percent"
+        ? discountableSubtotal * (Number(coupon.discount_value) / 100)
+        : Number(coupon.discount_value);
     if (coupon.max_discount_amount !== null) couponDiscountAmount = Math.min(couponDiscountAmount, Number(coupon.max_discount_amount));
-    couponDiscountAmount = Math.min(couponDiscountAmount, subtotal);
+    couponDiscountAmount = Math.min(couponDiscountAmount, discountableSubtotal);
     validatedCoupon = { code: coupon.code };
   }
 
   // Resolved against the quantity discount computed above — whichever is
-  // larger wins, never both (a customer applying FEELZ10 on a 2-pack order
-  // shouldn't get 20% off). The coupon's usage_limit is only consumed when
+  // larger wins, never both (a customer applying FEELZ10 on top of the
+  // automatic 10% shouldn't get 20% off). The coupon's usage_limit is only consumed when
   // the coupon is actually what's used, below.
   const quantityDiscountWins = quantityDiscountAmount > couponDiscountAmount;
   const discountAmount = quantityDiscountWins ? quantityDiscountAmount : couponDiscountAmount;

@@ -46,7 +46,7 @@ export type InventoryWithVariantAndLocation = InventoryWithVariant & {
   pickup_locations: Pick<PickupLocation, "name" | "city"> | null;
 };
 export type CartItemWithVariant = CartItem & {
-  product_variants: ProductVariant & { products: Pick<Product, "id" | "name" | "image_url" | "price"> };
+  product_variants: ProductVariant & { products: Pick<Product, "id" | "name" | "image_url" | "price"> & { is_bundle?: boolean } };
 };
 export type OrderWithItems = Order & {
   order_items: OrderItem[];
