@@ -21,8 +21,18 @@
 //   GOOGLE_SERVICE_ACCOUNT_JSON — full JSON key of a Google service account
 //   INVENTORY_SHEET_ID          — the spreadsheet ID from its URL
 // The sheet must be shared with the service account's email as an Editor.
-import { serviceRoleClient } from "../_shared/supabaseClients.ts";
-import { jsonResponse } from "../_shared/cors.ts";
+//
+// Deliberately self-contained (no ../_shared imports) so it can also be
+// pasted into the Supabase dashboard's single-file function editor.
+import { createClient } from "npm:@supabase/supabase-js@2";
+
+function serviceRoleClient() {
+  return createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+}
+
+function jsonResponse(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+}
 
 const INVENTORY_TAB = "Zostel Inventory";
 const OFFICE_TAB = "Bhopal Office";
