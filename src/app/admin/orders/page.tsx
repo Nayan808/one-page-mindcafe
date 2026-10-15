@@ -22,6 +22,7 @@ import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatDateTime, formatInr } from "@/lib/utils";
+import { downloadCsv, toCsv } from "@/lib/csv";
 import type { OrderWithItemDetailsAndLocation } from "@/types/domain";
 
 const STATUSES = [
@@ -272,6 +273,94 @@ export default function AdminOrdersPage() {
     setSelectedIds((current) => (current.size === orders.length ? new Set() : new Set(orders.map((o) => o.id))));
   }
 
+  // Same contact resolution the "customer" column uses, shared with the
+  // CSV export so both always agree.
+  function contactFor(o: OrderWithItemDetailsAndLocation) {
+    return {
+      name: (o.user_id ? o.profiles?.full_name : o.guest_name) ?? "",
+      phone:
+        (o.user_id
+          ? o.profiles?.phone || authPhoneByUserId.get(o.user_id) || o.addresses?.phone
+          : o.guest_phone || o.addresses?.phone) ?? "",
+      email: (o.user_id ? emailByUserId.get(o.user_id) : o.guest_email) ?? "",
+    };
+  }
+
+  // Exports every order matching the current filters/search — not just
+  // the 20 on screen — fetched in pages of 500 (PostgREST caps a single
+  // response at 1000 rows).
+  const [isExporting, setIsExporting] = useState(false);
+  async function handleExportCsv() {
+    setIsExporting(true);
+    try {
+      const sb = createClient();
+      const filters = {
+        status: status || undefined,
+        locationId: locationId || undefined,
+        paymentStatus: paymentStatus || undefined,
+        fulfillmentType: fulfillmentType || undefined,
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        search: debouncedSearch || undefined,
+      };
+      const all: OrderWithItemDetailsAndLocation[] = [];
+      for (let exportPage = 0; ; exportPage++) {
+        const { orders: batch, total: matching } = await getOrdersAdmin(sb, { ...filters, page: exportPage, pageSize: 500 });
+        all.push(...batch);
+        if (batch.length === 0 || all.length >= matching) break;
+      }
+
+      const header = [
+        "order number", "placed at", "customer name", "phone", "email", "fulfillment", "items", "total quantity",
+        "subtotal", "discount", "coupon", "delivery fee", "total", "payment status", "payment method", "order status",
+        "pickup location", "address", "city", "state", "pincode", "awb", "tracking url", "notes",
+      ];
+      const rows = all.map((o) => {
+        const contact = contactFor(o);
+        const isDelivery = o.fulfillment_type === "delivery";
+        const address = isDelivery
+          ? [o.addresses?.line1 ?? o.guest_address_line1, o.addresses?.line2 ?? o.guest_address_line2, o.addresses?.landmark]
+              .filter(Boolean)
+              .join(", ")
+          : "";
+        return [
+          o.order_number,
+          formatDateTime(o.created_at),
+          contact.name,
+          contact.phone,
+          contact.email,
+          o.fulfillment_type,
+          o.order_items
+            .map((item) => `${item.product_variants.products.name} (${item.product_variants.variant_label}) x${item.quantity}`)
+            .join("; "),
+          o.order_items.reduce((sum, item) => sum + item.quantity, 0),
+          o.subtotal,
+          o.discount_amount,
+          o.coupon_code ?? "",
+          o.delivery_fee,
+          o.total,
+          o.payment_status,
+          o.payment_method ?? "",
+          o.status.replace(/_/g, " "),
+          o.pickup_locations ? [o.pickup_locations.name, o.pickup_locations.city].filter(Boolean).join(", ") : "",
+          address,
+          isDelivery ? o.addresses?.city ?? o.guest_address_city ?? "" : "",
+          isDelivery ? o.addresses?.state ?? o.guest_address_state ?? "" : "",
+          isDelivery ? o.addresses?.pincode ?? o.guest_address_pincode ?? "" : "",
+          o.awb_code ?? "",
+          o.tracking_url ?? "",
+          o.notes ?? "",
+        ];
+      });
+      downloadCsv(`orders-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
+    } catch (error) {
+      console.error("Order export failed", error);
+      window.alert("Couldn't export orders — please try again.");
+    } finally {
+      setIsExporting(false);
+    }
+  }
+
   const columns: AdminColumn<OrderWithItemDetailsAndLocation>[] = [
     { key: "order_number", label: "order", render: (o) => <span className="font-medium text-ink">{o.order_number}</span> },
     {
@@ -286,11 +375,7 @@ export default function AdminOrdersPage() {
         // (every saved address requires one), so delivery orders always
         // have a contact number even when the profile's is empty. Phone
         // and email are both shown, not one-or-the-other.
-        const name = o.user_id ? o.profiles?.full_name : o.guest_name;
-        const phone = o.user_id
-          ? o.profiles?.phone || authPhoneByUserId.get(o.user_id) || o.addresses?.phone
-          : o.guest_phone || o.addresses?.phone;
-        const email = o.user_id ? emailByUserId.get(o.user_id) : o.guest_email;
+        const { name, phone, email } = contactFor(o);
         if (!name && !phone && !email) return <span className="text-ink/30">—</span>;
         return (
           <div className="space-y-0.5 text-xs">
@@ -516,6 +601,15 @@ export default function AdminOrdersPage() {
             clear filters
           </button>
         )}
+        <button
+          type="button"
+          onClick={handleExportCsv}
+          disabled={isExporting || total === 0}
+          className="pill-btn-outline ml-auto !py-1.5 text-xs disabled:opacity-40"
+          title="Download every order matching the current filters"
+        >
+          {isExporting ? "exporting…" : `download csv (${total})`}
+        </button>
       </div>
 
       {selectedIds.size > 0 && (
