@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzPreordersAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
@@ -41,7 +42,7 @@ export default function AdminFeelzPreordersPage() {
 
   return (
     <div>
-      <AdminPageHeader title="feelz preorders" description={`${rows.length} of ${query.data?.length ?? 0} total`} />
+      <AdminPageHeader title="feelz preorders" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="feelz-preorders" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, email, mobile, or product…" />
       <AdminTable columns={columns} rows={rows} getRowId={(p) => p.id} isLoading={query.isLoading} emptyLabel="No preorders yet." />
     </div>

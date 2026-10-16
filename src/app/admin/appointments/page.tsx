@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getAppointmentsAdmin, updateAppointmentAdmin, deleteAppointmentAdmin, getAllExpertsAdmin } from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
@@ -187,7 +188,31 @@ export default function AdminAppointmentsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="appointments" description={`${total} total`} />
+      <AdminPageHeader
+        title="appointments"
+        description={`${total} total`}
+        action={
+          <CsvDownloadButton
+            filename="appointments"
+            exclude={["meet_link", "notes", "intake_description", "intake_answers"]}
+            rows={async () => {
+              const sb = createClient();
+              const all: AppointmentWithDetails[] = [];
+              for (let exportPage = 0; ; exportPage++) {
+                const batch = await getAppointmentsAdmin(sb, {
+                  page: exportPage,
+                  pageSize: 500,
+                  status: status || undefined,
+                  search: debouncedSearch || undefined,
+                });
+                all.push(...batch.appointments);
+                if (batch.appointments.length === 0 || all.length >= batch.total) break;
+              }
+              return all;
+            }}
+          />
+        }
+      />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <AdminSearchInput

@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getContactMessagesAdmin, updateContactMessageAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
@@ -71,7 +72,7 @@ export default function AdminContactMessagesPage() {
 
   return (
     <div>
-      <AdminPageHeader title="contact messages" description={`${rows.length} of ${query.data?.length ?? 0} total`} />
+      <AdminPageHeader title="contact messages" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="contact-messages" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, email, phone, or message…" />
       <AdminTable columns={columns} rows={rows} getRowId={(m) => m.id} isLoading={query.isLoading} emptyLabel="No matching messages." />
     </div>

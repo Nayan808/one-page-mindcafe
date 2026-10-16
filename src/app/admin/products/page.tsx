@@ -13,6 +13,7 @@ import {
   deleteVariantAdmin,
 } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
@@ -166,7 +167,7 @@ export default function AdminProductsPage() {
       <AdminPageHeader
         title="products"
         description="Feelz catalog."
-        action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new product</button>}
+        action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="products" rows={filteredProducts} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new product</button></div>}
       />
 
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}

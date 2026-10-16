@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getMilestones } from "@/lib/api";
 import { createMilestoneAdmin, updateMilestoneAdmin, deleteMilestoneAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
@@ -69,7 +70,7 @@ export default function AdminMilestonesPage() {
 
   return (
     <div>
-      <AdminPageHeader title="milestones" description="Shown on /about." action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new milestone</button>} />
+      <AdminPageHeader title="milestones" description="Shown on /about." action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="milestones" rows={query.data ?? []} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new milestone</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminTable
         columns={columns}

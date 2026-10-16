@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getFaqs } from "@/lib/api";
 import { createFaqAdmin, updateFaqAdmin, deleteFaqAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { Modal } from "@/components/Modal";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
@@ -69,7 +70,7 @@ export default function AdminFaqsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="faqs" action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new faq</button>} />
+      <AdminPageHeader title="faqs" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="faqs" rows={query.data ?? []} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new faq</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminTable
         columns={columns}

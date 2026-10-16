@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { listUsersAdmin, updateUserRoleAdmin, type AdminUserRow } from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
@@ -84,7 +85,7 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <AdminPageHeader title="users & roles" description={`${rows.length} of ${query.data?.length ?? 0} accounts`} />
+      <AdminPageHeader title="users & roles" description={`${rows.length} of ${query.data?.length ?? 0} accounts`} action={<CsvDownloadButton filename="users" rows={rows} />} />
 
       {!isSuperAdmin && (
         <p className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
