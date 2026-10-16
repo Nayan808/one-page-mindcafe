@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getExpertApplicationsAdmin, updateExpertApplicationAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
@@ -71,7 +72,7 @@ export default function AdminExpertApplicationsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="expert applications" description={`${rows.length} of ${query.data?.length ?? 0} total — people who applied to join as an expert`} />
+      <AdminPageHeader title="expert applications" description={`${rows.length} of ${query.data?.length ?? 0} total — people who applied to join as an expert`} action={<CsvDownloadButton filename="expert-applications" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, email, phone, or city…" />
       <AdminTable columns={columns} rows={rows} getRowId={(a) => a.id} isLoading={query.isLoading} emptyLabel="No applications yet." />
     </div>

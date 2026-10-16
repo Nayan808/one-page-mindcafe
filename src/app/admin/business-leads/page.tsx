@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getBusinessLeadsAdmin, updateBusinessLeadAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
@@ -72,7 +73,7 @@ export default function AdminBusinessLeadsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="business leads" description={`${rows.length} of ${query.data?.length ?? 0} total`} />
+      <AdminPageHeader title="business leads" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="business-leads" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by company, contact, email, or phone…" />
       <AdminTable columns={columns} rows={rows} getRowId={(l) => l.id} isLoading={query.isLoading} emptyLabel="No matching leads." />
     </div>

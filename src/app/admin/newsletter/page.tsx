@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getNewsletterSubscribersAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
@@ -29,7 +30,7 @@ export default function AdminNewsletterPage() {
 
   return (
     <div>
-      <AdminPageHeader title="newsletter subscribers" description={`${rows.length} of ${query.data?.length ?? 0} total`} />
+      <AdminPageHeader title="newsletter subscribers" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="newsletter-subscribers" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by email…" />
       <AdminTable columns={columns} rows={rows} getRowId={(s) => s.id} isLoading={query.isLoading} emptyLabel="No matching subscribers." />
     </div>

@@ -6,6 +6,7 @@ import { Star } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getAllReviewsAdmin, updateReviewAdmin, deleteReviewAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
@@ -82,7 +83,7 @@ export default function AdminReviewsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="reviews" description={`${rows.length} of ${query.data?.length ?? 0} total`} />
+      <AdminPageHeader title="reviews" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="reviews" rows={rows} />} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by reviewer, city, or comment…" />
       <AdminTable

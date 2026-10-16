@@ -14,6 +14,7 @@ import {
 } from "@/lib/admin-api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { FilterDropdown } from "@/components/admin/FilterDropdown";
@@ -230,7 +231,7 @@ export default function AdminExpertsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="experts" action={<button type="button" onClick={openCreate} className="pill-btn !py-2 text-xs">+ create expert account</button>} />
+      <AdminPageHeader title="experts" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="experts" rows={rows} /><button type="button" onClick={openCreate} className="pill-btn !py-2 text-xs">+ create expert account</button></div>} />
       {listError && <p className="mb-4 text-sm text-red-600">{listError}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name or specialty…" />
       <AdminTable

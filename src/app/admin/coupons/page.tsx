@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getCouponsAdmin, createCouponAdmin, updateCouponAdmin, deleteCouponAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
@@ -120,7 +121,7 @@ export default function AdminCouponsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="coupons" action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new coupon</button>} />
+      <AdminPageHeader title="coupons" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="coupons" rows={rows} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new coupon</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by code…" />
       <AdminTable

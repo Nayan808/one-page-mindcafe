@@ -5,6 +5,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getPincodesAdmin, createPincodeAdmin, updatePincodeAdmin, deletePincodeAdmin } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { Modal } from "@/components/Modal";
@@ -84,7 +85,7 @@ export default function AdminPincodesPage() {
 
   return (
     <div>
-      <AdminPageHeader title="serviceable pincodes" action={<button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new pincode</button>} />
+      <AdminPageHeader title="serviceable pincodes" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="pincodes" rows={rows} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new pincode</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by pincode or city…" />
       <AdminTable

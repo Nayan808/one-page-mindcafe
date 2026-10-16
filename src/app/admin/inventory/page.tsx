@@ -27,6 +27,7 @@ import {
   type OrderStockMovementRow,
 } from "@/lib/admin-api";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { FilterDropdown, type FilterOption } from "@/components/admin/FilterDropdown";
 import { formatInr } from "@/lib/utils";
 import type { PickupLocation, ProductWithVariants } from "@/types/domain";
@@ -1322,6 +1323,21 @@ export default function AdminInventoryPage() {
       <AdminPageHeader
         title="inventory"
         description="Stock is tracked per location — an online sale and a Zostel walk-in sale never draw from the same pool."
+        action={
+          <CsvDownloadButton
+            filename="inventory"
+            rows={(fullInventoryQuery.data ?? []).map((row) => ({
+              product: row.productName,
+              variant: row.variantLabel,
+              location: row.locationName ?? "online / delivery",
+              quantity_available: row.quantityAvailable,
+              price: row.price,
+              reorder_threshold: row.reorderThreshold,
+              variant_id: row.variantId,
+              location_id: row.locationId,
+            }))}
+          />
+        }
       />
 
       <div className="mb-6 overflow-hidden rounded-2xl border border-ink/10 bg-white">
