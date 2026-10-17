@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getRecentReviews } from "@/lib/api";
 import { BusinessLeadForm } from "@/components/BusinessLeadForm";
 import { Reveal } from "@/components/Reveal";
-import { HeroBackdrop } from "@/components/hero/HeroBackdrop";
+import { ImageHero } from "@/components/hero/ImageHero";
 
 // Copy and imagery sourced from mindcafe.app/businesses (the same company's
 // live corporate-wellness page) rather than invented — stats, the offering
@@ -174,31 +174,25 @@ function CorporateTestimonials() {
 export default function BusinessPage() {
   return (
     <div>
-      <section className="relative -mt-16 overflow-hidden bg-cream sm:-mt-[76px]">
-        <HeroBackdrop src="/business-hero-v2.png" />
-
-        <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-40 sm:px-6 sm:pb-28 sm:pt-[188px]">
-          <div className="max-w-xl">
-            <span className="badge-pill">Build Healthier Teams</span>
-            <h1 className="font-display mt-6 text-5xl font-bold leading-[1.05] text-ink sm:text-6xl">
-              Improve <span className="font-tagline italic text-brand">team performance.</span>
-            </h1>
-            <div className="mt-6 h-px w-12 bg-ink/15" aria-hidden />
-            <p className="mt-6 max-w-lg text-sm text-ink/70 sm:text-base">
-              For companies, universities, startups, and institutions seeking structured mental wellness solutions
-              through counselling, workshops, and performance tools.
-            </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a href="#get-in-touch" className="pill-btn">
-                Partner With Us →
-              </a>
-              <a href="#whats-included" className="pill-btn-outline">
-                Explore Offerings
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Client's finished hero artwork ("MINDCAFE - HERO SECTIONS/3.png"),
+          shown exactly; see ImageHero. */}
+      <ImageHero
+        src="/heroes/business.webp"
+        alt="A team in a bright, warm meeting room discussing wellbeing together."
+        eyebrow="Mental wellbeing at work"
+        title="Healthier minds."
+        accent="Stronger teams."
+        body="Customised wellbeing packages for your teams, to help them feel empowered and perform best at work."
+        cta={{ left: 2.6, top: 68 }}
+        mobileFocus="60%"
+      >
+        <a href="#get-in-touch" className="pill-btn">
+          Partner With Us →
+        </a>
+        <a href="#whats-included" className="pill-btn-outline">
+          Explore Offerings
+        </a>
+      </ImageHero>
 
       <section>
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">

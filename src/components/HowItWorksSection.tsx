@@ -8,7 +8,10 @@ import { HowToUseSection, type HowToStep } from "@/components/feelz/HowToUseSect
 // on the brand berry with all five steps, starting from picking a mood.
 // Replaces the earlier polaroid clothesline.
 const STEPS: HowToStep[] = [
-  { title: "Pick", body: "Pick your Feelz", image: "/feelz-creative/steps/pick-v2.webp" },
+  // pick-showcase.webp: the client's four-pack showcase, cropped to the
+  // photo inside its own arch and shown at its native ratio so it fills the
+  // frame exactly — nothing cropped, no gaps.
+  { title: "Pick", body: "Pick your Feelz", image: "/feelz-creative/steps/pick-showcase.webp", aspect: "928 / 1382" },
   { title: "Open", body: "Open the pack", image: "/feelz-creative/steps/open.webp" },
   { title: "Place", body: "Place the strip on your tongue", image: "/feelz-creative/steps/place.webp" },
   { title: "Dissolve", body: "Let it dissolve", image: "/feelz-creative/steps/dissolve.webp" },
