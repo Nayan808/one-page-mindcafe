@@ -4,29 +4,25 @@ import Link from "next/link";
 import { MilestonesSection } from "@/components/MilestonesSection";
 import { FounderSection } from "@/components/FounderSection";
 import { StorySection } from "@/components/StorySection";
-import { HeroBackdrop } from "@/components/hero/HeroBackdrop";
+import { ImageHero } from "@/components/hero/ImageHero";
 
 // Mission/vision/founding story/milestones sourced from mindcafe.app's own
 // real /about page (same company) rather than invented.
 export default function AboutPage() {
   return (
     <div>
-      <section className="relative -mt-16 overflow-hidden bg-cream sm:-mt-[76px]">
-        <HeroBackdrop src="/about-hero-v2.png" />
-        <div className="relative mx-auto max-w-7xl px-4 pb-24 pt-40 sm:px-6 sm:pb-28 sm:pt-[188px]">
-          <div className="max-w-xl">
-            <p className="text-[11px] font-semibold uppercase tracking-label text-ink/60">About Mindcafe</p>
-            <h1 className="font-display mt-4 text-4xl font-bold leading-[1.15] text-ink sm:text-5xl">
-              A world where seeking support is as natural as offering a hand.
-            </h1>
-            <div className="mt-6 h-px w-12 bg-ink/15" aria-hidden />
-            <p className="mt-6 text-sm text-ink/70 sm:text-base">
-              Our mission: make mental wellness practical, accessible, and relevant, part of everyday life, not just
-              something for crisis moments.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* Client's finished hero artwork ("MINDCAFE - HERO SECTIONS/4.png"),
+          shown exactly; see ImageHero. */}
+      <ImageHero
+        src="/heroes/about.webp"
+        alt="Two people working through wellbeing tools together on a tablet."
+        eyebrow="About Mindcafe"
+        title="Mental wellbeing, made"
+        accent="easier to reach."
+        body="Mindcafe brings online counselling, self-assessments and everyday wellbeing tools together for individuals and workplaces."
+        cta={{ left: 3.2, top: 74 }}
+        mobileFocus="45%"
+      />
 
       <StorySection />
 

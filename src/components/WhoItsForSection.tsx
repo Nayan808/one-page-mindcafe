@@ -62,18 +62,19 @@ const PERSONAS: {
     tagline: "For the 2am scroll",
     description: "Can't switch off at midnight. Rest strips with melatonin and L-Theanine help you wind down naturally; wake up actually rested.",
     moods: ["rest"],
-    scene: "/feelz-creative/products/rest/1.webp",
-    focus: "60% 50%",
+    // Client photo: scrolling her phone in bed at 2:03am.
+    scene: "/feelz-creative/moments/persona-night-owl.webp",
+    focus: "50% 35%",
     wide: true,
-    packInScene: true,
   },
   {
     title: "The overthinker",
     tagline: "Quiet the noise",
     description: "Social situations, new places, unfamiliar people. Joy and Extrovert are built exactly for these moments of overload.",
     moods: ["extrovert", "joy"],
-    scene: "/feelz-creative/moments/extrovert-socialising-v3.webp",
-    focus: "50% 35%",
+    // Client photo: lost in thought at a busy gathering.
+    scene: "/feelz-creative/moments/persona-overthinker.webp",
+    focus: "78% 40%",
     wide: true,
   },
   {

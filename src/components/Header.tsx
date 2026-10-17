@@ -22,6 +22,7 @@ function scrollToTop() {
 const NAV_LINKS = [
   { href: "/counselling", label: "counselling" },
   { href: "/business", label: "for business" },
+  { href: "/assessments", label: "assessments" },
   { href: "/about", label: "about" },
 ];
 
@@ -66,7 +67,7 @@ export function Header() {
       }`}
     >
       <div
-        className={`mx-auto flex max-w-7xl items-center justify-between transition-all duration-500 sm:grid sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] ${
+        className={`mx-auto flex max-w-[88rem] items-center justify-between transition-all duration-500 xl:grid xl:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] ${
           cinematic
             ? `liquid-glass liquid-glass-onlight rounded-full px-4 py-2.5 sm:px-6 sm:py-3 ${scrolled ? "liquid-glass-dense" : ""}`
             : "px-5 py-4 sm:px-8"
@@ -75,7 +76,9 @@ export function Header() {
         {/* Left column: nav links. Right column mirrors it at 1fr, so the
             center column (the logo) lands exactly in the middle of the bar
             regardless of how much content sits on either side. */}
-        <nav className="font-display hidden items-center gap-7 text-sm font-semibold tracking-label text-ink/70 sm:flex">
+        {/* Full link row only from xl (1280px): five links + a centred logo don't fit
+            narrower; below that the menu button handles navigation. */}
+        <nav className="font-display hidden items-center gap-6 whitespace-nowrap text-[13px] font-semibold tracking-[0.14em] text-ink/70 xl:flex">
           <ShopMenu linkClassName="nav-cine hover:text-brand" />
           {NAV_LINKS.map((link) => (
             <Link key={link.href} href={link.href} className="nav-cine hover:text-brand">
@@ -84,7 +87,7 @@ export function Header() {
           ))}
         </nav>
 
-        <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center gap-2 leading-none sm:justify-self-center">
+        <Link href="/" onClick={scrollToTop} className="flex shrink-0 items-center gap-2 leading-none xl:justify-self-center">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-cream/90 shadow-sm">
             <Image src="/mindcafe-icon.png" alt="" width={28} height={28} priority className="h-7 w-7" />
           </span>
@@ -121,7 +124,7 @@ export function Header() {
           <button
             type="button"
             onClick={() => setMenuOpen((open) => !open)}
-            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink sm:hidden"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink xl:hidden"
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
           >
@@ -131,7 +134,7 @@ export function Header() {
       </div>
 
       {menuOpen && (
-        <nav className="flex flex-col gap-1 border-t border-ink/10 bg-white px-4 py-3 text-[11px] font-medium tracking-label text-ink/70 sm:hidden">
+        <nav className="flex flex-col gap-1 border-t border-ink/10 bg-white px-4 py-3 text-[11px] font-medium tracking-label text-ink/70 xl:hidden">
           <button
             type="button"
             onClick={() => setMobileShopOpen((open) => !open)}

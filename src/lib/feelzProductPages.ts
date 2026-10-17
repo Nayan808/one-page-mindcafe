@@ -43,6 +43,9 @@ export type FeelzProductPageCopy = {
   // (public/feelz-creative/products/{mood}/5.png, see public/feelz-
   // creative/moments/) — not stock art.
   realLifeMoments: { label: string; note: string; image: string }[];
+  /** "portrait": moments are tall full-scene crops, shown as a row of tall
+   * cards instead of the landscape bento. */
+  momentsLayout?: "bento" | "portrait";
   closingHeadline: string;
   closingSub: string;
 };
@@ -140,9 +143,9 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/rest/${n}.webp`),
     positioning: "For The Restful Sleep & a Relaxed Mind",
     benefits: [
-      { label: "Relaxed mind", sub: "Wind down easily", image: "/feelz-creative/moments/rest-windingdown-v2.webp" },
-      { label: "Better sleep", sub: "Fall asleep faster", image: "/feelz-creative/moments/rest-bettersleep-v2.webp" },
-      { label: "Refreshed you", sub: "Wake up lighter", image: "/feelz-creative/moments/rest-everyday-v2.webp" },
+      { label: "Relaxed mind", sub: "Wind down easily", image: "/feelz-creative/moments/rest-relaxed-wide.webp" },
+      { label: "Better sleep", sub: "Fall asleep faster", image: "/feelz-creative/moments/rest-bettersleep-wide.webp" },
+      { label: "Refreshed you", sub: "Wake up lighter", image: "/feelz-creative/moments/rest-refreshed-wide.webp" },
     ],
     painPointHeadline: "Quiet mind. Better nights.",
     painPointBody:
@@ -153,12 +156,13 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     comparisonAgainstCons: ["Keeps you alert", "Increases overthinking", "Disrupts sleep cycle", "Makes it harder to sleep"],
     comparisonForPros: ["Helps you relax", "Supports better sleep", "Calms an overactive mind", "Helps you unwind naturally", "A more balanced approach"],
     realLifeMoments: [
-      { label: "Winding down", note: "Helps me relax after a busy day.", image: "/feelz-creative/moments/rest-windingdown-v2.webp" },
-      { label: "Better sleep", note: "Helps me fall asleep faster.", image: "/feelz-creative/moments/rest-bettersleep-v2.webp" },
-      { label: "A calmer mind", note: "Quietens my racing thoughts.", image: "/feelz-creative/moments/rest-calmermind-v2.webp" },
-      { label: "Travelling", note: "Keeps me rested on the go.", image: "/feelz-creative/moments/rest-travelling-v2.webp" },
-      { label: "Everyday moments", note: "Helps me wake up feeling lighter.", image: "/feelz-creative/moments/rest-everyday-v2.webp" },
+      { label: "Winding down", note: "Helps me relax after a busy day.", image: "/feelz-creative/moments/rest-windingdown-v4.webp" },
+      { label: "Better sleep", note: "Helps me fall asleep faster.", image: "/feelz-creative/moments/rest-bettersleep-v5.webp" },
+      { label: "A calmer mind", note: "Quietens my racing thoughts.", image: "/feelz-creative/moments/rest-calmermind-v5.webp" },
+      { label: "Travelling", note: "Keeps me rested on the go.", image: "/feelz-creative/moments/rest-travelling-v5.webp" },
+      { label: "Everyday moments", note: "Helps me wake up feeling lighter.", image: "/feelz-creative/moments/rest-everyday-v4.webp" },
     ],
+    momentsLayout: "portrait",
     closingHeadline: "Got something better nights? Get in the zone.",
     closingSub: "Small strip. Calmer nights.",
   },

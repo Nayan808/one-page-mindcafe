@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -54,7 +54,28 @@ export function AnnouncementBar() {
     return () => window.clearInterval(id);
   }, [messages.length]);
 
-  if (!value?.enabled || messages.length === 0 || dismissed) return null;
+  // Publishes the bar's height as --announce-h on <html> (0 when hidden), so
+  // full-screen heroes (ImageHero) can fit exactly in the space below it.
+  const barRef = useRef<HTMLDivElement>(null);
+  const visible = !!value?.enabled && messages.length > 0 && !dismissed;
+  useEffect(() => {
+    const root = document.documentElement;
+    const node = barRef.current;
+    if (!visible || !node) {
+      root.style.setProperty("--announce-h", "0px");
+      return;
+    }
+    const update = () => root.style.setProperty("--announce-h", `${node.offsetHeight}px`);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+      root.style.setProperty("--announce-h", "0px");
+    };
+  }, [visible]);
+
+  if (!visible) return null;
 
   function handleDismiss() {
     setDismissed(true);
@@ -71,7 +92,7 @@ export function AnnouncementBar() {
     // Light strip with a hairline bottom border, not a solid dark block —
     // matches the reference site's own offer bar (and the site's flat-white
     // surface direction) more closely than a heavy bg-ink bar would.
-    <div className="relative flex items-center justify-center gap-2 border-b border-ink/10 bg-white px-10 py-2.5">
+    <div ref={barRef} className="relative flex items-center justify-center gap-2 border-b border-ink/10 bg-white px-10 py-2.5">
       {current.href ? (
         <a href={current.href} className="hover:underline">
           {content}

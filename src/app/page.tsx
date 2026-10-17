@@ -1,4 +1,5 @@
 import { HomeHero } from "@/components/HomeHero";
+import { PartnersImpactSection } from "@/components/PartnersImpactSection";
 import { MentalHealthSection } from "@/components/MentalHealthSection";
 import { FeelzTeaserSection } from "@/components/FeelzTeaserSection";
 import { UseCasesSection } from "@/components/UseCasesSection";
@@ -31,6 +32,7 @@ export default function Home() {
     // section below it goes back to its own normal opaque background.
     <>
       <HomeHero />
+      <PartnersImpactSection />
       <MentalHealthSection />
       <FeelzTeaserSection />
       <StatsBar />
