@@ -451,6 +451,12 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(:has(img)):hover {
 .howto[data-inview] .howto-arch {
   clip-path: inset(0 0 0 0 round 999px 999px 28px 28px);
 }
+.howto-arch-rect {
+  clip-path: inset(100% 0 0 0 round 28px);
+}
+.howto[data-inview] .howto-arch-rect {
+  clip-path: inset(0 0 0 0 round 28px);
+}
 .howto[data-inview] .howto-photo {
   scale: 1;
 }
@@ -631,6 +637,224 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(:has(img)):hover {
     transform: none !important;
   }
   .feeldiff-index-sub {
+    translate: none !important;
+  }
+}
+
+/* UseCasesSection — typography only. Inactive titles are outlined; the
+   active row fills to solid ink, its italic phrase slides in, and its
+   number + description brighten. */
+.usetype-title {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(16, 35, 63, 0.35);
+  background-image: linear-gradient(var(--feelz-ink), var(--feelz-ink));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  transition:
+    background-size 1s cubic-bezier(0.22, 1, 0.36, 1),
+    -webkit-text-stroke-color 0.6s ease-out;
+}
+.usetype-phrase {
+  display: inline-block;
+  opacity: 0;
+  translate: -16px 0;
+  filter: blur(4px);
+  transition:
+    opacity 0.7s ease-out,
+    translate 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.7s ease-out;
+}
+.usetype-num,
+.usetype-body {
+  opacity: 0.35;
+  transition: opacity 0.6s ease-out;
+}
+.usetype-num {
+  color: var(--feelz-ink);
+}
+.usetype-row[data-active] .usetype-title {
+  background-size: 100% 100%;
+  -webkit-text-stroke-color: transparent;
+}
+.usetype-row[data-active] .usetype-phrase {
+  opacity: 1;
+  translate: 0 0;
+  filter: blur(0);
+  transition-delay: 0.15s;
+}
+.usetype-row[data-active] .usetype-num,
+.usetype-row[data-active] .usetype-body {
+  opacity: 1;
+}
+.usetype-row[data-active] .usetype-num {
+  color: var(--feelz-berry);
+}
+@media (prefers-reduced-motion: reduce) {
+  .usetype-title,
+  .usetype-phrase,
+  .usetype-num,
+  .usetype-body {
+    transition: none !important;
+  }
+  .usetype-phrase {
+    translate: none !important;
+    filter: none !important;
+  }
+}
+
+/* PartnersImpactSection — once [data-inview]: headline rises from a mask,
+   rule draws out, logos arrive from a soft blur one by one, the impact
+   hairlines draw outward from the centre, stat cells fade up (numbers count
+   up in JS). Each element's start is --d. */
+.partners {
+  --partners-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.partners-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.12em;
+}
+.partners-rise {
+  display: inline-block;
+  transform: translateY(110%);
+  transition: transform 1.2s var(--partners-ease) var(--d, 0ms);
+}
+.partners-fade,
+.partners-stat {
+  opacity: 0;
+  translate: 0 12px;
+  transition:
+    opacity 1s var(--partners-ease) var(--d, 0ms),
+    translate 1s var(--partners-ease) var(--d, 0ms);
+}
+.partners-rule {
+  scale: 0 1;
+  transition: scale 1s var(--partners-ease) 400ms;
+}
+.partners-logo {
+  opacity: 0;
+  translate: 0 14px;
+  filter: blur(6px);
+  transition:
+    opacity 1s var(--partners-ease) var(--d, 0ms),
+    translate 1.1s var(--partners-ease) var(--d, 0ms),
+    filter 1s var(--partners-ease) var(--d, 0ms);
+}
+.partners-line {
+  scale: 0 1;
+  transition: scale 1.6s var(--partners-ease) 1150ms;
+}
+.partners[data-inview] .partners-rise {
+  transform: none;
+}
+.partners[data-inview] .partners-fade,
+.partners[data-inview] .partners-stat,
+.partners[data-inview] .partners-logo {
+  opacity: 1;
+  translate: 0 0;
+  filter: blur(0);
+}
+.partners[data-inview] .partners-rule,
+.partners[data-inview] .partners-line {
+  scale: 1 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .partners-rise,
+  .partners-fade,
+  .partners-stat,
+  .partners-rule,
+  .partners-logo,
+  .partners-line {
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    translate: none !important;
+    filter: none !important;
+    scale: 1 1 !important;
+  }
+}
+
+/* ImageHero — the artwork settles from a slight zoom as it fades in, then
+   the page's buttons rise in under the baked-in copy. Runs on load. */
+@keyframes imghero-settle {
+  from {
+    opacity: 0;
+    scale: 1.04;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes imghero-rise {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+.imghero-art {
+  animation: imghero-settle 1.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.imghero-cta {
+  animation: imghero-rise 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.7s both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .imghero-art,
+  .imghero-cta {
+    animation: none;
+  }
+}
+
+/* RealLifeMomentsSection — cards reveal upward in turn (clip-path) while
+   photos settle from a slight zoom, then captions rise; hover zooms slowly. */
+.moments {
+  --moments-ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+.moments-card {
+  --moments-delay: calc(100ms + var(--i, 0) * 120ms);
+  clip-path: inset(100% 0 0 0 round 1.75rem);
+  transition: clip-path 1.2s var(--moments-ease) var(--moments-delay);
+}
+.moments-photo {
+  scale: 1.12;
+  transition: scale 1.8s var(--moments-ease) var(--moments-delay);
+}
+.moments-caption > * {
+  opacity: 0;
+  translate: 0 12px;
+  transition:
+    opacity 0.9s var(--moments-ease) calc(var(--moments-delay) + 500ms),
+    translate 0.9s var(--moments-ease) calc(var(--moments-delay) + 500ms);
+}
+.moments[data-inview] .moments-card {
+  clip-path: inset(0 0 0 0 round 1.75rem);
+}
+.moments[data-inview] .moments-photo {
+  scale: 1;
+}
+.moments[data-inview] .moments-caption > * {
+  opacity: 1;
+  translate: 0 0;
+}
+.moments[data-inview] .moments-card:hover .moments-photo {
+  scale: 1.06;
+  transition: scale 1.4s var(--moments-ease) 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .moments-card,
+  .moments-photo,
+  .moments-caption > * {
+    transition: none !important;
+    clip-path: none !important;
+    scale: 1 !important;
+    opacity: 1 !important;
     translate: none !important;
   }
 }

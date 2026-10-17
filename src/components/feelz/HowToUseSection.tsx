@@ -13,7 +13,12 @@ import { MoodAmbience } from "@/components/feelz/MoodAmbience";
 // reveal once, left → right, when the row scrolls into view
 // (data-inview). Also used on /feelz (HowItWorksSection) with its own
 // five-step list via `steps`.
-export type HowToStep = { title: string; body: string; image: string };
+// `frame: "rect"` swaps the arch for a rounded rectangle — for photos that
+// fill the whole frame edge to edge (e.g. the four packs), which an arch's
+// round top would crop.
+// `aspect` overrides the default 3:4 frame (CSS aspect-ratio, e.g. "928 / 1382")
+// so a photo can fill its frame exactly, with no crop and no gap.
+export type HowToStep = { title: string; body: string; image: string; frame?: "arch" | "rect"; aspect?: string };
 
 const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six"];
 
@@ -129,7 +134,9 @@ export function HowToUseSection({
                 }`}
                 style={{ "--i": index } as CSSProperties}
               >
-                <div className="howto-arch relative aspect-[3/4] w-full overflow-hidden rounded-b-[28px] rounded-t-[999px] bg-white/10 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.55)] ring-1 ring-white/25">
+                <div
+                  style={step.aspect ? { aspectRatio: step.aspect } : undefined}
+                  className={`howto-arch relative aspect-[3/4] w-full overflow-hidden ${step.frame === "rect" ? "howto-arch-rect rounded-[28px]" : "rounded-b-[28px] rounded-t-[999px]"} bg-white/10 shadow-[0_30px_60px_-30px_rgba(0,0,0,0.55)] ring-1 ring-white/25`}>
                   <Image
                     src={step.image}
                     alt={step.body}

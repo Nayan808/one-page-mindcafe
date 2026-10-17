@@ -19,6 +19,7 @@ import { useAddBundle } from "@/lib/useAddBundle";
 import { HowToUseSection } from "@/components/feelz/HowToUseSection";
 import { FeelDifferenceSection } from "@/components/feelz/FeelDifferenceSection";
 import { ClosingCtaSection } from "@/components/feelz/ClosingCtaSection";
+import { RealLifeMomentsSection } from "@/components/feelz/RealLifeMomentsSection";
 import { FEELZ_INGREDIENTS, type FeelzMoodKey } from "@/lib/feelzIngredients";
 import { FEELZ_PRODUCT_PAGES } from "@/lib/feelzProductPages";
 import { formatInr } from "@/lib/utils";
@@ -837,23 +838,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
       <HowToUseSection label={label} bgClass={colors.bg} />
 
       {/* 07. Real life moments */}
-      <Reveal className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-        <h2 className="font-display text-2xl font-bold text-feelz-ink sm:text-3xl">Real life moments.</h2>
-        <p className="mt-2 text-sm text-feelz-ink/60">For the moments that need a little more you.</p>
-        <div className="mt-8 grid grid-cols-2 gap-5 sm:grid-cols-5">
-          {copy.realLifeMoments.map((moment) => (
-            <div key={moment.label} className="overflow-hidden rounded-xl border border-feelz-ink/10 bg-feelz-paper">
-              <div className="relative h-36 w-full sm:h-40">
-                <Image src={moment.image} alt={moment.label} fill sizes="240px" className="object-cover" />
-              </div>
-              <div className="p-4">
-                <p className="font-display text-sm font-bold text-feelz-ink">{moment.label}</p>
-                <p className="mt-1 text-xs leading-snug text-feelz-ink/55">{moment.note}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </Reveal>
+      <RealLifeMomentsSection moments={copy.realLifeMoments} accentText={colors.text} layout={copy.momentsLayout} />
 
       {/* 08. Reviews (real data only — no fabricated testimonials) */}
       {(reviewsQuery.data?.length ?? 0) > 0 && (
