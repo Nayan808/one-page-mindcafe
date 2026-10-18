@@ -26,7 +26,7 @@ const STEPS = [
 export function CounsellingHowItWorks() {
   return (
     <section id="how-it-works">
-      <Reveal className="mx-auto max-w-4xl px-4 py-16 sm:px-6">
+      <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
       <div className="text-center">
         <div className="mx-auto flex w-fit items-center gap-3">
           <span className="h-px w-10 bg-ink/20" aria-hidden />

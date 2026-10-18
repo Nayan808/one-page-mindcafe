@@ -151,7 +151,7 @@ function CorporateTestimonials() {
 
   return (
     <section>
-      <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
       <h2 className="font-display text-center text-3xl font-bold text-ink sm:text-4xl">What teams say</h2>
       <div className="mt-10 grid gap-4 sm:grid-cols-3">
         {reviews.map((review) => (
@@ -195,7 +195,7 @@ export default function BusinessPage() {
       </ImageHero>
 
       <section>
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <div className="grid gap-4 sm:grid-cols-4">
           {STATS.map((stat) => (
             <div key={stat} className="rounded-xl border border-ink/25 bg-white p-4 text-center">
@@ -207,7 +207,7 @@ export default function BusinessPage() {
       </section>
 
       <section>
-        <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Who We Work With</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
           Built for every type of <span className="font-tagline italic text-brand">organisation</span>.
@@ -245,7 +245,7 @@ export default function BusinessPage() {
       </section>
 
       <section>
-        <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">Recognition & Impact</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
           Making an impact, <span className="font-tagline italic text-brand">together</span>.
@@ -267,7 +267,7 @@ export default function BusinessPage() {
       </section>
 
       <section>
-        <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <p className="text-center text-[11px] font-semibold uppercase tracking-label text-ink/50">How It Works</p>
         <h2 className="font-display mt-2 text-center text-3xl font-bold text-ink sm:text-4xl">
           From enquiry to <span className="font-tagline italic text-brand">lasting impact</span>.
@@ -297,7 +297,7 @@ export default function BusinessPage() {
       </section>
 
       <section id="whats-included">
-        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+        <div className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <h2 className="font-display text-center text-3xl font-bold text-ink sm:text-4xl">What&apos;s included</h2>
         <div className="mt-10 grid gap-5 sm:grid-cols-3">
           {OFFERINGS.map((offering) => (

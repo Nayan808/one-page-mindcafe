@@ -51,7 +51,7 @@ export function TherapyCategoryPicker() {
 
   return (
     <section>
-      <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
       <div className="text-center">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Choose a Category</p>
         <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">What are you navigating right now?</h2>

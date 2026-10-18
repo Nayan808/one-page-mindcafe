@@ -92,7 +92,7 @@ export function StorySection() {
 
   return (
     <section>
-      <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <div className="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div className="overflow-hidden rounded-3xl border border-ink shadow-lg">
             <div ref={frameRef} className="group relative aspect-video w-full bg-ink">
