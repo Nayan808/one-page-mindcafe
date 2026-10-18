@@ -29,7 +29,7 @@ const CONCERNS = [
 export function CounsellingConcernsSection() {
   return (
     <section>
-      <Reveal className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+      <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <div className="text-center">
           <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
             You don&apos;t need a diagnosis to ask for support

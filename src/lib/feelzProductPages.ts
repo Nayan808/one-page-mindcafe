@@ -16,6 +16,8 @@ export type FeelzProductPageCopy = {
   // re-sorted or curated.
   images: string[];
   positioning: string;
+  // "Best for" line from the client's FEELZ Website Product Information note.
+  bestFor: string;
   // `image` reuses the matching real-life-moments photo that best depicts
   // this benefit (same file, same mood) — not a separate shoot, so it's
   // only ever the one that genuinely fits the label.
@@ -55,6 +57,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     flavor: "Mango",
     images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/focus/${n}.webp`),
     positioning: "For Cognitive Clarity, Focus & Calm",
+    bestFor: "Work, study, meetings and mentally demanding tasks.",
     benefits: [
       { label: "Cognitive clarity", sub: "Think clearer", image: "/feelz-creative/moments/focus-creating-v3.webp" },
       { label: "Focused attention", sub: "Stay on track", image: "/feelz-creative/moments/focus-working-v3.webp" },
@@ -84,6 +87,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     flavor: "Spearmint",
     images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/joy/${n}.webp`),
     positioning: "For Mood Calm and Inner Happiness",
+    bestFor: "Stress, emotional fatigue and overwhelming days.",
     benefits: [
       { label: "Positive mood", sub: "Feel lighter", image: "/feelz-creative/moments/joy-moodswings-v3.webp" },
       { label: "Calm mind", sub: "Stay balanced", image: "/feelz-creative/moments/joy-workstress-v3.webp" },
@@ -113,6 +117,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     flavor: "Ginger",
     images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/extrovert/${n}.webp`),
     positioning: "For Confidence, Energy & Social Vitality",
+    bestFor: "Presentations, interviews, networking and public speaking.",
     benefits: [
       { label: "Natural energy", sub: "Feel more active", image: "/feelz-creative/moments/extrovert-travelling-v3.webp" },
       { label: "Social confidence", sub: "Show up easily", image: "/feelz-creative/moments/extrovert-presenting-v3.webp" },
@@ -142,6 +147,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     flavor: "Mixedberry + Mint",
     images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/rest/${n}.webp`),
     positioning: "For The Restful Sleep & a Relaxed Mind",
+    bestFor: "Bedtime, mental overstimulation and winding down.",
     benefits: [
       { label: "Relaxed mind", sub: "Wind down easily", image: "/feelz-creative/moments/rest-relaxed-wide.webp" },
       { label: "Better sleep", sub: "Fall asleep faster", image: "/feelz-creative/moments/rest-bettersleep-wide.webp" },

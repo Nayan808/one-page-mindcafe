@@ -98,7 +98,7 @@ export function CounsellingTeaserSection() {
 
   return (
     <section className="bg-surface-alt py-20">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6">
+      <div className="mx-auto max-w-[88rem] px-4 sm:px-6">
         {/* The warmest, most human moment on the page, so the heading arrives
             slowly and unhurried rather than snapping in. */}
         <div className="text-center">

@@ -7,11 +7,10 @@ import { CountUp, DrawLine, RiseIn } from "@/components/motion/primitives";
 
 // Rounds down to the nearest step and formats as "N+" — keeps this
 // honest as real counts grow, without needing a copy change every time a
-// session/expert/location count ticks up by one. Today's real numbers
-// (107 sessions, 26 experts, 10 locations) land on exactly "100+", "25+",
-// "10+".
+// session/expert/location count ticks up by one. A count below one step
+// shows as itself ("13+"), since rounding it down would read "0+".
 function floorPlus(value: number, step: number): string {
-  return `${Math.floor(value / step) * step}+`;
+  return value < step ? `${value}+` : `${Math.floor(value / step) * step}+`;
 }
 
 // Units sold: real (in-person sales at Zostel front desks predate this

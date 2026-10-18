@@ -13,7 +13,7 @@ const BADGES = [
 export function FounderSection() {
   return (
     <section>
-      <Reveal className="mx-auto max-w-5xl px-4 py-16 sm:px-6">
+      <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
         <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">The Person Behind Mindcafe</p>
         <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
           Meet our <span className="font-tagline italic text-brand">founder.</span>
@@ -33,7 +33,7 @@ export function FounderSection() {
             <p className="font-display mt-4 text-base font-bold text-ink">Sneh Nigam</p>
             <p className="text-sm text-ink/50">Founder, Mindcafe</p>
 
-            <p className="mt-4 text-sm leading-relaxed text-ink/60">
+            <p className="mt-4 max-w-3xl text-sm leading-relaxed text-ink/60">
               At Mindcafe, we provide a safe, anonymous platform to share your feelings and connect with expert
               advice. Alongside, our transformational programs, crafted by psychologists, neurologists, yoga
               practitioners, and more, are here to guide you toward healing and growth.

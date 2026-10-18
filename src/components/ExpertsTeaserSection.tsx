@@ -76,7 +76,7 @@ export function ExpertsTeaserSection() {
 
   return (
     <section>
-      <Reveal className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
+      <Reveal className="mx-auto max-w-[88rem] px-4 py-16 sm:px-6">
       <div className="text-center">
         <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">Meet the Experts</h2>
         <p className="mt-2 text-sm text-ink/60">Choose the kind of support that feels right for you.</p>

@@ -78,10 +78,10 @@ export async function getFeelzCatalog(sb: Sb): Promise<ProductWithVariants[]> {
 
 // Lighter than getFeelzCatalog — the homepage teaser only shows name+image,
 // no pricing/variant data, so there's no reason to fetch or couple to it.
-export async function getFeelzTeaser(sb: Sb, limit = 4): Promise<Pick<Product, "id" | "name" | "image_url">[]> {
+export async function getFeelzTeaser(sb: Sb, limit = 4): Promise<Pick<Product, "id" | "name" | "image_url" | "price">[]> {
   const { data, error } = await sb
     .from("products")
-    .select("id, name, image_url")
+    .select("id, name, image_url, price")
     .eq("is_active", true)
     // The bundle isn't a mood — this teaser shows the four moods only.
     .eq("is_bundle", false)

@@ -66,7 +66,7 @@ export function UseCasesSection() {
 
   return (
     <section className="bg-[#fcf9f7]">
-      <div className="mx-auto max-w-7xl px-4 py-24 sm:px-6 sm:py-32">
+      <div className="mx-auto max-w-[88rem] px-4 py-24 sm:px-6 sm:py-32">
         <div className="text-center">
           <RiseIn y={8} blur={3} amount={0.6}>
             <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-feelz-berry">Built for modern India</p>
