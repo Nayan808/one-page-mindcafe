@@ -66,9 +66,10 @@ export function LinkPhoneSection() {
   }
 
   return (
-    <section className="rounded-2xl border border-ink/10 bg-white p-5">
-      <h2 className="font-display text-xl font-bold text-ink">Link a phone number</h2>
-      <p className="mt-1 text-sm text-ink/60">
+    <section className="rounded-[18px] border border-[#eee4e9] bg-white p-5 shadow-[0_14px_36px_rgba(45,65,96,0.08)] sm:p-6">
+      <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-brand">Sign-in</p>
+      <h2 className="font-[family-name:var(--font-display)] text-[19px] font-bold tracking-[-0.015em] text-brand-navy">Link a phone number</h2>
+      <p className="mt-1 text-xs leading-relaxed text-[#718096]">
         Add and verify a WhatsApp number so you can sign in with it too, and reach this same account.
       </p>
 
