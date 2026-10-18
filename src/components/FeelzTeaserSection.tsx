@@ -8,10 +8,13 @@ import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getFeelzTeaser } from "@/lib/api";
 import { moodStyleFor } from "@/lib/moodStyles";
+import { FEELZ_PRODUCT_PAGES } from "@/lib/feelzProductPages";
+import { FEELZ_INGREDIENTS, type FeelzMoodKey } from "@/lib/feelzIngredients";
+import { formatInr } from "@/lib/utils";
 import { Modal } from "@/components/Modal";
 import type { Product } from "@/types/domain";
 
-type TeaserProduct = Pick<Product, "id" | "name" | "image_url">;
+type TeaserProduct = Pick<Product, "id" | "name" | "image_url" | "price">;
 
 // CHAPTER 2 — the breath after the hero.
 //
@@ -118,6 +121,9 @@ export function FeelzTeaserSection() {
         <div className="mt-20 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:mt-24 lg:grid-cols-4 lg:gap-7">
           {products.map((product, index) => {
             const style = moodStyleFor(product.name);
+            const mood = product.name.trim().toLowerCase() as FeelzMoodKey;
+            const copy = FEELZ_PRODUCT_PAGES[mood];
+            const ingredients = FEELZ_INGREDIENTS[mood] ?? [];
             return (
               <motion.div
                 key={product.id}
@@ -140,7 +146,7 @@ export function FeelzTeaserSection() {
                   type="button"
                   onClick={() => setLightboxProduct(product)}
                   aria-label={`View larger image of ${product.name}`}
-                  className="relative block aspect-[4/5] w-full cursor-zoom-in overflow-hidden"
+                  className="relative block aspect-square w-full cursor-zoom-in overflow-hidden"
                 >
                   <Image
                     src={style.catalogueSrc}
@@ -151,25 +157,45 @@ export function FeelzTeaserSection() {
                   />
                 </button>
 
-                <Link href="/feelz" className="flex flex-1 flex-col px-5 pb-6 pt-5">
-                  <p className="font-display text-[15px] font-bold tracking-tight text-ink">
-                    {product.name}
-                  </p>
-                  <p className="font-tagline mt-1 text-[12.5px] italic text-ink/55">
-                    {style.tagline}
-                  </p>
-                  <ul className="mt-4 space-y-2 border-t border-ink/[0.07] pt-4 text-left text-[12px] leading-snug text-ink/70">
-                    {style.useCases.slice(0, 3).map((useCase) => (
-                      <li key={useCase} className="flex items-start gap-2">
-                        <span
-                          className="mt-[6px] h-1 w-1 shrink-0 rounded-full"
-                          style={{ background: style.badgeBg }}
-                          aria-hidden
-                        />
-                        <span>{useCase}</span>
-                      </li>
-                    ))}
-                  </ul>
+                {/* Official product details (the client's Website Product Information
+                    note): positioning, best-for, key ingredients, flavour,
+                    pack size and live price. */}
+                <Link href={copy ? `/feelz/${mood}` : "/feelz"} className="flex flex-1 flex-col px-5 pb-6 pt-5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <p className="font-display text-lg font-bold tracking-tight text-ink">{product.name}</p>
+                    <p className="shrink-0 text-sm font-semibold text-ink">{formatInr(product.price)}</p>
+                  </div>
+                  {copy && (
+                    <p className="mt-0.5 text-[12px] text-ink/50">
+                      {copy.flavor} flavour · 10 strips
+                    </p>
+                  )}
+                  <p className="mt-3 text-[13.5px] font-medium leading-snug text-ink/85">{copy?.positioning ?? style.tagline}</p>
+
+                  {copy && (
+                    <p className="mt-3 border-t border-ink/[0.07] pt-3 text-[12.5px] leading-relaxed text-ink/65">
+                      <span className="font-semibold text-ink/80">Best for: </span>
+                      {copy.bestFor}
+                    </p>
+                  )}
+
+                  {ingredients.length > 0 && (
+                    <div className="mt-3">
+                      <p className="text-[10.5px] font-semibold uppercase tracking-[0.14em] text-ink/40">Key ingredients</p>
+                      <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                        {ingredients.map((ingredient) => (
+                          <li key={ingredient.name} className="rounded-full border border-ink/10 px-2.5 py-0.5 text-[11px] text-ink/70">
+                            {ingredient.name}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <span className="mt-auto inline-flex items-center gap-1 pt-5 text-[12.5px] font-semibold text-ink transition-transform duration-300 group-hover:translate-x-0.5">
+                    Shop {product.name}
+                    <span aria-hidden>→</span>
+                  </span>
                 </Link>
               </motion.div>
             );
