@@ -88,7 +88,7 @@ export function TestimonialsSection({ background = "bg-surface-alt" }: { backgro
 
   return (
     <section className={`${background} py-20`}>
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="mx-auto max-w-[88rem] px-4 sm:px-6">
         {/* The page's quietest moment: label, then heading, then the rating —
             each waiting on the one before it, so the section settles rather
             than arriving all at once. */}
