@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, CalendarCheck, ListChecks, UserCheck } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { RiseIn } from "@/components/motion/primitives";
@@ -20,64 +21,51 @@ const STEPS = [
   },
 ];
 
-// Three step cards on a soft blush panel. Icon nodes rather than photos —
-// there's no real counselling photography to show yet, and fabricating
-// stock-photo "counsellors" would be misleading for a page about real
-// mental-health support.
+// Editorial split: heading and CTA on the left, the three steps as
+// hairline-divided rows with large serif numerals on the right. Icon
+// nodes rather than photos — there's no real counselling photography to
+// show yet, and fabricating stock-photo "counsellors" would be misleading
+// for a page about real mental-health support.
 export function CounsellingHowItWorks() {
   return (
-    <section id="how-it-works" className="px-4 py-12 sm:px-6 sm:py-16">
-      <Reveal className="relative mx-auto max-w-[88rem] overflow-hidden rounded-[2rem] bg-gradient-to-b from-[#f8eef2] to-[#fdf9fa] px-5 py-14 sm:rounded-[2.5rem] sm:px-10 sm:py-20 lg:px-16">
-        <div
-          className="pointer-events-none absolute -top-40 left-1/2 h-80 w-[44rem] max-w-[140%] -translate-x-1/2 rounded-full bg-brand-blush/25 blur-3xl"
-          aria-hidden
-        />
-
-        <div className="relative text-center">
-          <p className="text-[11px] font-semibold uppercase tracking-label text-brand">How it works</p>
-          <h2 className="font-display mt-3 text-4xl font-bold tracking-tight text-ink sm:text-5xl">
-            A simple place <span className="font-tagline whitespace-nowrap italic text-brand">to start.</span>
-          </h2>
-          <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-ink/60 sm:text-base">
-            Three short steps, at your own pace.
+    <section id="how-it-works">
+      <Reveal className="mx-auto grid max-w-[88rem] gap-12 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center lg:gap-20">
+        <div>
+          <p className="flex items-center gap-3 text-[11px] font-semibold uppercase tracking-label text-brand">
+            <span className="h-px w-8 bg-brand/50" aria-hidden />
+            How it works
           </p>
+          <h2 className="font-display mt-5 text-[2.75rem] font-bold leading-[1.05] tracking-tight text-ink sm:text-6xl">
+            A simple place
+            <span className="font-tagline block italic text-brand">to start.</span>
+          </h2>
+          <p className="mt-6 max-w-sm text-base leading-relaxed text-ink/60">
+            Three short steps, at your own pace — from knowing what you need to sitting down with the right
+            person.
+          </p>
+          <Link href="/experts" className="pill-btn mt-8 px-6 py-3">
+            Browse experts
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
         </div>
 
-        <ol className="relative mt-12 grid gap-5 sm:mt-14 lg:grid-cols-3 lg:gap-6">
+        <ol className="border-t border-ink/10">
           {STEPS.map((step, index) => (
-            <li key={step.title} className="relative">
-              <RiseIn delay={0.1 + index * 0.12} y={16} blur={4} amount={0.3} className="h-full">
-                <div className="group relative flex h-full flex-col overflow-hidden rounded-[1.5rem] border border-ink/[0.07] bg-white p-6 shadow-[0_10px_30px_-24px_rgba(77,42,57,0.35)] transition-all duration-500 ease-out hover:-translate-y-1 hover:border-brand/25 hover:shadow-[0_22px_44px_-26px_rgba(152,97,120,0.55)] sm:p-8">
-                  <span
-                    className="font-hero pointer-events-none absolute -top-2 right-5 select-none text-[5.5rem] font-bold leading-none text-brand/[0.09] transition-colors duration-500 group-hover:text-brand/[0.16] sm:text-[6.5rem]"
-                    aria-hidden
-                  >
+            <li key={step.title} className="border-b border-ink/10">
+              <RiseIn delay={0.1 + index * 0.12} y={14} blur={4} amount={0.4}>
+                <div className="group -mx-3 grid grid-cols-[4rem_minmax(0,1fr)] items-start gap-x-4 rounded-2xl px-3 py-8 transition-colors duration-500 hover:bg-brand-blush/[0.09] sm:-mx-5 sm:grid-cols-[6.5rem_minmax(0,1fr)_auto] sm:items-center sm:gap-x-6 sm:px-5 sm:py-10">
+                  <span className="font-hero text-5xl font-bold leading-none text-brand transition-transform duration-500 group-hover:-translate-y-0.5 sm:text-7xl">
                     {String(index + 1).padStart(2, "0")}
                   </span>
-
-                  <div className="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-brand text-white shadow-[0_10px_20px_-10px_rgba(152,97,120,0.8)] transition-transform duration-500 group-hover:scale-105">
-                    <step.Icon className="h-5 w-5" aria-hidden />
+                  <div>
+                    <h3 className="font-display text-xl font-bold leading-snug text-ink sm:text-2xl">{step.title}</h3>
+                    <p className="mt-2 max-w-md text-sm leading-relaxed text-ink/60 sm:text-base">{step.description}</p>
                   </div>
-
-                  <p className="relative mt-8 text-[11px] font-semibold uppercase tracking-label text-brand">
-                    Step {index + 1}
-                  </p>
-                  <h3 className="font-display relative mt-1.5 text-lg font-bold leading-snug text-ink sm:text-xl">
-                    {step.title}
-                  </h3>
-                  <p className="relative mt-2 text-sm leading-relaxed text-ink/60">{step.description}</p>
+                  <span className="hidden h-14 w-14 items-center justify-center rounded-full border border-brand/25 text-brand transition-all duration-500 group-hover:border-brand group-hover:bg-brand group-hover:text-white sm:flex">
+                    <step.Icon className="h-5 w-5" aria-hidden />
+                  </span>
                 </div>
               </RiseIn>
-
-              {/* Connector to the next card, centred in the grid gap. */}
-              {index < STEPS.length - 1 && (
-                <span
-                  className="absolute left-full top-1/2 z-10 ml-3 hidden h-9 w-9 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-brand/15 bg-white text-brand shadow-sm lg:flex"
-                  aria-hidden
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </span>
-              )}
             </li>
           ))}
         </ol>
