@@ -25,7 +25,7 @@ const ROTATE_MS = 4500;
 const DEV_PREVIEW_FALLBACK: AnnouncementValue = {
   enabled: true,
   messages: [
-    { text: "Get 10% off on purchases of ₹300 or more", href: "/feelz" },
+    { text: "Get 10% off orders of ₹300 or more", href: "/feelz" },
     { text: "Book a 1:1 session with a certified counsellor", href: "/book-appointment" },
   ],
 };
@@ -83,7 +83,7 @@ export function AnnouncementBar() {
 
   const current = messages[index % messages.length];
   const content = (
-    <span key={index} className="animate-[fade-in_0.4s_ease-out] text-center text-[11px] font-medium tracking-[0.03em] text-ink/80 sm:text-xs">
+    <span key={index} className="animate-[fade-in_0.4s_ease-out] text-center text-[13px] font-semibold tracking-[0.02em] text-ink/85 sm:text-[15px]">
       {current.text}
     </span>
   );
