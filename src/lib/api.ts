@@ -882,6 +882,43 @@ export async function getOrder(sb: Sb, orderId: string): Promise<OrderWithItems 
   return data as unknown as OrderWithItems | null;
 }
 
+export type OrderStatusEvent = { status: string; created_at: string };
+
+// Timestamped status history (order_status_events, written by a trigger on
+// orders). Same visibility as the order itself.
+export async function getOrderStatusEvents(sb: Sb, orderId: string): Promise<OrderStatusEvent[]> {
+  const { data, error } = await sb
+    .from("order_status_events")
+    .select("status, created_at")
+    .eq("order_id", orderId)
+    .order("created_at");
+  throwOnError("getOrderStatusEvents", error);
+  return data ?? [];
+}
+
+export type TrackedOrder = {
+  order_number: string;
+  status: string;
+  payment_status: string;
+  fulfillment_type: "delivery" | "takeaway";
+  created_at: string;
+  estimated_delivery: string | null;
+  awb_code: string | null;
+  tracking_url: string | null;
+  total: number;
+  pickup_location: string | null;
+  items: { name: string; quantity: number }[];
+  events: OrderStatusEvent[];
+};
+
+// Public /track-order lookup — needs both the order number and the phone
+// used on the order; returns null for any mismatch (see track_order()).
+export async function trackOrder(sb: Sb, orderNumber: string, phone: string): Promise<TrackedOrder | null> {
+  const { data, error } = await sb.rpc("track_order", { p_order_number: orderNumber, p_phone: phone });
+  throwOnError("trackOrder", error);
+  return (data as unknown as TrackedOrder | null) ?? null;
+}
+
 // "Your orders" — order_items joined with the variant/product so the list
 // can show what was actually bought, not just totals.
 export async function getUserOrders(sb: Sb, userId: string): Promise<OrderWithItemDetails[]> {

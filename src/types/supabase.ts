@@ -313,6 +313,12 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["orders"]["Row"]>;
         Relationships: [];
       };
+      order_status_events: {
+        Row: { id: string; order_id: string; status: string; created_at: string };
+        Insert: Partial<Database["public"]["Tables"]["order_status_events"]["Row"]> & { order_id: string; status: string };
+        Update: Partial<Database["public"]["Tables"]["order_status_events"]["Row"]>;
+        Relationships: [];
+      };
       order_items: {
         Row: {
           id: string;
@@ -707,6 +713,10 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      track_order: {
+        Args: { p_order_number: string; p_phone: string };
+        Returns: Json;
+      };
       available_stock: {
         Args: { p_variant_id: string; p_location_id: string | null };
         Returns: number;

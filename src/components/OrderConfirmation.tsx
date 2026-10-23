@@ -2,8 +2,12 @@
 
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
+import { useQuery } from "@tanstack/react-query";
 import { useOrderTracking } from "@/lib/query/hooks";
+import { createClient } from "@/lib/supabase/client";
+import { getOrderStatusEvents } from "@/lib/api";
 import { formatInr } from "@/lib/utils";
+import { OrderTrackingTimeline } from "@/components/OrderTrackingTimeline";
 
 export const STATUS_LABELS: Record<string, string> = {
   placed: "Placed",
@@ -38,6 +42,14 @@ export function OrderConfirmation({
   showEmailNote?: boolean;
 }) {
   const { data: order, isLoading } = useOrderTracking(orderId);
+  // Timestamps for the timeline. Refetches alongside the order; if the
+  // history table isn't there yet the timeline still renders from status.
+  const eventsQuery = useQuery({
+    queryKey: ["order-status-events", orderId, order?.status],
+    queryFn: () => getOrderStatusEvents(createClient(), orderId),
+    enabled: Boolean(order),
+    retry: false,
+  });
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
@@ -54,7 +66,6 @@ export function OrderConfirmation({
   if (!order) return <p className="text-sm text-ink/60">Order not found.</p>;
 
   const isPendingConfirmation = order.payment_status === "pending";
-  const hasTracking = order.fulfillment_type === "delivery" && (order.awb_code || order.tracking_url);
   const isPickup = order.fulfillment_type === "takeaway";
   const isCollected = order.status === "picked_up";
   // Only true when there's actually somewhere to send it — a signed-in
@@ -102,6 +113,19 @@ export function OrderConfirmation({
         </div>
       )}
 
+      <div className="rounded-xl border border-ink/15 bg-white p-4">
+        <p className="mb-4 text-[10px] font-bold uppercase tracking-[0.12em] text-brand">Order tracking</p>
+        <OrderTrackingTimeline
+          fulfillmentType={order.fulfillment_type}
+          status={order.status}
+          paymentStatus={order.payment_status}
+          events={eventsQuery.data ?? []}
+          awbCode={order.awb_code}
+          trackingUrl={order.tracking_url}
+          estimatedDelivery={order.estimated_delivery}
+        />
+      </div>
+
       <div className="rounded-xl border border-ink/15 bg-white p-4 text-sm">
         <div className="flex justify-between">
           <span>Status</span>
@@ -113,12 +137,6 @@ export function OrderConfirmation({
             {order.fulfillment_type === "takeaway" ? `Takeaway (${order.pickup_locations?.name ?? "Zostel"})` : "Delivery"}
           </span>
         </div>
-        {order.fulfillment_type === "delivery" && order.estimated_delivery && (
-          <div className="flex justify-between gap-3">
-            <span className="shrink-0">Estimated delivery</span>
-            <span className="text-right">{order.estimated_delivery}</span>
-          </div>
-        )}
         <div className="flex justify-between">
           <span>Payment</span>
           <span className="capitalize">{order.payment_status}</span>
@@ -128,18 +146,6 @@ export function OrderConfirmation({
           <span>{formatInr(order.total)}</span>
         </div>
       </div>
-
-      {hasTracking && (
-        <div className="rounded-xl border border-ink/15 bg-white p-4 text-sm">
-          <p className="font-medium text-ink">Shipment tracking</p>
-          {order.awb_code && <p className="text-ink/60">AWB: {order.awb_code}</p>}
-          {order.tracking_url && (
-            <a href={order.tracking_url} target="_blank" rel="noreferrer" className="text-ink underline">
-              Track shipment
-            </a>
-          )}
-        </div>
-      )}
 
       <button type="button" onClick={onStartNewOrder} className="pill-btn-outline w-full">
         {backLabel}
