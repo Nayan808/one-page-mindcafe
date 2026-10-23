@@ -110,7 +110,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
       { label: "Creative flow", note: "Helps me stay in a good headspace.", image: "/feelz-creative/moments/joy-creative-v3.webp" },
       { label: "Everyday moments", note: "A small strip for a brighter me.", image: "/feelz-creative/moments/joy-everyday-v3.webp" },
     ],
-    closingHeadline: "More moments that feel like you. Get in the zone.",
+    closingHeadline: "More moments that feel like you. Come back to yourself.",
     closingSub: "Small strip. Brighter moments.",
   },
   extrovert: {
@@ -140,7 +140,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
       { label: "Hanging out", note: "Be present, engaged and your best self.", image: "/feelz-creative/moments/extrovert-hangingout-v3.webp" },
       { label: "Everyday moments", note: "A small strip for a more confident you.", image: "/feelz-creative/moments/extrovert-everyday-v3.webp" },
     ],
-    closingHeadline: "More moments that feel like you. Get in the zone.",
+    closingHeadline: "More moments that feel like you. Show up as you.",
     closingSub: "Small strip. Bigger moments.",
   },
   rest: {
@@ -169,7 +169,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
       { label: "Everyday moments", note: "Helps me wake up feeling lighter.", image: "/feelz-creative/moments/rest-everyday-v4.webp" },
     ],
     momentsLayout: "portrait",
-    closingHeadline: "Got something better nights? Get in the zone.",
+    closingHeadline: "Want better nights? Switch off, ease in.",
     closingSub: "Small strip. Calmer nights.",
   },
 };

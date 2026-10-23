@@ -191,7 +191,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       whyInFeelz:
         "Meeting new people is easier when you feel like yourself. When you're already low on energy, even starting a simple conversation can feel like effort. Shatavari fits into Extrovert as part of its broader wellbeing and vitality profile.",
       research:
-        "A 2025 randomized controlled study of Shatavari root extract in 80 women with perimenopausal symptoms reported improvements in several measures including stress, fatigue, vigor and quality of life after eight weeks.",
+        "A 2025 randomized controlled study of Shatavari root extract in 80 women with perimenopausal symptoms reported improvements in several measures, including stress, fatigue, vigor and quality of life after eight weeks.",
       formulationNote:
         "The population, preparation and dose differ from FEELZ. The research should be used to explain the ingredient, not as proof of the exact effect of 25 mg in FEELZ Extrovert.",
       researchUrl: "https://pubmed.ncbi.nlm.nih.gov/41209045/",
@@ -201,7 +201,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       name: "Ashwagandha",
       amount: "20 mg",
       cardHeadline: "Confidence isn't always about being the loudest person in the room.",
-      cardHook: "Does it help feeling composed enough to be yourself?",
+      cardHook: "Can it help you feel composed enough to be yourself?",
       whatIsIt:
         "Ashwagandha is a traditional Ayurvedic botanical studied in relation to stress management, resilience and emotional wellbeing.",
       whyInFeelz:

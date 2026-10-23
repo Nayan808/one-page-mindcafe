@@ -152,7 +152,7 @@ export function Hero() {
       <div id="mood-picks" className="mx-auto max-w-7xl px-4 pb-16 pt-6 sm:px-6">
         <div className="mb-6 flex justify-center">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-feelz-berry/[0.2] px-4 py-1.5 text-center text-[10px] font-semibold uppercase tracking-wider text-feelz-berry sm:text-xs sm:tracking-label">
-            Get 10% off on purchases of ₹300 or more
+            Get 10% off orders of ₹300 or more
           </span>
         </div>
         <div className="grid grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4">

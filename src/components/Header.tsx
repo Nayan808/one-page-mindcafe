@@ -100,7 +100,7 @@ export function Header() {
         <div className="flex items-center justify-self-end gap-3">
           <div className="hidden items-center gap-3 sm:flex">
             <Link href="/book-appointment" className="pill-btn-outline !py-2 text-xs">
-              Talk to Expert
+              Talk to an Expert
             </Link>
 
             {status === "authenticated" && (
@@ -181,7 +181,7 @@ export function Header() {
             onClick={() => setMenuOpen(false)}
             className="w-full py-2.5 text-center uppercase hover:text-ink"
           >
-            talk to expert
+            talk to an expert
           </Link>
 
           {status === "authenticated" && (

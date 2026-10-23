@@ -37,7 +37,7 @@ const QUESTIONS: {
     options: [
       { label: "Stress, anxiety, or feeling overwhelmed", value: "individual" },
       { label: "A relationship, family, or partner issue", value: "family-relationship" },
-      { label: "Something about my identity, or women's-health specific", value: "specialized" },
+      { label: "Something about my identity, or a women's health concern", value: "specialized" },
       { label: "Not sure yet, I just want someone to talk to", value: "individual" },
     ],
   },

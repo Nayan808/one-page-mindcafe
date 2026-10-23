@@ -330,7 +330,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
           </div>
 
           <div ref={buyPanelRef}>
-            <p className={`text-[11px] font-semibold uppercase tracking-label ${colors.text}`}>FEELZ by mindcafe</p>
+            <p className={`text-[11px] font-semibold uppercase tracking-label ${colors.text}`}>FEELZ by Mindcafe</p>
             <h1 className="font-display mt-2 text-3xl font-bold leading-tight text-feelz-ink sm:text-4xl">
               FEELZ {label} Wellness Strips (10 Strips: 1 x 10 strip pack)
             </h1>
@@ -471,7 +471,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                   disabled={!variant || !isReady || !cartId || isPending}
                   className={`flex items-center justify-center gap-2 rounded-full ${colors.bg} px-4 py-3.5 text-sm font-semibold uppercase tracking-label text-feelz-cream transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40`}
                 >
-                  Buy it Now
+                  Buy Now
                 </button>
               </div>
             )}
@@ -479,7 +479,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
 
             <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-feelz-ink/50">
               <span>Fast-dissolving oral thin film</span>
-              <span>Get 10% off on orders ₹300+</span>
+              <span>Get 10% off orders of ₹300+</span>
               <span>Available at selected Zostel properties</span>
             </div>
 

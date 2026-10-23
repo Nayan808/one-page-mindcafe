@@ -17,6 +17,7 @@ import type {
   Expert,
   ExpertApplication,
   Faq,
+  Feedback,
   FeelzPreorder,
   InventoryTransaction,
   InventoryWithVariant,
@@ -1041,6 +1042,39 @@ export async function updateContactMessageAdmin(
 ): Promise<void> {
   const { error } = await sb.from("contact_messages").update({ status }).eq("id", id);
   throwOnError("updateContactMessageAdmin", error);
+}
+
+// --- Feedback (shareable /feedback page) ----------------------------------
+
+export async function getFeedbackAdmin(sb: Sb): Promise<Feedback[]> {
+  const { data, error } = await sb.from("feedback").select("*").order("created_at", { ascending: false });
+  throwOnError("getFeedbackAdmin", error);
+  return data ?? [];
+}
+
+export async function updateFeedbackStatusAdmin(sb: Sb, id: string, status: Feedback["status"]): Promise<void> {
+  const { error } = await sb.from("feedback").update({ status }).eq("id", id);
+  throwOnError("updateFeedbackStatusAdmin", error);
+}
+
+export async function deleteFeedbackAdmin(sb: Sb, id: string): Promise<void> {
+  const { error } = await sb.from("feedback").delete().eq("id", id);
+  throwOnError("deleteFeedbackAdmin", error);
+}
+
+// Copies a feedback entry the person agreed to share (can_publish) into the
+// public reviews table — so it shows in the site's testimonial carousels —
+// then marks the feedback as published. Two writes; the review goes first
+// so a failure never leaves feedback marked "published" with no review.
+export async function publishFeedbackAsReviewAdmin(sb: Sb, feedback: Feedback): Promise<void> {
+  const { error: reviewError } = await sb.from("reviews").insert({
+    reviewer_name: feedback.name,
+    rating: feedback.rating,
+    comment: feedback.message,
+    is_corporate: false,
+  });
+  throwOnError("publishFeedbackAsReviewAdmin.review", reviewError);
+  await updateFeedbackStatusAdmin(sb, feedback.id, "published");
 }
 
 // --- Expert applications ("become an expert" submissions) -----------------

@@ -22,6 +22,7 @@ export type Appointment = Tables["appointments"]["Row"];
 export type Assessment = Tables["assessments"]["Row"];
 export type BusinessLead = Tables["business_leads"]["Row"];
 export type ContactMessage = Tables["contact_messages"]["Row"];
+export type Feedback = Tables["feedback"]["Row"];
 export type ExpertBlockedSlot = Tables["expert_blocked_slots"]["Row"];
 export type AppointmentNote = Tables["appointment_notes"]["Row"];
 export type InventoryTransaction = Tables["inventory_transactions"]["Row"];
