@@ -275,7 +275,7 @@ export default function TrustPage() {
           <div className="text-center">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Designed for Everyday Wellness</p>
             <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-              A wellness tool. <span className="font-tagline italic text-brand">not a medicine.</span>
+              A wellness tool. <span className="font-tagline italic text-brand">Not a medicine.</span>
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-sm text-ink/60">
               Feelz products are developed as wellness support tools, not as pharmaceutical treatments, designed to
@@ -455,7 +455,7 @@ export default function TrustPage() {
         <div className="mx-auto max-w-2xl px-4 py-16 text-center sm:px-6">
           <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Everyday Support, Not a Replacement</p>
           <h2 className="font-display mt-2 text-3xl font-bold text-ink sm:text-4xl">
-            Feelz is everyday support. <span className="font-tagline italic text-brand">not a replacement.</span>
+            Feelz is everyday support. <span className="font-tagline italic text-brand">Not a replacement.</span>
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink/60">
             Mental wellbeing is complex and deeply personal. Feelz products support everyday lifestyle challenges;
