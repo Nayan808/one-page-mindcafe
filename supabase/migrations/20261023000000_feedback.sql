@@ -43,7 +43,22 @@ create policy feedback_admin_delete on public.feedback for delete using (public.
 
 grant select, update, delete on public.feedback to authenticated;
 
--- Let the submit-feedback function share the existing rate-limit log.
+-- Rate-limit log shared with submit-business-lead. Defined in
+-- 20260814020000_lockdown_public_insert_forms.sql, but that migration was
+-- never applied to production, so create it here if it's missing (same
+-- definition: RLS on, zero policies — only the service role touches it).
+create table if not exists public.form_submission_log (
+  id uuid primary key default gen_random_uuid(),
+  form text not null,
+  ip_address text not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists form_submission_log_lookup_idx
+  on public.form_submission_log (form, ip_address, created_at);
+
+alter table public.form_submission_log enable row level security;
+
 alter table public.form_submission_log drop constraint if exists form_submission_log_form_check;
 alter table public.form_submission_log
   add constraint form_submission_log_form_check check (form in ('business_lead', 'feedback'));
