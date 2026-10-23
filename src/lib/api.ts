@@ -997,6 +997,44 @@ export async function submitBusinessLead(
   if (data?.error) throw new ApiError("submitBusinessLead", { message: data.error });
 }
 
+// Public /feedback page — goes through the submit-feedback Edge Function
+// (honeypot + IP rate limit), never a direct table insert.
+export async function submitFeedback(
+  sb: Sb,
+  input: {
+    name: string;
+    email?: string;
+    phone?: string;
+    topic: string;
+    product?: string;
+    rating: number;
+    message: string;
+    canPublish: boolean;
+    source?: string;
+    honeypot?: string;
+  },
+): Promise<void> {
+  const { data, error } = await sb.functions.invoke("submit-feedback", {
+    body: {
+      name: input.name,
+      email: input.email,
+      phone: input.phone,
+      topic: input.topic,
+      product: input.product,
+      rating: input.rating,
+      message: input.message,
+      can_publish: input.canPublish,
+      source: input.source,
+      website: input.honeypot,
+    },
+  });
+  if (error) {
+    const detail = await (error as { context?: Response }).context?.json?.().catch(() => null);
+    throw new ApiError("submitFeedback", { message: detail?.error ?? error.message });
+  }
+  if (data?.error) throw new ApiError("submitFeedback", { message: data.error });
+}
+
 // --- FAQs, milestones (CMS content) ------------------------------------------
 
 export async function getFaqs(sb: Sb, category?: string): Promise<Faq[]> {

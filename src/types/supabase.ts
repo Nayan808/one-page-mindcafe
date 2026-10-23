@@ -583,6 +583,29 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["contact_messages"]["Row"]>;
         Relationships: [];
       };
+      feedback: {
+        Row: {
+          id: string;
+          name: string;
+          email: string | null;
+          phone: string | null;
+          topic: "feelz" | "counselling" | "website" | "other";
+          product: string | null;
+          rating: number;
+          message: string;
+          can_publish: boolean;
+          source: string | null;
+          status: "new" | "reviewed" | "published";
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["feedback"]["Row"]> & {
+          name: string;
+          rating: number;
+          message: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["feedback"]["Row"]>;
+        Relationships: [];
+      };
       expert_blocked_slots: {
         Row: {
           id: string;
