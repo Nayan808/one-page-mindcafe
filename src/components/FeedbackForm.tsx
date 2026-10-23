@@ -235,7 +235,7 @@ export function FeedbackForm() {
                   onChange={(e) => setCanPublish(e.target.checked)}
                   className="mt-0.5 h-4 w-4 accent-[#986178]"
                 />
-                <span>Mindcafe can show my feedback and name on its website.</span>
+                <span>Mindcafe can show my name on the website.</span>
               </label>
 
               {error && <p className="text-sm font-medium text-red-600">{error}</p>}
