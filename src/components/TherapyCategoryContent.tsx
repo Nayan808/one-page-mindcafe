@@ -56,7 +56,7 @@ export function TherapyCategoryContent({ category }: { category: string }) {
             Find an Expert
           </Link>
           <Link href="/counselling" className="text-xs font-medium uppercase tracking-label text-ink/50 hover:text-ink">
-            back to counselling
+            Back to Counselling
           </Link>
         </div>
       </div>

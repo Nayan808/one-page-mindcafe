@@ -94,7 +94,7 @@ function RoleLoginFormInner({ role, roleLabel, dashboardHref, loginHref }: RoleL
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4 py-16 sm:px-6">
       <h1 className="font-display text-3xl font-bold lowercase text-ink">{roleLabel} sign in</h1>
       <p className="mt-2 text-sm text-ink/60">
-        Accounts are set up by mindcafe — reach out if you don&apos;t have credentials yet.
+        Accounts are set up by Mindcafe — reach out if you don&apos;t have credentials yet.
       </p>
 
       {oauthError && (
@@ -104,7 +104,7 @@ function RoleLoginFormInner({ role, roleLabel, dashboardHref, loginHref }: RoleL
       )}
 
       <button type="button" onClick={handleGoogle} disabled={isGoogleLoading} className="pill-btn mt-6 w-full">
-        {isGoogleLoading ? "redirecting…" : "continue with google"}
+        {isGoogleLoading ? "redirecting…" : "Continue with Google"}
       </button>
 
       <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-label text-ink/40">

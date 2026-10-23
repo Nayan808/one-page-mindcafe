@@ -11,7 +11,7 @@ const FEATURED = [
     year: "2024",
     tag: "national recognition",
     title: "Fox Story: Women Faces of the Year",
-    description: "Founder Sneh Nigam honored for her contributions to mental health advocacy, inspiring deeper conversations around mental health accessibility across India.",
+    description: "Founder Sneh Nigam honoured for her contributions to mental health advocacy, inspiring deeper conversations around mental health accessibility across India.",
   },
   {
     image: "/business/women-entrepreneur.webp",
@@ -65,7 +65,7 @@ const OTHER_RECOGNITION = [
   {
     Icon: HeartHandshake,
     title: "Community Mental Health Leader",
-    description: "Organized India's largest mental health walkathon in Bhopal.",
+    description: "Organised India's largest mental health walkathon in Bhopal.",
   },
 ];
 

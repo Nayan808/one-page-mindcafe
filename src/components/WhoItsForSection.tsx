@@ -34,7 +34,7 @@ const PERSONAS: {
     title: "The traveller",
     tagline: "Pocket-sized, Zostel-approved",
     description:
-      "Hopping between hostels, cities, and time zones. Feelz travels light, no water, no fuss, fits in any pocket. First stocked at every Zostel in India.",
+      "Hopping between hostels, cities, and time zones. Feelz travels light: no water, no fuss, and it fits in any pocket. First stocked at every Zostel in India.",
     moods: ["rest", "focus"],
     scene: "/feelz-creative/moments/focus-travelling-v3.webp",
     focus: "45% 35%",
@@ -60,7 +60,7 @@ const PERSONAS: {
   {
     title: "The night owl",
     tagline: "For the 2am scroll",
-    description: "Can't switch off at midnight. Rest strips with melatonin and L-Theanine help you wind down naturally; wake up actually rested.",
+    description: "Can't switch off at midnight. Rest strips with melatonin and L-Theanine help you wind down naturally, so you wake up actually rested.",
     moods: ["rest"],
     // Client photo: scrolling her phone in bed at 2:03am.
     scene: "/feelz-creative/moments/persona-night-owl.webp",
@@ -97,7 +97,7 @@ export function WhoItsForSection() {
             <span className="h-1.5 w-1.5 rounded-full bg-ink/40" aria-hidden />
             <span className="h-px w-10 bg-ink/20" aria-hidden />
           </div>
-          <h2 className="font-display mt-3 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">Who Is It For</h2>
+          <h2 className="font-display mt-3 text-2xl font-bold uppercase tracking-[0.3em] text-ink sm:text-3xl">Who It's For</h2>
         </div>
 
         <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">

@@ -28,7 +28,7 @@ const LOGOS = [
 const STATS = [
   { value: 20, format: (n: number) => `${Math.round(n)}K+`, label: "Lives impacted" },
   { value: 15, format: (n: number) => `${Math.round(n)}+`, label: "Satisfied EAP clients" },
-  { value: 45000, format: (n: number) => `${Math.round(n).toLocaleString("en-IN")}+`, label: "Counseling hours delivered" },
+  { value: 45000, format: (n: number) => `${Math.round(n).toLocaleString("en-IN")}+`, label: "Counselling hours delivered" },
 ];
 
 function CountUp({ to, format, run, delay }: { to: number; format: (n: number) => string; run: boolean; delay: number }) {

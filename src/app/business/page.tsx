@@ -93,12 +93,12 @@ const AWARDS = [
   {
     image: "/business/women-entrepreneur.webp",
     title: "Women Entrepreneur of the Year 2024",
-    description: "Recognized by PM Modi at Startup Mahakumbh for innovation in mental health solutions.",
+    description: "Recognised by PM Modi at Startup Mahakumbh for innovation in mental health solutions.",
   },
   {
     image: "/business/startup-of-year.webp",
     title: "Startup of the Year 2022",
-    description: "Awarded by MIT WPU with trophy and cash prize for outstanding impact in mental health.",
+    description: "Awarded by MIT-WPU with trophy and cash prize for outstanding impact in mental health.",
   },
 ];
 

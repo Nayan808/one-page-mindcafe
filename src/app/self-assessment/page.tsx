@@ -34,7 +34,7 @@ const TESTS = [
     category: "personality",
     categoryLabel: "Personality",
     title: "Perfectionism Test",
-    description: "Striving for excellence is commendable. Adaptive perfectionists set high goals and grow personally, while others chase perfection leading to feelings of worthlessness. Are you driven or laid-back?",
+    description: "Striving for excellence is commendable. Adaptive perfectionists set high goals and grow personally, while others chase perfection, leading to feelings of worthlessness. Are you driven or laid-back?",
     questions: 20,
     minutes: 3,
     href: "https://www.psychologytoday.com/us/tests/personality/perfectionism-test",
@@ -124,7 +124,7 @@ export default function SelfAssessmentPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-2xl rounded-2xl border border-amber-300 bg-amber-50 p-4 text-center text-xs leading-relaxed text-amber-800">
             These assessments are developed by Psychology Today. Mindcafe&apos;s mental health professionals have
-            verified the accuracy levels, but do not hold responsibility for errors or glitches in results. These
+            verified the accuracy levels, but are not responsible for errors or glitches in the results. These
             assessments are <strong>for reference purposes only, not for diagnostic purposes.</strong> Please
             consult a qualified mental health professional for a formal diagnosis.
           </div>

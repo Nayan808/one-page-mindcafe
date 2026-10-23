@@ -16,7 +16,7 @@ const JOURNEY = [
   {
     date: "Feb 2022",
     title: "Top 5 Startups of Madhya Pradesh",
-    description: "Recognized as a leading startup in MP; this milestone validated our mission and opened doors for collaborations to make mental health support more accessible.",
+    description: "Recognised as a leading startup in MP; this milestone validated our mission and opened doors for collaborations to make mental health support more accessible.",
     image: "/awards/journey/startups-of-mp.webp",
   },
   {

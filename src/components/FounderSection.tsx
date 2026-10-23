@@ -7,7 +7,7 @@ import { Reveal } from "@/components/Reveal";
 const BADGES = [
   { Icon: Trophy, label: "Women Faces of the Year, Fox Story" },
   { Icon: Award, label: "Women Entrepreneur of the Year 2024" },
-  { Icon: Medal, label: "Startup of the Year 2022, MIT WPU" },
+  { Icon: Medal, label: "Startup of the Year 2022, MIT-WPU" },
 ];
 
 export function FounderSection() {
@@ -35,7 +35,7 @@ export function FounderSection() {
 
             <p className="mt-4 max-w-3xl text-sm leading-relaxed text-ink/60">
               At Mindcafe, we provide a safe, anonymous platform to share your feelings and connect with expert
-              advice. Alongside, our transformational programs, crafted by psychologists, neurologists, yoga
+              advice. Alongside this, our transformational programs, crafted by psychologists, neurologists, yoga
               practitioners, and more, are here to guide you toward healing and growth.
             </p>
 

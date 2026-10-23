@@ -111,7 +111,7 @@ export function ExpertsTeaserSection() {
 
       <div className="mt-10 flex justify-center">
         <Link href="/experts" className="pill-btn-outline">
-          Check more experts
+          View more experts
         </Link>
       </div>
       </Reveal>

@@ -357,7 +357,7 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
           {
             heading: "4.1 Eligibility",
             list: [
-              "The outer packaging or product is visibly damaged, tampered, leaking, or crushed on arrival",
+              "The outer packaging or product is visibly damaged, tampered with, leaking, or crushed on arrival",
               "The product received is expired, or has less than 30 days of shelf life remaining at the time of delivery",
               "You received the wrong Feelz variant, wrong quantity, or an item you did not order",
             ],

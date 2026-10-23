@@ -113,7 +113,7 @@ export function CounsellingTeaserSection() {
           <RiseIn delay={0.5} y={12} amount={0.5}>
             <p className="mx-auto mt-4 max-w-xl text-sm text-ink/60">
               1:1 sessions with certified counsellors: individual, family, child &amp; adolescent, and
-              specialized care. Book online, meet from anywhere.
+              specialised care. Book online, meet from anywhere.
             </p>
           </RiseIn>
         </div>

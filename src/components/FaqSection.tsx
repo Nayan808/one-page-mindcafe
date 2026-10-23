@@ -4,7 +4,7 @@ const FAQS = [
   {
     question: "What is Feelz?",
     answer:
-      "Feelz is a wellness brand by Mindcafe offering melt-in-mouth wellness strips designed around everyday mental states including focus, emotional wellbeing, social confidence and rest.",
+      "Feelz is a wellness brand by Mindcafe offering melt-in-mouth wellness strips designed around everyday mental states, including focus, emotional wellbeing, social confidence and rest.",
   },
   {
     question: "Is Feelz a medicine?",
@@ -23,7 +23,7 @@ const FAQS = [
   {
     question: "How quickly does Feelz work?",
     answer:
-      "Since the strip dissolves in your mouth, the ingredients absorb through the oral mucosa, faster than a traditional tablet. Effectiveness varies by individual factors like body weight; Feelz is a supportive wellness tool, not an instant fix.",
+      "Since the strip dissolves in your mouth, the ingredients are absorbed through the oral mucosa, which is faster than a traditional tablet. Effectiveness varies by individual factors like body weight; Feelz is a supportive wellness tool, not an instant fix.",
   },
   {
     question: "When should I use each mood?",

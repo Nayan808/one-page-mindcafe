@@ -11,7 +11,7 @@ import { Reveal } from "@/components/Reveal";
 // same company's live "our story" section) rather than invented. The video
 // is the company's own real YouTube upload.
 const YOUTUBE_VIDEO_ID = "GNa-LL2vylk";
-const VIDEO_TITLE = "Mindcafe's CEO & Founder, Sneh Nigam talks about Mindcafe";
+const VIDEO_TITLE = "Mindcafe's CEO & Founder, Sneh Nigam, talks about Mindcafe";
 
 type YTPlayer = { mute: () => void; unMute: () => void; isMuted: () => boolean };
 

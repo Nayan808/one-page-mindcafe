@@ -135,7 +135,7 @@ const DIGITAL_TRUST_SECTIONS = [
   },
   {
     title: "Account security",
-    body: "Sign in with Google or an email one-time code; either way, access to your data is scoped to your account only. If you ever suspect unauthorized access, reach out and we'll help immediately.",
+    body: "Sign in with Google or an email one-time code; either way, access to your data is scoped to your account only. If you ever suspect unauthorised access, reach out and we'll help immediately.",
   },
 ];
 

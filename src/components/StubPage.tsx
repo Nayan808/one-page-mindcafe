@@ -11,7 +11,7 @@ export function StubPage({ title, description }: { title: string; description: s
       <h1 className="font-display mt-3 text-3xl font-bold lowercase text-ink sm:text-4xl">{title}</h1>
       <p className="mt-3 text-sm text-ink/60">{description}</p>
       <Link href="/feelz" className="pill-btn mt-6">
-        shop feelz in the meantime
+        Shop Feelz in the meantime
       </Link>
     </div>
   );

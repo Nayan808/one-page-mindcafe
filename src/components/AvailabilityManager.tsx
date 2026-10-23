@@ -154,7 +154,7 @@ export function AvailabilityManager({ expertId }: { expertId: string }) {
       </p>
 
       {slots.length === 0 ? (
-        <p className="mt-3 text-xs text-ink/50">No slots left today for this date.</p>
+        <p className="mt-3 text-xs text-ink/50">No slots left for this date.</p>
       ) : (
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
           {slots.map((slot) => {

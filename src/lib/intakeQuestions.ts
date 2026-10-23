@@ -243,7 +243,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "How well do you balance work and Self-care?",
+        "question": "How well do you balance work and self-care?",
         "options": [
           "Very well",
           "Somewhat well",
@@ -312,7 +312,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "How has your appetite been affected by your mood since the last month?",
+        "question": "How has your mood affected your appetite over the last month?",
         "options": [
           "No change",
           "Increased",
@@ -564,7 +564,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "How well do you think you cope up with change?",
+        "question": "How well do you think you cope with change?",
         "options": [
           "Very well",
           "Somewhat well",
@@ -609,7 +609,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "What goals do you have for counseling?",
+        "question": "What goals do you have for counselling?",
         "options": [
           "Adapt to changes",
           "Manage stress",
@@ -802,7 +802,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "How often do you use any screen time before going to bed?",
+        "question": "How often do you use screens before going to bed?",
         "options": [
           "Never",
           "Occasionally",
@@ -925,7 +925,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "Are you both committed to work on the relationship?",
+        "question": "Are you both committed to working on the relationship?",
         "options": [
           "Yes, fully supported",
           "Somewhat supported",
@@ -1117,7 +1117,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "What type of guidance and support are you looking for your child?",
+        "question": "What kind of guidance and support are you looking for for your child?",
         "options": [
           "Communication with child",
           "Behavior management",
@@ -1204,7 +1204,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "What would you like to achieve through grief counseling?",
+        "question": "What would you like to achieve through grief counselling?",
         "options": [
           "Emotional support",
           "Understanding the grieving process",
@@ -1213,7 +1213,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "Are you open to exploring ways to honor your loved one?",
+        "question": "Are you open to exploring ways to honour your loved one?",
         "options": [
           "Very open",
           "Somewhat open",
@@ -1378,7 +1378,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "How would you like student counseling to benefit your child?",
+        "question": "How would you like student counselling to benefit your child?",
         "options": [
           "Improve academic performance",
           "Boost social skills",
@@ -1405,7 +1405,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "How open is your child to the idea of school counseling?",
+        "question": "How open is your child to the idea of school counselling?",
         "options": [
           "Very open",
           "Somewhat open",
@@ -1940,7 +1940,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         "options": [
           "Work stress",
           "Personal issues",
-          "Financial counseling",
+          "Financial counselling",
           "Conflict resolution"
         ]
       },
@@ -1965,7 +1965,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
       {
         "question": "What additional resources would you like EAP to provide?",
         "options": [
-          "Mental health counseling",
+          "Mental health counselling",
           "Work-life balance support",
           "Financial management guidance",
           "Legal assistance"
@@ -2092,7 +2092,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
     "label": "LGBTQ+ Counselling",
     "questions": [
       {
-        "question": "What is your primary reason for seeking LGBTQ+ counseling?",
+        "question": "What is your primary reason for seeking LGBTQ+ counselling?",
         "options": [
           "Identity exploration",
           "Relationship guidance",
@@ -2101,7 +2101,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "How comfortable are you with discussing about your identity?",
+        "question": "How comfortable are you with discussing your identity?",
         "options": [
           "Very comfortable",
           "Somewhat comfortable",
@@ -2155,7 +2155,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "What would you like to achieve through counseling?",
+        "question": "What would you like to achieve through counselling?",
         "options": [
           "Increased self-acceptance",
           "Improved relationships",
@@ -2338,7 +2338,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "What do you hope to achieve through trauma counseling?",
+        "question": "What do you hope to achieve through trauma counselling?",
         "options": [
           "Reduce triggers",
           "Emotional resilience",
@@ -2389,7 +2389,7 @@ export const INTAKE_CONCERNS: IntakeConcern[] = [
         ]
       },
       {
-        "question": "What do you hope to achieve through addiction counseling?",
+        "question": "What do you hope to achieve through addiction counselling?",
         "options": [
           "Reduce substance use",
           "Understand triggers",
