@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Gift, Loader2, Plus, Trash2, X } from "lucide-react";
@@ -11,8 +11,8 @@ import { useAddBundle } from "@/lib/useAddBundle";
 import { AUTO_DISCOUNT_MIN_SUBTOTAL, autoDiscountFor, discountableSubtotal, isBundleLine, unitPriceOf } from "@/lib/pricing";
 import type { CartItemWithVariant } from "@/types/domain";
 
-// Mini-cart popup — line items + qty + subtotal, then a single "go to
-// checkout" that navigates to /checkout. Fulfillment/payment/tracking all
+// Mini-cart panel that slides in from the right — line items + qty +
+// subtotal, then a single "go to checkout" that navigates to /checkout. Fulfillment/payment/tracking all
 // live on that route now, not here; this stays a lightweight, always-
 // mounted popup so the header cart button and "add to cart" success both
 // keep their instant open/close animation.
@@ -29,6 +29,11 @@ export function CartDrawer() {
   const singlesSubtotal = discountableSubtotal(items);
   const autoDiscount = autoDiscountFor(items);
   const hasBundle = items.some(isBundleLine);
+  // Bumped on every open so the line items replay their entrance.
+  const [openCount, setOpenCount] = useState(0);
+  useEffect(() => {
+    if (isDrawerOpen) setOpenCount((n) => n + 1);
+  }, [isDrawerOpen]);
 
   useEffect(() => {
     if (!isDrawerOpen) return;
@@ -58,7 +63,7 @@ export function CartDrawer() {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${isDrawerOpen ? "" : "pointer-events-none"}`}
+      className={`fixed inset-0 z-50 flex justify-end overflow-hidden ${isDrawerOpen ? "" : "pointer-events-none"}`}
       aria-hidden={!isDrawerOpen}
     >
       <button
@@ -66,14 +71,22 @@ export function CartDrawer() {
         aria-label="Close cart"
         tabIndex={isDrawerOpen ? 0 : -1}
         onClick={closeDrawer}
-        className={`absolute inset-0 bg-ink/40 backdrop-blur-sm transition-opacity duration-300 ${isDrawerOpen ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 bg-ink/40 backdrop-blur-[2px] transition-opacity duration-500 ${isDrawerOpen ? "opacity-100" : "opacity-0"}`}
       />
 
       <div
-        className={`relative flex max-h-[85vh] w-full max-w-md flex-col rounded-3xl bg-feelz-cream shadow-2xl transition-all duration-300 ${isDrawerOpen ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0"}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Your cart"
+        className={`relative flex h-full w-[90%] max-w-[26rem] flex-col rounded-l-3xl bg-feelz-cream shadow-[-24px_0_60px_-20px_rgba(17,17,16,0.35)] transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          isDrawerOpen ? "translate-x-0" : "translate-x-full"
+        }`}
       >
         <div className="flex items-center justify-between border-b border-feelz-ink/10 px-5 py-4">
-          <h2 className="font-display text-xl font-bold text-feelz-ink">Your cart</h2>
+          <h2 className="font-display text-xl font-bold text-feelz-ink">
+            Your cart
+            {items.length > 0 && <span className="ml-2 align-middle text-sm font-normal text-feelz-ink/50">({items.reduce((n, i) => n + i.quantity, 0)})</span>}
+          </h2>
           <button
             type="button"
             onClick={closeDrawer}
@@ -97,10 +110,14 @@ export function CartDrawer() {
             </div>
           ) : (
             <div className="space-y-6">
-              <ul className="space-y-3">
-                {items.map((item) =>
+              <ul key={openCount} className="space-y-3">
+                {items.map((item, index) =>
                   isBundleLine(item) ? (
-                    <li key={item.id} className="overflow-hidden rounded-2xl border-2 border-feelz-berry/40 bg-feelz-paper">
+                    <li
+                      key={item.id}
+                      style={{ animationDelay: `${120 + index * 70}ms` }}
+                      className="animate-[cart-item-in_0.5s_cubic-bezier(0.22,1,0.36,1)_both] overflow-hidden rounded-2xl border-2 border-feelz-berry/40 bg-feelz-paper"
+                    >
                       <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-feelz-orange/15 via-feelz-berry/15 to-feelz-rest/15 px-4 py-2">
                         <p className="flex items-center gap-1.5 text-xs font-semibold text-feelz-ink">
                           <Gift className="h-3.5 w-3.5 text-feelz-berry" aria-hidden />
@@ -120,7 +137,11 @@ export function CartDrawer() {
                       </div>
                     </li>
                   ) : (
-                    <li key={item.id} className="rounded-2xl border border-feelz-ink/10 bg-feelz-paper p-3">
+                    <li
+                      key={item.id}
+                      style={{ animationDelay: `${120 + index * 70}ms` }}
+                      className="animate-[cart-item-in_0.5s_cubic-bezier(0.22,1,0.36,1)_both] rounded-2xl border border-feelz-ink/10 bg-feelz-paper p-3"
+                    >
                       <CartLine item={item} />
                     </li>
                   ),
@@ -129,38 +150,43 @@ export function CartDrawer() {
 
               {!hasBundle && <BundleUpsell bundle={bundle} />}
 
-              <div className="space-y-2 border-t border-feelz-ink/10 pt-3 text-sm text-feelz-ink">
-                <div className={`flex items-center justify-between ${autoDiscount > 0 ? "text-feelz-ink/60" : "font-semibold"}`}>
-                  <span>Subtotal</span>
-                  <span>{formatInr(subtotal)}</span>
-                </div>
-                {autoDiscount > 0 ? (
-                  <>
-                    <div className="flex items-center justify-between font-semibold text-emerald-700">
-                      <span>10% off{hasBundle ? " (excl. bundle)" : ""}</span>
-                      <span>−{formatInr(autoDiscount)}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-base font-bold">
-                      <span>You pay</span>
-                      <span>{formatInr(subtotal - autoDiscount)}</span>
-                    </div>
-                  </>
-                ) : (
-                  singlesSubtotal > 0 && (
-                    <p className="text-xs text-feelz-ink/50">
-                      Add {formatInr(AUTO_DISCOUNT_MIN_SUBTOTAL - singlesSubtotal)} more
-                      {hasBundle ? " (besides the bundle)" : ""} to get 10% off.
-                    </p>
-                  )
-                )}
-              </div>
-
-              <button type="button" onClick={handleCheckout} className="pill-btn w-full">
-                Go to Checkout
-              </button>
             </div>
           )}
         </div>
+
+        {!isLoading && items.length > 0 && (
+          <div className="space-y-3 border-t border-feelz-ink/10 bg-feelz-cream px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+            <div className="space-y-2 text-sm text-feelz-ink">
+              <div className={`flex items-center justify-between ${autoDiscount > 0 ? "text-feelz-ink/60" : "font-semibold"}`}>
+                <span>Subtotal</span>
+                <span>{formatInr(subtotal)}</span>
+              </div>
+              {autoDiscount > 0 ? (
+                <>
+                  <div className="flex items-center justify-between font-semibold text-emerald-700">
+                    <span>10% off{hasBundle ? " (excl. bundle)" : ""}</span>
+                    <span>−{formatInr(autoDiscount)}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-base font-bold">
+                    <span>You pay</span>
+                    <span>{formatInr(subtotal - autoDiscount)}</span>
+                  </div>
+                </>
+              ) : (
+                singlesSubtotal > 0 && (
+                  <p className="text-xs text-feelz-ink/50">
+                    Add {formatInr(AUTO_DISCOUNT_MIN_SUBTOTAL - singlesSubtotal)} more
+                    {hasBundle ? " (besides the bundle)" : ""} to get 10% off.
+                  </p>
+                )
+              )}
+            </div>
+
+            <button type="button" onClick={handleCheckout} className="pill-btn w-full">
+              Go to Checkout
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

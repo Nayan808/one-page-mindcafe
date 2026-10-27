@@ -46,7 +46,7 @@ const revealVariants = {
 export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
+  const { items, addItem, isReady, cartId, openDrawer, notifyAdded } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
@@ -81,10 +81,8 @@ export function Hero() {
         product: { id: product!.id, name: product!.name, image_url: product!.image_url, price: product!.price },
         quantity: 1,
       });
-      // Not auto-opening the drawer here — the "added" checkmark plus the
-      // existing "cart · N" button (shown below once cartItem is truthy)
-      // already surfaces this without interrupting someone still comparing
-      // other moods.
+      // Small "added" pop-up by the cart button — the cart itself stays closed.
+      notifyAdded(product!.name, 1);
       setAddedKey(moodKey);
       window.setTimeout(() => setAddedKey((current) => (current === moodKey ? null : current)), 1800);
     } catch (error) {

@@ -29,7 +29,7 @@ const NAV_LINKS = [
 export function Header() {
   const { status, profile, user, signOut } = useAuth();
   const { openAuthModal } = useAuthModal();
-  const { itemCount, openDrawer } = useCartContext();
+  const { itemCount, openDrawer, lastAdded } = useCartContext();
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileShopOpen, setMobileShopOpen] = useState(false);
   // Purely cosmetic: the floating glass panel reads slightly denser once
@@ -104,7 +104,11 @@ export function Header() {
             </Link>
 
             {status === "authenticated" && (
-              <button onClick={openDrawer} className="pill-btn-outline !py-2 text-xs">
+              <button
+                key={lastAdded?.key ?? "cart"}
+                onClick={openDrawer}
+                className={`pill-btn-outline !py-2 text-xs ${lastAdded ? "cart-bump" : ""}`}
+              >
                 <ShoppingBag className="h-3.5 w-3.5 text-ink" aria-hidden />
                 Cart{itemCount > 0 ? ` · ${itemCount}` : ""}
               </button>

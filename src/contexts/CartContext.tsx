@@ -13,6 +13,11 @@ type CartContextValue = {
   isDrawerOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
+  /** The most recent add-to-cart, for the "added" pop-up (CartAddedToast).
+   * `key` changes on every add so the pop-up replays even for the same item. */
+  lastAdded: { key: number; name: string; quantity: number } | null;
+  notifyAdded: (name: string, quantity: number) => void;
+  dismissAdded: () => void;
 } & ReturnType<typeof useCart>;
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -36,6 +41,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // before the real cart ever loads.
   const [isResolvingCartId, setIsResolvingCartId] = useState(true);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [lastAdded, setLastAdded] = useState<CartContextValue["lastAdded"]>(null);
 
   useEffect(() => {
     if (status === "loading") return;
@@ -68,8 +74,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
     cartId,
     isReady: status !== "loading",
     isDrawerOpen,
-    openDrawer: () => setIsDrawerOpen(true),
+    openDrawer: () => {
+      setLastAdded(null);
+      setIsDrawerOpen(true);
+    },
     closeDrawer: () => setIsDrawerOpen(false),
+    lastAdded,
+    // Skipped while the cart panel is already open (e.g. the bundle upsell
+    // inside it) — the panel itself shows the change there.
+    notifyAdded: (name, quantity) => {
+      if (!isDrawerOpen) setLastAdded({ key: Date.now(), name, quantity });
+    },
+    dismissAdded: () => setLastAdded(null),
     ...cart,
     isLoading: isResolvingCartId || cart.isLoading,
   };

@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { MoodAmbience } from "@/components/feelz/MoodAmbience";
 
-// "Open. Place. Dissolve. Go." on each mood's product page. Sits on that
+// "Open. Place. Dissolve." on each mood's product page. Sits on that
 // mood's colour (bgClass), layered with the shared MoodAmbience
 // background so it never reads as a flat slab.
 //
@@ -28,7 +28,7 @@ export function HowToUseSection({
   steps: customSteps,
   id,
   eyebrow = "How it works",
-  headline = ["Open. Place.", "Dissolve. Go."],
+  headline = ["Open. Place.", "Dissolve."],
 }: {
   label?: string;
   bgClass: string;
@@ -58,10 +58,11 @@ export function HowToUseSection({
   }, []);
 
   const steps: HowToStep[] = customSteps ?? [
-    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open.webp" },
-    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place.webp" },
-    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve.webp" },
-    { title: "Go", body: `Get on with your ${label.toLowerCase()} moment`, image: "/feelz-creative/steps/go.webp" },
+    // Square photos in rounded-square frames with no shading over them, so
+    // every corner of each photo stays visible and true to colour.
+    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v3.webp", aspect: "1 / 1", frame: "rect" },
+    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v3.webp", aspect: "1 / 1", frame: "rect" },
+    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v3.webp", aspect: "1 / 1", frame: "rect" },
   ];
   const countWord = COUNT_WORDS[steps.length] ?? String(steps.length);
 
@@ -70,7 +71,7 @@ export function HowToUseSection({
       <MoodAmbience
         phrase={
           <>
-            open · place · <span className="font-tagline italic font-normal">dissolve</span> · go ·
+            open · place · <span className="font-tagline italic font-normal">dissolve</span> ·
           </>
         }
       />
@@ -125,7 +126,15 @@ export function HowToUseSection({
           {/* Hairline through the row, drawn left → right on entrance. */}
           <span className="howto-hairline absolute left-0 right-0 top-[38%] hidden h-px bg-white/30 lg:block" aria-hidden />
 
-          <div className={`grid grid-cols-2 gap-x-5 gap-y-12 lg:gap-x-8 ${steps.length === 5 ? "lg:grid-cols-5 lg:gap-x-6" : "lg:grid-cols-4"}`}>
+          <div
+            className={`grid grid-cols-2 gap-x-5 gap-y-12 lg:gap-x-8 ${
+              steps.length === 5
+                ? "lg:grid-cols-5 lg:gap-x-6"
+                : steps.length === 3
+                  ? "lg:mx-auto lg:max-w-4xl lg:grid-cols-3 lg:gap-x-10"
+                  : "lg:grid-cols-4"
+            }`}
+          >
             {steps.map((step, index) => (
               <div
                 key={step.title}
@@ -141,11 +150,13 @@ export function HowToUseSection({
                     src={step.image}
                     alt={step.body}
                     fill
-                    sizes="(min-width: 1024px) 300px, 45vw"
+                    sizes={steps.length === 3 ? "(min-width: 1024px) 290px, 45vw" : "(min-width: 1024px) 300px, 45vw"}
                     className="howto-photo object-cover"
                   />
                   {/* Soft vignette so the frame edge reads on light photos. */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" aria-hidden />
+                  {step.frame !== "rect" && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" aria-hidden />
+                  )}
                 </div>
 
                 <div className="howto-caption mt-5 flex items-start gap-3">

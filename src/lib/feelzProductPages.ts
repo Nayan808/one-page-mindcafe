@@ -10,10 +10,10 @@ import type { FeelzMoodKey } from "./feelzIngredients";
 
 export type FeelzProductPageCopy = {
   flavor: string;
-  // Real client-supplied product photography, in serial order (see
-  // public/feelz-creative/products/{mood}/1.webp..7.webp) — same 7 photos
-  // per mood, numbered by the client, rendered in that order rather than
-  // re-sorted or curated.
+  // The client's product-section creatives, in serial order (see
+  // public/feelz-creative/products/{mood}/1.webp..12.webp, square, from the
+  // per-mood "Product Section" folders) — 12 per mood, numbered by the
+  // client and rendered in that order rather than re-sorted or curated.
   images: string[];
   positioning: string;
   // "Best for" line from the client's FEELZ Website Product Information note.
@@ -55,7 +55,7 @@ export type FeelzProductPageCopy = {
 export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
   focus: {
     flavor: "Mango",
-    images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/focus/${n}.webp`),
+    images: Array.from({ length: 12 }, (_, i) => `/feelz-creative/products/focus/${i + 1}.webp`),
     positioning: "For Cognitive Clarity, Focus & Calm",
     bestFor: "Work, study, meetings and mentally demanding tasks.",
     benefits: [
@@ -85,7 +85,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
   },
   joy: {
     flavor: "Spearmint",
-    images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/joy/${n}.webp`),
+    images: Array.from({ length: 12 }, (_, i) => `/feelz-creative/products/joy/${i + 1}.webp`),
     positioning: "For Mood Calm and Inner Happiness",
     bestFor: "Stress, emotional fatigue and overwhelming days.",
     benefits: [
@@ -115,7 +115,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
   },
   extrovert: {
     flavor: "Ginger",
-    images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/extrovert/${n}.webp`),
+    images: Array.from({ length: 12 }, (_, i) => `/feelz-creative/products/extrovert/${i + 1}.webp`),
     positioning: "For Confidence, Energy & Social Vitality",
     bestFor: "Presentations, interviews, networking and public speaking.",
     benefits: [
@@ -145,7 +145,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
   },
   rest: {
     flavor: "Mixedberry + Mint",
-    images: [1, 2, 3, 4, 5, 6, 7].map((n) => `/feelz-creative/products/rest/${n}.webp`),
+    images: Array.from({ length: 12 }, (_, i) => `/feelz-creative/products/rest/${i + 1}.webp`),
     positioning: "For The Restful Sleep & a Relaxed Mind",
     bestFor: "Bedtime, mental overstimulation and winding down.",
     benefits: [

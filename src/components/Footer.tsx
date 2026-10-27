@@ -106,7 +106,7 @@ export function Footer() {
             {MOOD_GRID.map((mood) => (
               <li key={mood.key}>
                 <Link href={`/feelz/${mood.key}`} className="hover:text-brand hover:underline">
-                  {mood.label.toLowerCase()}
+                  {mood.label}
                 </Link>
               </li>
             ))}
@@ -118,22 +118,22 @@ export function Footer() {
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
               <Link href="/counselling" className="hover:text-brand hover:underline">
-                1:1 counselling
+                1:1 Counselling
               </Link>
             </li>
             <li>
               <Link href="/book-appointment" className="hover:text-brand hover:underline">
-                book a session
+                Book a Session
               </Link>
             </li>
             <li>
               <Link href="/self-assessment" className="hover:text-brand hover:underline">
-                self-assessment tests
+                Self-Assessment Tests
               </Link>
             </li>
             <li>
               <Link href="/business" className="hover:text-brand hover:underline">
-                for business
+                For Business
               </Link>
             </li>
           </ul>
@@ -144,22 +144,22 @@ export function Footer() {
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
               <Link href="/about" className="hover:text-brand hover:underline">
-                about
+                About
               </Link>
             </li>
             <li>
               <a href="mailto:team@mindcafe.app" className="hover:text-brand hover:underline">
-                contact
+                Contact
               </a>
             </li>
             <li>
               <Link href="/trust" className="hover:text-brand hover:underline">
-                trust & safety
+                Trust & Safety
               </Link>
             </li>
             <li>
               <Link href="/awards" className="hover:text-brand hover:underline">
-                awards
+                Awards
               </Link>
             </li>
           </ul>
@@ -170,17 +170,17 @@ export function Footer() {
           <ul className="mt-2 space-y-1 text-sm text-ink/70">
             <li>
               <button type="button" onClick={openAuthModal} className="hover:text-brand hover:underline">
-                login
+                Login
               </button>
             </li>
             <li>
               <Link href="/expert/login" className="hover:text-brand hover:underline">
-                expert login
+                Expert Login
               </Link>
             </li>
             <li>
               <Link href="/employer/login" className="hover:text-brand hover:underline">
-                employer login
+                Employer Login
               </Link>
             </li>
           </ul>
@@ -281,13 +281,13 @@ export function Footer() {
         <p>© 2026 Mindcafe, a venture of Sneh Care Club Pvt. Ltd. All rights reserved.</p>
         <div className="flex gap-4">
           <Link href="/legal/privacy" className="hover:text-brand hover:underline">
-            privacy
+            Privacy
           </Link>
           <Link href="/legal/terms" className="hover:text-brand hover:underline">
-            terms
+            Terms
           </Link>
           <Link href="/legal/refund" className="hover:text-brand hover:underline">
-            refund & cancellation
+            Refund & Cancellation
           </Link>
         </div>
       </div>
