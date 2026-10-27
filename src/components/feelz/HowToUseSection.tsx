@@ -125,7 +125,15 @@ export function HowToUseSection({
           {/* Hairline through the row, drawn left → right on entrance. */}
           <span className="howto-hairline absolute left-0 right-0 top-[38%] hidden h-px bg-white/30 lg:block" aria-hidden />
 
-          <div className={`grid grid-cols-2 gap-x-5 gap-y-12 lg:gap-x-8 ${steps.length === 5 ? "lg:grid-cols-5 lg:gap-x-6" : "lg:grid-cols-4"}`}>
+          <div
+            className={`grid grid-cols-2 gap-x-5 gap-y-12 lg:gap-x-8 ${
+              steps.length === 5
+                ? "lg:grid-cols-5 lg:gap-x-6"
+                : steps.length === 3
+                  ? "lg:mx-auto lg:max-w-5xl lg:grid-cols-3 lg:gap-x-12"
+                  : "lg:grid-cols-4"
+            }`}
+          >
             {steps.map((step, index) => (
               <div
                 key={step.title}
@@ -141,7 +149,7 @@ export function HowToUseSection({
                     src={step.image}
                     alt={step.body}
                     fill
-                    sizes="(min-width: 1024px) 300px, 45vw"
+                    sizes={steps.length === 3 ? "(min-width: 1024px) 330px, 45vw" : "(min-width: 1024px) 300px, 45vw"}
                     className="howto-photo object-cover"
                   />
                   {/* Soft vignette so the frame edge reads on light photos. */}
