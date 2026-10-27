@@ -58,10 +58,11 @@ export function HowToUseSection({
   }, []);
 
   const steps: HowToStep[] = customSteps ?? [
-    // Square photos in square (arch-top) frames, so nothing is cropped.
-    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v2.webp", aspect: "1 / 1" },
-    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v2.webp", aspect: "1 / 1" },
-    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v2.webp", aspect: "1 / 1" },
+    // Square photos in rounded-square frames with no shading over them, so
+    // every corner of each photo stays visible and true to colour.
+    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v3.webp", aspect: "1 / 1", frame: "rect" },
+    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v3.webp", aspect: "1 / 1", frame: "rect" },
+    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v3.webp", aspect: "1 / 1", frame: "rect" },
   ];
   const countWord = COUNT_WORDS[steps.length] ?? String(steps.length);
 
@@ -153,7 +154,9 @@ export function HowToUseSection({
                     className="howto-photo object-cover"
                   />
                   {/* Soft vignette so the frame edge reads on light photos. */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" aria-hidden />
+                  {step.frame !== "rect" && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" aria-hidden />
+                  )}
                 </div>
 
                 <div className="howto-caption mt-5 flex items-start gap-3">

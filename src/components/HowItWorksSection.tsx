@@ -9,9 +9,9 @@ import { HowToUseSection, type HowToStep } from "@/components/feelz/HowToUseSect
 // square, so the frames are too — a portrait crop cut the "Place" photo
 // down to the strip and nose, losing the lips and tongue.
 const STEPS: HowToStep[] = [
-  { title: "Open", body: "Open the pack", image: "/feelz-creative/steps/open-v2.webp", aspect: "1 / 1" },
-  { title: "Place", body: "Place the strip on your tongue", image: "/feelz-creative/steps/place-v2.webp", aspect: "1 / 1" },
-  { title: "Dissolve", body: "Let it dissolve", image: "/feelz-creative/steps/dissolve-v2.webp", aspect: "1 / 1" },
+  { title: "Open", body: "Open the pack", image: "/feelz-creative/steps/open-v3.webp", aspect: "1 / 1", frame: "rect" },
+  { title: "Place", body: "Place the strip on your tongue", image: "/feelz-creative/steps/place-v3.webp", aspect: "1 / 1", frame: "rect" },
+  { title: "Dissolve", body: "Let it dissolve", image: "/feelz-creative/steps/dissolve-v3.webp", aspect: "1 / 1", frame: "rect" },
 ];
 
 export function HowItWorksSection() {
