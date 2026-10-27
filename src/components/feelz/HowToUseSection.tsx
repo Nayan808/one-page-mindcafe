@@ -60,9 +60,9 @@ export function HowToUseSection({
   const steps: HowToStep[] = customSteps ?? [
     // Square photos in rounded-square frames with no shading over them, so
     // every corner of each photo stays visible and true to colour.
-    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v3.webp", aspect: "1 / 1", frame: "rect" },
-    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v3.webp", aspect: "1 / 1", frame: "rect" },
-    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v3.webp", aspect: "1 / 1", frame: "rect" },
+    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v4.webp", aspect: "1 / 1", frame: "rect" },
+    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v4.webp", aspect: "1 / 1", frame: "rect" },
+    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v4.webp", aspect: "1 / 1", frame: "rect" },
   ];
   const countWord = COUNT_WORDS[steps.length] ?? String(steps.length);
 
@@ -131,7 +131,7 @@ export function HowToUseSection({
               steps.length === 5
                 ? "lg:grid-cols-5 lg:gap-x-6"
                 : steps.length === 3
-                  ? "lg:mx-auto lg:max-w-4xl lg:grid-cols-3 lg:gap-x-10"
+                  ? "lg:mx-auto lg:max-w-5xl lg:grid-cols-3 lg:gap-x-12"
                   : "lg:grid-cols-4"
             }`}
           >
@@ -150,7 +150,7 @@ export function HowToUseSection({
                     src={step.image}
                     alt={step.body}
                     fill
-                    sizes={steps.length === 3 ? "(min-width: 1024px) 290px, 45vw" : "(min-width: 1024px) 300px, 45vw"}
+                    sizes={steps.length === 3 ? "(min-width: 1024px) 340px, 45vw" : "(min-width: 1024px) 300px, 45vw"}
                     className="howto-photo object-cover"
                   />
                   {/* Soft vignette so the frame edge reads on light photos. */}
