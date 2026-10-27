@@ -1475,3 +1475,15 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(:has(img)):hover {
     transition: none;
   }
 }
+
+/* Cart panel line items: slide in from the right as the panel opens. */
+@keyframes cart-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

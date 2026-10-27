@@ -207,6 +207,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
         router.push("/checkout");
         return;
       }
+      openDrawer();
       setIsAdded(true);
       window.setTimeout(() => setIsAdded(false), 1800);
     } catch (error) {

@@ -71,6 +71,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
       quantity,
     });
     setJustAdded(true);
+    openDrawer();
   }
 
   useEffect(() => {

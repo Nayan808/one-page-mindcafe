@@ -81,10 +81,8 @@ export function Hero() {
         product: { id: product!.id, name: product!.name, image_url: product!.image_url, price: product!.price },
         quantity: 1,
       });
-      // Not auto-opening the drawer here — the "added" checkmark plus the
-      // existing "cart · N" button (shown below once cartItem is truthy)
-      // already surfaces this without interrupting someone still comparing
-      // other moods.
+      // Slide the cart in from the right so the add is confirmed right away.
+      openDrawer();
       setAddedKey(moodKey);
       window.setTimeout(() => setAddedKey((current) => (current === moodKey ? null : current)), 1800);
     } catch (error) {
