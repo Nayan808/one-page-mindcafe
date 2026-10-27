@@ -106,6 +106,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (returnTo?: string) => {
       const callbackUrl = new URL("/auth/callback", window.location.origin);
       if (returnTo) callbackUrl.searchParams.set("returnTo", returnTo);
+      // Safety net for the round trip through Google: if Supabase doesn't
+      // accept the callback URL (it must be listed under Auth -> URL
+      // Configuration -> Redirect URLs) it falls back to the Site URL, i.e.
+      // the homepage. Remembering the page here lets AuthReturnHandler send
+      // the customer back to it either way. sessionStorage survives the
+      // same-tab trip to Google and back.
+      try {
+        const path = returnTo ?? window.location.pathname + window.location.search + window.location.hash;
+        sessionStorage.setItem("authReturnTo", JSON.stringify({ path, at: Date.now() }));
+      } catch {
+        // Storage unavailable (private mode etc.) — the callback's returnTo still applies.
+      }
       const { error } = await sb.auth.signInWithOAuth({
         provider: "google",
         options: { redirectTo: callbackUrl.toString() },
