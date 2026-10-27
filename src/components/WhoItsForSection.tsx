@@ -31,7 +31,7 @@ const PERSONAS: {
   packInScene?: boolean;
 }[] = [
   {
-    title: "The traveller",
+    title: "The Traveller",
     tagline: "Pocket-sized, Zostel-approved",
     description:
       "Hopping between hostels, cities, and time zones. Feelz travels light: no water, no fuss, and it fits in any pocket. First stocked at every Zostel in India.",
@@ -42,7 +42,7 @@ const PERSONAS: {
     zostel: true,
   },
   {
-    title: "The student",
+    title: "The Student",
     tagline: "Exam-season survival kit",
     description: "Exam season, long study nights, social pressure. Feelz supports the mind through the demands without sedating it.",
     moods: ["focus", "joy"],
@@ -50,7 +50,7 @@ const PERSONAS: {
     focus: "35% 40%",
   },
   {
-    title: "The remote worker",
+    title: "The Remote Worker",
     tagline: "Focus, minus the office",
     description: "Working from home or cafés. When your environment isn't built for focus, Feelz helps you create it internally.",
     moods: ["focus"],
@@ -58,7 +58,7 @@ const PERSONAS: {
     focus: "45% 35%",
   },
   {
-    title: "The night owl",
+    title: "The Night Owl",
     tagline: "For the 2am scroll",
     description: "Can't switch off at midnight. Rest strips with melatonin and L-Theanine help you wind down naturally, so you wake up actually rested.",
     moods: ["rest"],
@@ -68,7 +68,7 @@ const PERSONAS: {
     wide: true,
   },
   {
-    title: "The overthinker",
+    title: "The Overthinker",
     tagline: "Quiet the noise",
     description: "Social situations, new places, unfamiliar people. Joy and Extrovert are built exactly for these moments of overload.",
     moods: ["extrovert", "joy"],
@@ -78,7 +78,7 @@ const PERSONAS: {
     wide: true,
   },
   {
-    title: "The professional",
+    title: "The Professional",
     tagline: "Calm under deadline",
     description: "Back-to-back meetings, tight deadlines, constant noise. Focus when it matters, rest when you need to switch off.",
     moods: ["focus", "rest"],
