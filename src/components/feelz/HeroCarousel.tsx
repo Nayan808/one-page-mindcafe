@@ -7,28 +7,20 @@ import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { useReducedMotion } from "motion/react";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-import { MOOD_GRID, MOOD_STYLES } from "@/lib/moodStyles";
 
-// Shared by Hero.tsx (/feelz, full-bleed, scrolls within the same page) and
-// HomeHero.tsx (homepage, inside a contained card, navigates to /feelz) —
-// five full-bleed marketing creatives (bundle intro + one per mood, see
-// public/feelz-creative). Every slide gets the same pair of real, visible
-// buttons ("Shop Now" + "Find at Zostel") in the same fixed spot,
-// independent of whatever each photo's own baked-in graphic happens to
-// show — swapping a slide's `src` later needs no button changes. The
-// homepage card opts out of the buttons (showButtons=false) since the
-// whole carousel there is already a clickable-feeling preview that leads
-// to /feelz via its own "Shop Feelz" CTA beside it — /feelz itself always
-// shows them since that's where shopping actually happens.
-//
-// The whole slide is also a link: each mood's creative opens that mood's
-// product page, and the bundle creative (there's no bundle product page)
-// jumps to the bundle card under the /feelz product grid (Hero.tsx).
+// The /feelz hero (Hero.tsx): the client's four "Revised Hero" banners
+// (public/feelz-creative/hero-revised, 16:9). Each banner already carries
+// its own headline and copy right across the image, so the Shop Now / Find
+// at Zostel buttons and the slide dots sit in a row underneath rather than
+// on top of it. Clicking a banner jumps to the product grid — or, for the
+// four-pack "10-Day Routine" banner, to the bundle card.
 // Embla swallows the click that ends a swipe, so dragging never navigates.
 const HERO_SLIDES = [
-  { key: "bundle", src: "/feelz-creative/00-feelz-bundle-hero-v4.webp", href: "/feelz#bundle", label: "Shop the Feelz bundle" },
-  ...MOOD_GRID.map((m) => ({ key: m.key, src: MOOD_STYLES[m.key].heroSrc, href: `/feelz/${m.key}`, label: `Shop Feelz ${m.label}` })),
-];
+  { key: "ayurvedic", src: "/feelz-creative/hero-revised/1.webp", target: "shop", label: "India's first supplement with Ayurvedic and active food ingredients — shop Feelz" },
+  { key: "tiny-strip", src: "/feelz-creative/hero-revised/2.webp", target: "shop", label: "Your supplement, in a tiny strip — shop Feelz" },
+  { key: "routine", src: "/feelz-creative/hero-revised/3.webp", target: "bundle", label: "Your 10-day Feelz routine — shop the bundle" },
+  { key: "big-day", src: "/feelz-creative/hero-revised/4.webp", target: "shop", label: "Big day? Tiny strip — shop Feelz" },
+] as const;
 
 export function HeroCarousel({
   onShopClick,
@@ -69,65 +61,22 @@ export function HeroCarousel({
       <div ref={emblaRef} className="overflow-hidden">
         <div className="flex">
           {HERO_SLIDES.map((slide) => (
-            <div key={slide.key} className="relative aspect-[1774/887] min-w-0 flex-[0_0_100%] overflow-hidden">
-              {/* fill + object-cover rather than fixed width/height. All
-                  five creatives now share the same native 1774×887 (2:1)
-                  ratio (replaced together as a matching set), so the
-                  container ratio matches every slide exactly — important
-                  here since several of these bake headline text right up
-                  against the left edge, which a mismatched container
-                  ratio would crop into. */}
+            <div key={slide.key} className="relative aspect-[5225/2941] min-w-0 flex-[0_0_100%] overflow-hidden">
+              {/* Frame ratio matches the banners' native 16:9 exactly, so
+                  object-cover never trims their edge-to-edge copy. */}
               <Link
-                href={slide.href}
+                href={slide.target === "bundle" ? "/feelz#bundle" : "/feelz#mood-picks"}
                 aria-label={slide.label}
                 onClick={(event) => {
-                  if (slide.key !== "bundle" || !onBundleClick) return;
                   event.preventDefault();
-                  onBundleClick();
+                  if (slide.target === "bundle" && onBundleClick) onBundleClick();
+                  else onShopClick();
                 }}
                 className="absolute inset-0 block"
               >
-                <Image src={slide.src} alt="" fill priority={slide.key === "bundle"} className="object-cover" sizes="100vw" />
+                <Image src={slide.src} alt="" fill priority={slide.key === "ayurvedic"} className="object-cover" sizes="100vw" />
               </Link>
 
-              {/* Real, visible buttons — not invisible hit-zones sitting
-                  silently on top of the photo's own "Shop Now" graphic.
-                  Fixed position across every slide (rather than trying to
-                  align to each image's own differently-placed baked-in
-                  button) so they're consistent and robust regardless of how
-                  object-cover crops or scales any given photo. */}
-              {showButtons && (
-                <>
-                  {/* A plain drop-shadow isn't enough on lighter creatives
-                      (e.g. the cream/tan Extrovert hero), where a light
-                      button can blend straight into a light background.
-                      This scrim guarantees contrast under the buttons no
-                      matter which slide/photo is showing. */}
-                  <div
-                    className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-[45%] sm:block"
-                    style={{ background: "linear-gradient(to top, rgba(16,35,63,0.45) 0%, rgba(16,35,63,0) 100%)" }}
-                    aria-hidden
-                  />
-                  <div className="absolute bottom-[27%] left-[4%] hidden flex-wrap items-center gap-2.5 sm:flex">
-                    <button
-                      type="button"
-                      onClick={onShopClick}
-                      className="group inline-flex items-center gap-1.5 rounded-full bg-feelz-berry px-4 py-2.5 text-xs font-semibold uppercase tracking-label text-feelz-cream shadow-[0_4px_14px_rgba(0,0,0,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.4)] sm:px-5 sm:py-3 sm:text-sm"
-                    >
-                      Shop Now
-                      <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" aria-hidden />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={onZostelClick}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-feelz-ink/15 bg-feelz-paper/95 px-4 py-2.5 text-xs font-semibold uppercase tracking-label text-feelz-ink shadow-[0_4px_14px_rgba(0,0,0,0.35)] backdrop-blur transition hover:-translate-y-0.5 hover:shadow-[0_6px_18px_rgba(0,0,0,0.4)] sm:px-5 sm:py-3 sm:text-sm"
-                    >
-                      <Image src="/press/zostel-star.png" alt="" width={20} height={19} className="h-4 w-4 object-contain sm:h-[18px] sm:w-[18px]" />
-                      Find at Zostel
-                    </button>
-                  </div>
-                </>
-              )}
             </div>
           ))}
         </div>
@@ -150,24 +99,10 @@ export function HeroCarousel({
         <ChevronRight className="h-4 w-4" aria-hidden />
       </button>
 
-      <div className="absolute bottom-3 left-1/2 hidden -translate-x-1/2 items-center gap-1.5 sm:flex">
-        {HERO_SLIDES.map((slide, index) => (
-          <button
-            key={slide.key}
-            type="button"
-            onClick={() => emblaApi?.scrollTo(index)}
-            aria-label={`Show slide ${index + 1}`}
-            className={`h-1.5 rounded-full transition-all ${index === selectedIndex ? "w-6 bg-feelz-berry" : "w-1.5 bg-feelz-ink/20"}`}
-          />
-        ))}
-      </div>
       </div>
 
-      {/* Phones: the banner is only ~200px tall at this width, so overlaid
-          buttons sat right on top of each creative's baked-in headline and
-          product shots. Below sm they move out of the image into their
-          own row underneath instead. */}
-      <div className="flex items-center justify-center gap-1.5 pt-2.5 sm:hidden">
+      {/* Dots and buttons sit below the banner on every screen size. */}
+      <div className="flex items-center justify-center gap-1.5 pt-3">
         {HERO_SLIDES.map((slide, index) => (
           <button
             key={slide.key}
@@ -180,7 +115,7 @@ export function HeroCarousel({
       </div>
 
       {showButtons && (
-        <div className="flex gap-2.5 px-4 pb-1 pt-2.5 sm:hidden">
+        <div className="mx-auto flex max-w-md gap-2.5 px-4 pb-1 pt-3 sm:pt-4">
           <button
             type="button"
             onClick={onShopClick}
