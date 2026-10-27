@@ -21,30 +21,68 @@ function Stars({ rating, className = "text-amber-400" }: { rating: number; class
   );
 }
 
-function ReviewCard({ review, featured }: { review: Review; featured?: boolean }) {
+// Each card takes the colour of the Feelz mood its review mentions (same
+// pack colours as the homepage product cards); anything else — e.g. a
+// counselling review — gets the soft mauve brand tint. Literal class
+// strings so Tailwind generates them.
+const PRODUCT_TONES = {
+  Focus: { card: "border-feelz-navy/20 bg-feelz-navy/[0.06]", chip: "bg-feelz-navy/[0.12] text-feelz-navy", name: "text-feelz-navy" },
+  Joy: { card: "border-feelz-berry/20 bg-feelz-berry/[0.07]", chip: "bg-feelz-berry/[0.12] text-feelz-berry", name: "text-feelz-berry" },
+  Extrovert: { card: "border-feelz-orange/25 bg-feelz-orange/[0.08]", chip: "bg-feelz-orange/[0.16] text-[#7a4708]", name: "text-[#94560a]" },
+  Rest: { card: "border-feelz-rest/20 bg-feelz-rest/[0.07]", chip: "bg-feelz-rest/[0.12] text-feelz-rest", name: "text-feelz-rest" },
+} as const;
+const DEFAULT_TONE = { card: "border-brand/15 bg-[#f8eef2]", chip: "", name: "text-brand" };
+
+// Capitalised mood names only, so ordinary words ("the rest of the day")
+// don't count as a product mention.
+function productFor(comment: string | null): keyof typeof PRODUCT_TONES | null {
+  const match = comment?.match(/\b(Focus|Joy|JOY|Extrovert|Rest)\b/);
+  if (!match) return null;
+  const word = match[1];
+  return (word.charAt(0) + word.slice(1).toLowerCase()) as keyof typeof PRODUCT_TONES;
+}
+
+const CLAMP_CHARS = 260;
+
+function ReviewCard({ review }: { review: Review }) {
+  const [expanded, setExpanded] = useState(false);
+  const product = productFor(review.comment);
+  const tone = product ? PRODUCT_TONES[product] : DEFAULT_TONE;
+  const isLong = (review.comment?.length ?? 0) > CLAMP_CHARS;
+
   return (
-    <div
-      className={`flex h-full flex-col justify-between rounded-3xl p-6 text-left shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-        featured ? "bg-brand text-cream" : "border border-ink/10 bg-white text-ink"
-      }`}
-    >
-      <div>
-        <Stars rating={review.rating} className={featured ? "text-amber-300" : "text-amber-400"} />
-        {review.comment && (
-          <p className={`font-tagline mt-4 text-lg italic leading-snug ${featured ? "text-cream" : "text-ink"}`}>
-            &ldquo;{review.comment}&rdquo;
-          </p>
-        )}
+    <div className={`rounded-3xl border p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:shadow-lg sm:p-7 ${tone.card}`}>
+      <div className="flex items-center justify-between gap-3">
+        <Stars rating={review.rating} />
+        {product && <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${tone.chip}`}>{product}</span>}
       </div>
-      <p className={`mt-6 text-xs font-medium ${featured ? "text-cream/70" : "text-ink/50"}`}>
-        {review.reviewer_name}
-        {review.city ? ` · ${review.city}` : ""}
+      {review.comment && (
+        <p
+          className={`font-tagline mt-4 whitespace-pre-line text-lg italic leading-snug text-ink ${
+            isLong && !expanded ? "line-clamp-5" : ""
+          }`}
+        >
+          &ldquo;{review.comment}&rdquo;
+        </p>
+      )}
+      {isLong && (
+        <button
+          type="button"
+          onClick={() => setExpanded((v) => !v)}
+          className={`mt-2 text-xs font-semibold hover:underline ${tone.name}`}
+        >
+          {expanded ? "Show less" : "Read more"}
+        </button>
+      )}
+      <p className={`mt-5 text-sm font-semibold ${tone.name}`}>
+        — {review.reviewer_name}
+        {review.city ? <span className="font-normal text-ink/50"> · {review.city}</span> : null}
       </p>
     </div>
   );
 }
 
-// 4-5 most recent reviews (spec 4.1), first one featured in a mauve tile —
+// The most recent reviews (spec 4.1), each tinted by the product it mentions —
 // a real rotating carousel (same embla primitive as the homepage hero)
 // rather than a static bento grid, so the featured tile and supporting
 // voices each get full width instead of being squeezed into a fixed grid.
@@ -55,7 +93,7 @@ function ReviewCard({ review, featured }: { review: Review; featured?: boolean }
 export function TestimonialsSection({ background = "bg-surface-alt" }: { background?: string }) {
   const reviewsQuery = useQuery({
     queryKey: ["reviews", "recent"],
-    queryFn: () => getRecentReviews(createClient(), 5),
+    queryFn: () => getRecentReviews(createClient(), 8),
   });
   const summaryQuery = useQuery({
     queryKey: ["reviews", "summary"],
@@ -122,10 +160,10 @@ export function TestimonialsSection({ background = "bg-surface-alt" }: { backgro
 
         <RiseIn delay={0.2} y={18} blur={5} duration={0.9} amount={0.2} className="mt-10">
           <div ref={emblaRef} className="overflow-hidden">
-            <div className="-ml-4 flex">
-              {reviews.map((review, index) => (
+            <div className="-ml-4 flex items-start">
+              {reviews.map((review) => (
                 <div key={review.id} className="min-w-0 flex-[0_0_100%] pl-4 sm:flex-[0_0_60%] lg:flex-[0_0_42%]">
-                  <ReviewCard review={review} featured={index === 0} />
+                  <ReviewCard review={review} />
                 </div>
               ))}
             </div>
