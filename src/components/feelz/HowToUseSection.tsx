@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { MoodAmbience } from "@/components/feelz/MoodAmbience";
 
-// "Open. Place. Dissolve. Go." on each mood's product page. Sits on that
+// "Open. Place. Dissolve." on each mood's product page. Sits on that
 // mood's colour (bgClass), layered with the shared MoodAmbience
 // background so it never reads as a flat slab.
 //
@@ -28,7 +28,7 @@ export function HowToUseSection({
   steps: customSteps,
   id,
   eyebrow = "How it works",
-  headline = ["Open. Place.", "Dissolve. Go."],
+  headline = ["Open. Place.", "Dissolve."],
 }: {
   label?: string;
   bgClass: string;
@@ -58,10 +58,10 @@ export function HowToUseSection({
   }, []);
 
   const steps: HowToStep[] = customSteps ?? [
-    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v2.webp" },
-    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v2.webp" },
-    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v2.webp" },
-    { title: "Go", body: `Get on with your ${label.toLowerCase()} moment`, image: "/feelz-creative/steps/go.webp" },
+    // Square photos in square (arch-top) frames, so nothing is cropped.
+    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v2.webp", aspect: "1 / 1" },
+    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v2.webp", aspect: "1 / 1" },
+    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v2.webp", aspect: "1 / 1" },
   ];
   const countWord = COUNT_WORDS[steps.length] ?? String(steps.length);
 
@@ -70,7 +70,7 @@ export function HowToUseSection({
       <MoodAmbience
         phrase={
           <>
-            open · place · <span className="font-tagline italic font-normal">dissolve</span> · go ·
+            open · place · <span className="font-tagline italic font-normal">dissolve</span> ·
           </>
         }
       />
