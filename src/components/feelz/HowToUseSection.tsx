@@ -58,9 +58,9 @@ export function HowToUseSection({
   }, []);
 
   const steps: HowToStep[] = customSteps ?? [
-    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open.webp" },
-    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place.webp" },
-    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve.webp" },
+    { title: "Open", body: "Tear open the sachet", image: "/feelz-creative/steps/open-v2.webp" },
+    { title: "Place", body: "Place one strip on your tongue", image: "/feelz-creative/steps/place-v2.webp" },
+    { title: "Dissolve", body: "Let it melt in seconds", image: "/feelz-creative/steps/dissolve-v2.webp" },
     { title: "Go", body: `Get on with your ${label.toLowerCase()} moment`, image: "/feelz-creative/steps/go.webp" },
   ];
   const countWord = COUNT_WORDS[steps.length] ?? String(steps.length);
@@ -130,7 +130,7 @@ export function HowToUseSection({
               steps.length === 5
                 ? "lg:grid-cols-5 lg:gap-x-6"
                 : steps.length === 3
-                  ? "lg:mx-auto lg:max-w-5xl lg:grid-cols-3 lg:gap-x-12"
+                  ? "lg:mx-auto lg:max-w-4xl lg:grid-cols-3 lg:gap-x-10"
                   : "lg:grid-cols-4"
             }`}
           >
@@ -149,7 +149,7 @@ export function HowToUseSection({
                     src={step.image}
                     alt={step.body}
                     fill
-                    sizes={steps.length === 3 ? "(min-width: 1024px) 330px, 45vw" : "(min-width: 1024px) 300px, 45vw"}
+                    sizes={steps.length === 3 ? "(min-width: 1024px) 290px, 45vw" : "(min-width: 1024px) 300px, 45vw"}
                     className="howto-photo object-cover"
                   />
                   {/* Soft vignette so the frame edge reads on light photos. */}

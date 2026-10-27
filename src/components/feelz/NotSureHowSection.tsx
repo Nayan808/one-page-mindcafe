@@ -120,7 +120,7 @@ export function NotSureHowSection() {
           aria-hidden
         />
 
-        <Side side="left" image="/feelz-creative/steps/place.webp" note="Tiny strip. Big difference." blob="bg-feelz-orange/20" ring="border-feelz-orange/35" />
+        <Side side="left" image="/feelz-creative/steps/place-v2.webp" note="Tiny strip. Big difference." blob="bg-feelz-orange/20" ring="border-feelz-orange/35" />
 
         <div className="relative text-center">
           <p className="notsure-fade font-tagline text-lg italic text-feelz-ink/50 sm:text-xl" style={{ "--d": "100ms" } as CSSProperties}>
@@ -158,7 +158,7 @@ export function NotSureHowSection() {
           </div>
         </div>
 
-        <Side side="right" image="/feelz-creative/steps/open.webp" note="Same you, just a little brighter." blob="bg-feelz-berry/15" ring="border-feelz-berry/30" />
+        <Side side="right" image="/feelz-creative/steps/open-v2.webp" note="Same you, just a little brighter." blob="bg-feelz-berry/15" ring="border-feelz-berry/30" />
       </div>
     </section>
   );
