@@ -8,6 +8,7 @@ import { AnnouncementBar } from "@/components/AnnouncementBar";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { CartDrawer } from "@/components/CartDrawer";
+import { CartAddedToast } from "@/components/CartAddedToast";
 import { AppLoadingOverlay } from "@/components/AppLoadingOverlay";
 import { MetaPixel } from "@/components/MetaPixel";
 
@@ -79,6 +80,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />
+          <CartAddedToast />
         </Providers>
       </body>
     </html>

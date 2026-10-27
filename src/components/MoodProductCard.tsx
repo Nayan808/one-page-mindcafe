@@ -32,7 +32,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   // appear — deliberately not auto-opening the drawer, so adding an item
   // doesn't interrupt someone still comparing/picking other products.
   const [justAdded, setJustAdded] = useState(false);
-  const { addItem, isReady, cartId, openDrawer } = useCartContext();
+  const { addItem, isReady, cartId, openDrawer, notifyAdded } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
   // Set when "Add to Cart" is clicked while signed out, so the add can
@@ -71,7 +71,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
       quantity,
     });
     setJustAdded(true);
-    openDrawer();
+    notifyAdded(product.name, quantity);
   }
 
   useEffect(() => {

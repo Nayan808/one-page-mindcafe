@@ -22,7 +22,7 @@ function priceOf(product: ProductWithVariants) {
 // four packs. Same sign-in gate + resume-after-auth pattern as every other
 // add-to-cart entry point (Hero.tsx, MoodProductCard.tsx).
 export function useAddBundle({ onAuthRequired }: { onAuthRequired?: () => void } = {}) {
-  const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
+  const { items, addItem, isReady, cartId, notifyAdded } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
   const [isPending, setIsPending] = useState(false);
@@ -66,7 +66,7 @@ export function useAddBundle({ onAuthRequired }: { onAuthRequired?: () => void }
         product: { id: product.id, name: product.name, image_url: product.image_url, price: product.price, is_bundle: true },
         quantity: 1,
       });
-      openDrawer();
+      notifyAdded(product.name, 1);
       setIsAdded(true);
       window.setTimeout(() => setIsAdded(false), 1800);
     } catch (error) {

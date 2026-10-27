@@ -46,7 +46,7 @@ const revealVariants = {
 export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
-  const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
+  const { items, addItem, isReady, cartId, openDrawer, notifyAdded } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
@@ -81,8 +81,8 @@ export function Hero() {
         product: { id: product!.id, name: product!.name, image_url: product!.image_url, price: product!.price },
         quantity: 1,
       });
-      // Slide the cart in from the right so the add is confirmed right away.
-      openDrawer();
+      // Small "added" pop-up by the cart button — the cart itself stays closed.
+      notifyAdded(product!.name, 1);
       setAddedKey(moodKey);
       window.setTimeout(() => setAddedKey((current) => (current === moodKey ? null : current)), 1800);
     } catch (error) {

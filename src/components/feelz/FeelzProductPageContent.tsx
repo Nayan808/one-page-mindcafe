@@ -108,7 +108,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
   const label = mood.charAt(0).toUpperCase() + mood.slice(1);
 
   const router = useRouter();
-  const { items, addItem, isReady, cartId, openDrawer } = useCartContext();
+  const { items, addItem, isReady, cartId, openDrawer, notifyAdded } = useCartContext();
   const { user } = useAuth();
   const { openAuthModal } = useAuthModal();
   const [quantity, setQuantity] = useState(1);
@@ -207,7 +207,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
         router.push("/checkout");
         return;
       }
-      openDrawer();
+      notifyAdded(targetProduct!.name, quantity);
       setIsAdded(true);
       window.setTimeout(() => setIsAdded(false), 1800);
     } catch (error) {
