@@ -276,7 +276,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                 <button
                   type="button"
                   onClick={() => setLightboxOpen(true)}
-                  className="relative block aspect-[4/5] w-full overflow-hidden rounded-3xl border border-feelz-ink/10 bg-feelz-paper shadow-sm"
+                  className="relative block aspect-square w-full overflow-hidden rounded-3xl border border-feelz-ink/10 bg-feelz-paper shadow-sm"
                   aria-label={`View larger image of FEELZ ${label}`}
                 >
                   <Image
@@ -285,7 +285,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                     alt={galleryImages[activeImageIndex].alt}
                     fill
                     sizes="(min-width: 1024px) 44vw, 92vw"
-                    className="animate-[fade-in_0.3s_ease-out] object-contain p-3"
+                    className="animate-[fade-in_0.3s_ease-out] object-cover"
                   />
                 </button>
                 {galleryImages.length > 1 && (
