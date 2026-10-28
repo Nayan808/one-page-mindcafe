@@ -199,7 +199,7 @@ function ExpertProfileEditor({ expert }: { expert: Expert }) {
           <img src={photoUrl} alt="" className="h-16 w-16 shrink-0 rounded-[15px] object-cover" />
         ) : (
           <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[15px] border border-dashed border-ink/25 text-center text-[9px] leading-tight text-ink/40">
-            no photo
+            No Photo
           </div>
         )}
         <div>
@@ -488,25 +488,25 @@ export default function ExpertDashboardPage() {
             <dl className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 text-[#5e6b7f]">
               {appointment.intake_age && (
                 <>
-                  <dt className="text-ink/40">age</dt>
+                  <dt className="text-ink/40">Age</dt>
                   <dd>{appointment.intake_age}</dd>
                 </>
               )}
               {appointment.intake_pronouns && (
                 <>
-                  <dt className="text-ink/40">pronouns</dt>
+                  <dt className="text-ink/40">Pronouns</dt>
                   <dd>{appointment.intake_pronouns}</dd>
                 </>
               )}
               {appointment.intake_occupation && (
                 <>
-                  <dt className="text-ink/40">occupation</dt>
+                  <dt className="text-ink/40">Occupation</dt>
                   <dd>{appointment.intake_occupation}</dd>
                 </>
               )}
               {appointment.intake_concern && (
                 <>
-                  <dt className="text-ink/40">concern</dt>
+                  <dt className="text-ink/40">Concern</dt>
                   <dd>{appointment.intake_concern}</dd>
                 </>
               )}
@@ -534,13 +534,13 @@ export default function ExpertDashboardPage() {
               <dl className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1 text-[#5e6b7f]">
                 {appointment.intake_energy_level && (
                   <>
-                    <dt className="text-ink/40">energy</dt>
+                    <dt className="text-ink/40">Energy</dt>
                     <dd className="capitalize">{appointment.intake_energy_level}</dd>
                   </>
                 )}
                 {appointment.intake_comfort_level && (
                   <>
-                    <dt className="text-ink/40">comfort</dt>
+                    <dt className="text-ink/40">Comfort</dt>
                     <dd className="capitalize">{appointment.intake_comfort_level}</dd>
                   </>
                 )}
@@ -799,7 +799,7 @@ export default function ExpertDashboardPage() {
         </div>
         <div className="mt-4 rounded-r-xl border-l-[3px] border-brand-blush bg-[#fcf9fb] px-4 py-3 text-[11px] text-[#68768b]">
           <strong className="text-brand-navy">Care workspace:</strong> client details and intake answers are visible only to you
-          and the Mindcafe team. Your private notes are never shown to clients.
+          and the mindcafe team. Your private notes are never shown to clients.
         </div>
       </DashCard>
 
@@ -898,7 +898,7 @@ export default function ExpertDashboardPage() {
             <CardHead
               eyebrow="Profile & availability"
               title="Your public profile"
-              description="The photo and bio clients see on your Mindcafe page."
+              description="The photo and bio clients see on your mindcafe page."
               action={
                 <button type="button" onClick={() => setShowProfileEditor((v) => !v)} className="pill-btn-outline !py-1.5 text-xs">
                   {showProfileEditor ? "Hide" : "Edit"}

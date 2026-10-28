@@ -89,7 +89,7 @@ async function resolveCustomerEmail(
 // coupon itself is created and handed out manually by the team (a printed
 // card in the package) — this email only tells the customer to expect it.
 const BUNDLE_ADDON_MESSAGE =
-  "A little something extra for your well-being! As part of your Feelz Bundle purchase, you'll receive a special card with your package containing a coupon code for 2 FREE one-on-one counselling sessions with Mindcafe. ❤️";
+  "A little something extra for your well-being! As part of your Feelz Bundle purchase, you'll receive a special card with your package containing a coupon code for 2 FREE one-on-one counselling sessions with mindcafe. ❤️";
 
 // True if any line on the order is a bundle product (products.is_bundle,
 // see 20261007000000_feelz_bundle_product.sql). Fails closed to false —

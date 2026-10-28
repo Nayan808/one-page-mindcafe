@@ -63,14 +63,14 @@ export default function AdminMilestonesPage() {
   }
 
   const columns: AdminColumn<Milestone>[] = [
-    { key: "year", label: "year", render: (m) => <span className="font-medium text-ink">{m.year}</span> },
-    { key: "title", label: "title", render: (m) => <span>{m.title}</span> },
+    { key: "year", label: "Year", render: (m) => <span className="font-medium text-ink">{m.year}</span> },
+    { key: "title", label: "Title", render: (m) => <span>{m.title}</span> },
     { key: "description", label: "description", render: (m) => <span className="text-ink/60">{m.description ?? "—"}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="milestones" description="Shown on /about." action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="milestones" rows={query.data ?? []} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new milestone</button></div>} />
+      <AdminPageHeader title="Milestones" description="Shown on /about." action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="milestones" rows={query.data ?? []} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new milestone</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminTable
         columns={columns}
@@ -79,13 +79,13 @@ export default function AdminMilestonesPage() {
         isLoading={query.isLoading}
         onEdit={openEdit}
         onDelete={async (m) => {
-          if (await confirmDialog({ title: "delete milestone", message: `Delete "${m.title}"?`, danger: true })) {
+          if (await confirmDialog({ title: "Delete Milestone", message: `Delete "${m.title}"?`, danger: true })) {
             remove.mutate(m.id);
           }
         }}
       />
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit milestone" : "new milestone"}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "Edit Milestone" : "New Milestone"}>
         <div className="space-y-3">
           <input value={form.year} onChange={(e) => setForm({ ...form, year: e.target.value })} placeholder="Year" className="input" />
           <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Title" className="input" />
@@ -93,7 +93,7 @@ export default function AdminMilestonesPage() {
           <input value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} placeholder="Sort order" type="number" className="input" />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
-            {save.isPending ? "saving…" : "save"}
+            {save.isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </Modal>

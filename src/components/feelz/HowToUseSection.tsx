@@ -71,7 +71,7 @@ export function HowToUseSection({
       <MoodAmbience
         phrase={
           <>
-            open · place · <span className="font-tagline italic font-normal">dissolve</span> ·
+            Open · Place · <span className="font-tagline italic font-normal">Dissolve</span> ·
           </>
         }
       />

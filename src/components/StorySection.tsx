@@ -11,7 +11,7 @@ import { Reveal } from "@/components/Reveal";
 // same company's live "our story" section) rather than invented. The video
 // is the company's own real YouTube upload.
 const YOUTUBE_VIDEO_ID = "GNa-LL2vylk";
-const VIDEO_TITLE = "Mindcafe's CEO & Founder, Sneh Nigam, talks about Mindcafe";
+const VIDEO_TITLE = "mindcafe's CEO & Founder, Sneh Nigam, talks about mindcafe";
 
 type YTPlayer = { mute: () => void; unMute: () => void; isMuted: () => boolean };
 
@@ -122,7 +122,7 @@ export function StorySection() {
             <div className="flex items-center gap-2 bg-ink px-5 py-3">
               <span aria-hidden>🎙️</span>
               <p className="font-tagline text-sm italic text-cream/80">
-                &ldquo;We built Mindcafe because we knew there was a better way.&rdquo;
+                &ldquo;We built mindcafe because we knew there was a better way.&rdquo;
               </p>
             </div>
           </div>
@@ -141,13 +141,13 @@ export function StorySection() {
                 feel inaccessible. But for millions of people, it still does.
               </p>
               <p>
-                We built Mindcafe to close that gap. Starting with 1:1 counselling and a community platform, we&apos;ve
+                We built mindcafe to close that gap. Starting with 1:1 counselling and a community platform, we&apos;ve
                 grown into a full mental wellness ecosystem, now introducing{" "}
-                <strong className="font-semibold text-ink">Feelz by Mindcafe</strong>, melt-in-mouth wellness strips
+                <strong className="font-semibold text-ink">Feelz by mindcafe</strong>, melt-in-mouth wellness strips
                 designed for the way modern India actually lives.
               </p>
               <p>
-                Every product, program, and conversation at Mindcafe is guided by one goal:{" "}
+                Every product, program, and conversation at mindcafe is guided by one goal:{" "}
                 <strong className="font-semibold text-ink">
                   making mental wellness practical, accessible, and stigma-free.
                 </strong>

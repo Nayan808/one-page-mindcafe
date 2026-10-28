@@ -63,14 +63,14 @@ export default function AdminFaqsPage() {
   }
 
   const columns: AdminColumn<Faq>[] = [
-    { key: "category", label: "category", render: (f) => <span className="capitalize">{f.category}</span> },
-    { key: "question", label: "question", render: (f) => <span className="font-medium text-ink">{f.question}</span> },
+    { key: "category", label: "Category", render: (f) => <span className="capitalize">{f.category}</span> },
+    { key: "question", label: "Question", render: (f) => <span className="font-medium text-ink">{f.question}</span> },
     { key: "order", label: "order", render: (f) => <span className="text-ink/60">{f.sort_order}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="faqs" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="faqs" rows={query.data ?? []} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new faq</button></div>} />
+      <AdminPageHeader title="FAQs" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="faqs" rows={query.data ?? []} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new faq</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminTable
         columns={columns}
@@ -79,13 +79,13 @@ export default function AdminFaqsPage() {
         isLoading={query.isLoading}
         onEdit={openEdit}
         onDelete={async (f) => {
-          if (await confirmDialog({ title: "delete faq", message: `Delete "${f.question}"?`, danger: true })) {
+          if (await confirmDialog({ title: "Delete FAQ", message: `Delete "${f.question}"?`, danger: true })) {
             remove.mutate(f.id);
           }
         }}
       />
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit faq" : "new faq"}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "Edit FAQ" : "New FAQ"}>
         <div className="space-y-3">
           <input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="Category (e.g. feelz, counselling)" className="input" />
           <input value={form.question} onChange={(e) => setForm({ ...form, question: e.target.value })} placeholder="Question" className="input" />
@@ -93,7 +93,7 @@ export default function AdminFaqsPage() {
           <input value={form.sort_order} onChange={(e) => setForm({ ...form, sort_order: e.target.value })} placeholder="Sort order" type="number" className="input" />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
-            {save.isPending ? "saving…" : "save"}
+            {save.isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </Modal>

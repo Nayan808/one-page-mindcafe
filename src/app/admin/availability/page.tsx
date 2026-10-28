@@ -19,7 +19,7 @@ export default function AdminAvailabilityPage() {
 
   return (
     <div>
-      <AdminPageHeader title="availability" description="Block or unblock time slots on any expert's behalf." />
+      <AdminPageHeader title="Availability" description="Block or unblock time slots on any expert's behalf." />
 
       <div className="max-w-sm">
         <FilterDropdown

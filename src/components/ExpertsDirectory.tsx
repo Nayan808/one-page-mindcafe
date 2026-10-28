@@ -39,7 +39,7 @@ function ExpertsContent() {
           }}
           className="input text-center text-sm font-medium uppercase tracking-label"
         >
-          <option value="">all</option>
+          <option value="">All</option>
           {VALID_CATEGORY_SLUGS.map((slug) => (
             <option key={slug} value={slug}>
               {CATEGORY_LABELS[slug]}

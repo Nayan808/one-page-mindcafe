@@ -194,7 +194,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
         amount: result.amount,
         currency: result.currency,
         razorpayOrderId: result.razorpay_order_id,
-        name: "Mindcafe",
+        name: "mindcafe",
         prefill: {
           name: profile?.full_name ?? undefined,
           email: user?.email ?? undefined,
@@ -358,7 +358,7 @@ export function FulfillmentAndPayment({ onOrderPlaced }: { onOrderPlaced: (order
                     type="text"
                     value={locationSearch}
                     onChange={(event) => setLocationSearch(event.target.value)}
-                    placeholder="search by Zostel name or city"
+                    placeholder="Search by Zostel name or city"
                     className="input w-full !pl-10"
                   />
                 </div>

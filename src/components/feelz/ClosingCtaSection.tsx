@@ -92,7 +92,7 @@ export function ClosingCtaSection({
         ]
       : [{ text: headline, italic: false }];
 
-  const phrase = sub.replace(/\.$/, "").toLowerCase().split(". ").join(" · ");
+  const phrase = sub.replace(/\.$/, "").split(". ").join(" · ");
 
   return (
     <section className={`relative isolate overflow-hidden ${bgClass} py-24 text-center text-feelz-cream sm:py-32`}>

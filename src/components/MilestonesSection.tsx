@@ -6,6 +6,7 @@ import { motion, useScroll, useTransform } from "motion/react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getMilestones } from "@/lib/api";
+import { titleCase } from "@/lib/textCase";
 
 // Real milestone photography sourced from mindcafe.app/about (the same
 // company's live journey timeline), keyed by year since the milestones
@@ -29,21 +30,6 @@ const CARD_TONES = [
   { panel: "bg-feelz-rest/[0.1]", border: "border-feelz-rest/30", pill: "bg-feelz-rest", title: "text-feelz-rest" },
 ];
 
-// Milestone titles are stored lowercase ("mindcafe founded"); shown in
-// Title Case, keeping short joining words lowercase and brand names right.
-const SMALL_WORDS = new Set(["a", "an", "and", "at", "by", "for", "in", "of", "on", "or", "the", "to", "with"]);
-const BRANDS: Record<string, string> = { mindcafe: "Mindcafe", feelz: "Feelz", zostel: "Zostel", ikca: "IKCA", eap: "EAP" };
-function titleCase(text: string): string {
-  return text
-    .split(" ")
-    .map((word, i) => {
-      const lower = word.toLowerCase();
-      if (BRANDS[lower]) return BRANDS[lower];
-      if (i > 0 && SMALL_WORDS.has(lower)) return lower;
-      return word.charAt(0).toUpperCase() + word.slice(1);
-    })
-    .join(" ");
-}
 
 export function MilestonesSection() {
   const milestonesQuery = useQuery({

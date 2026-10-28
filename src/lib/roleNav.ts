@@ -11,12 +11,12 @@ export type DashboardLink = { href: string; label: string };
 export function getDashboardLink(role: string | null | undefined): DashboardLink | null {
   switch (role) {
     case "expert":
-      return { href: "/expert/dashboard", label: "expert dashboard" };
+      return { href: "/expert/dashboard", label: "Expert Dashboard" };
     case "employer":
-      return { href: "/employer/dashboard", label: "employer dashboard" };
+      return { href: "/employer/dashboard", label: "Employer Dashboard" };
     case "admin":
     case "super_admin":
-      return { href: "/admin", label: "admin panel" };
+      return { href: "/admin", label: "Admin Panel" };
     default:
       return null;
   }

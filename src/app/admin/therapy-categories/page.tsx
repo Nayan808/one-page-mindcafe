@@ -38,7 +38,7 @@ export default function AdminTherapyCategoriesPage() {
 
   return (
     <div>
-      <AdminPageHeader title="therapy categories" description="These 4 are fixed slugs — edit their copy, not their existence." />
+      <AdminPageHeader title="Therapy Categories" description="These 4 are fixed slugs — edit their copy, not their existence." />
 
       <div className="space-y-3">
         {(query.data ?? []).map((category) => (
@@ -49,7 +49,7 @@ export default function AdminTherapyCategoriesPage() {
                 <p className="text-xs text-ink/50">/{category.slug}</p>
               </div>
               <button type="button" onClick={() => openEdit(category)} className="pill-btn-outline !py-1.5 text-xs">
-                edit
+                Edit
               </button>
             </div>
             <p className="mt-2 text-sm text-ink/60">{category.body}</p>
@@ -64,7 +64,7 @@ export default function AdminTherapyCategoriesPage() {
           <input value={heroImage} onChange={(e) => setHeroImage(e.target.value)} placeholder="Hero image URL (optional)" className="input" />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
-            {save.isPending ? "saving…" : "save"}
+            {save.isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </Modal>

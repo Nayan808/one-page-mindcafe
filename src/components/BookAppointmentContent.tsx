@@ -158,7 +158,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
         amount: result.amount,
         currency: result.currency,
         razorpayOrderId: result.razorpayOrderId,
-        name: "Mindcafe Counselling",
+        name: "mindcafe Counselling",
         prefill: {
           name: profile?.full_name ?? undefined,
           email: user?.email ?? undefined,
@@ -233,7 +233,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
                 type="text"
                 value={expertSearch}
                 onChange={(event) => setExpertSearch(event.target.value)}
-                placeholder="search by name or specialty"
+                placeholder="Search by name or specialty"
                 className="input w-full !pl-10"
               />
             </div>

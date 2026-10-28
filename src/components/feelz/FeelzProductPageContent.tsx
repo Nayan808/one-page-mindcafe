@@ -93,7 +93,7 @@ const SHIPPING_RETURNS_FAQS: { question: string; answer: string }[] = [
 ];
 
 const ADDITIONAL_INFO: { label: string; value: string }[] = [
-  { label: "Brand", value: "FEELZ by Mindcafe" },
+  { label: "Brand", value: "FEELZ by mindcafe" },
   { label: "Manufactured for", value: "Sneh Care Club Pvt. Ltd." },
   { label: "Country of origin", value: "India" },
   { label: "Category", value: "Nutraceutical / wellness supplement" },
@@ -331,7 +331,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
           </div>
 
           <div ref={buyPanelRef}>
-            <p className={`text-[11px] font-semibold uppercase tracking-label ${colors.text}`}>FEELZ by Mindcafe</p>
+            <p className={`text-[11px] font-semibold uppercase tracking-label ${colors.text}`}>FEELZ by mindcafe</p>
             <h1 className="font-display mt-2 text-3xl font-bold leading-tight text-feelz-ink sm:text-4xl">
               FEELZ {label} Wellness Strips (10 Strips: 1 x 10 strip pack)
             </h1>
@@ -442,7 +442,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                   <span className="text-xl font-bold text-feelz-ink sm:text-2xl">{formatInr(bundlePrice)}</span>
                 </div>
                 <p className="mt-0.5 text-[10px] text-feelz-ink/40">40 strips</p>
-                {bundleError && <p className="mt-1 text-xs font-medium text-red-600">couldn&apos;t add, try again</p>}
+                {bundleError && <p className="mt-1 text-xs font-medium text-red-600">Couldn&apos;t add, try again</p>}
               </button>
             </div>
 

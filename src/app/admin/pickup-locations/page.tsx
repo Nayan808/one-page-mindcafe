@@ -94,7 +94,7 @@ function CommissionAdjustmentsSection({ locationId }: { locationId: string }) {
                 disabled={remove.isPending}
                 className="shrink-0 text-[11px] text-red-600 hover:text-red-700 disabled:opacity-40"
               >
-                remove
+                Remove
               </button>
             </div>
           ))}
@@ -129,7 +129,7 @@ function CommissionAdjustmentsSection({ locationId }: { locationId: string }) {
         disabled={!amount || Number(amount) === 0 || !reason.trim() || add.isPending}
         className="pill-btn-outline mt-2 !py-1.5 text-xs disabled:opacity-40"
       >
-        {add.isPending ? "adding…" : "add adjustment"}
+        {add.isPending ? "Adding…" : "Add Adjustment"}
       </button>
     </div>
   );
@@ -255,17 +255,17 @@ export default function AdminPickupLocationsPage() {
   }
 
   const columns: AdminColumn<PickupLocation>[] = [
-    { key: "name", label: "name", render: (l) => <span className="font-medium text-ink">{l.name}</span> },
-    { key: "address", label: "address", render: (l) => <span className="text-ink/60">{l.address}</span> },
-    { key: "city", label: "city", render: (l) => <span>{l.city}</span> },
-    { key: "staff_pin", label: "staff pin", render: (l) => <span className="font-mono tracking-widest">{l.staff_pin}</span> },
-    { key: "commission", label: "commission", render: (l) => <span>{Number(l.commission_percent)}%</span> },
-    { key: "active", label: "active", render: (l) => <span>{l.is_active ? "yes" : "no"}</span> },
+    { key: "name", label: "Name", render: (l) => <span className="font-medium text-ink">{l.name}</span> },
+    { key: "address", label: "Address", render: (l) => <span className="text-ink/60">{l.address}</span> },
+    { key: "city", label: "City", render: (l) => <span>{l.city}</span> },
+    { key: "staff_pin", label: "Staff Pin", render: (l) => <span className="font-mono tracking-widest">{l.staff_pin}</span> },
+    { key: "commission", label: "Commission", render: (l) => <span>{Number(l.commission_percent)}%</span> },
+    { key: "active", label: "Active", render: (l) => <span>{l.is_active ? "Yes" : "No"}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="pickup locations" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="pickup-locations" rows={rows} exclude={["staff_pin"]} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new location</button></div>} />
+      <AdminPageHeader title="Pickup Locations" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="pickup-locations" rows={rows} exclude={["staff_pin"]} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new location</button></div>} />
       {listError && <p className="mb-4 text-sm text-red-600">{listError}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, city, or address…" />
       <AdminTable
@@ -275,14 +275,14 @@ export default function AdminPickupLocationsPage() {
         isLoading={query.isLoading}
         onEdit={openEdit}
         onDelete={async (l) => {
-          if (await confirmDialog({ title: "delete location", message: `Delete "${l.name}"? This can't be undone.`, danger: true })) {
+          if (await confirmDialog({ title: "Delete Location", message: `Delete "${l.name}"? This can't be undone.`, danger: true })) {
             remove.mutate(l.id);
           }
         }}
         emptyLabel="No matching locations."
       />
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit location" : "new location"}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "Edit Location" : "New Location"}>
         <div className="space-y-3">
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Name (e.g. Zostel Goa)" className="input" />
           <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="input" />
@@ -315,7 +315,7 @@ export default function AdminPickupLocationsPage() {
                 <span className="flex-1 rounded-md border border-ink/15 bg-white px-3 py-1.5 font-mono tracking-widest text-ink">{pin}</span>
                 {isSuperAdmin ? (
                   <button type="button" onClick={() => setPin(randomPin())} className="pill-btn-outline shrink-0 !py-1.5 text-xs">
-                    regenerate
+                    Regenerate
                   </button>
                 ) : (
                   <span className="shrink-0 text-xs text-ink/40">super_admin-only to rotate</span>
@@ -354,7 +354,7 @@ export default function AdminPickupLocationsPage() {
             disabled={save.isPending || isReauthing || (pinChanged && !reauthPassword)}
             className="pill-btn w-full"
           >
-            {isReauthing ? "verifying password…" : save.isPending ? "saving…" : pinChanged ? "confirm password & save" : "save"}
+            {isReauthing ? "Verifying password…" : save.isPending ? "saving…" : pinChanged ? "confirm password & save" : "save"}
           </button>
         </div>
       </Modal>

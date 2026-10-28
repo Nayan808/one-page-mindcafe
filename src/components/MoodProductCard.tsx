@@ -142,7 +142,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
 
       <p className="mt-4 text-xs font-medium opacity-80">
         {available === null
-          ? "checking stock…"
+          ? "Checking stock…"
           : isOutOfStock
             ? "out of stock"
             : available <= 5

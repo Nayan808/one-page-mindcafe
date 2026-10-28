@@ -324,7 +324,7 @@ export default function BusinessPage() {
         <div className="mx-auto max-w-lg px-4 py-16 sm:px-6">
         <div className="text-center">
           <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
-            Grow with <span className="font-tagline italic text-brand">Mindcafe.</span>
+            Grow with <span className="font-tagline italic text-brand">mindcafe.</span>
           </h2>
           <p className="mt-3 text-sm text-ink/60">Tell us about your team and we&apos;ll get back within a business day.</p>
         </div>

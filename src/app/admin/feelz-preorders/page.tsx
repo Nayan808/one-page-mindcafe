@@ -32,17 +32,17 @@ export default function AdminFeelzPreordersPage() {
   }, [query.data, search]);
 
   const columns: AdminColumn<FeelzPreorder>[] = [
-    { key: "name", label: "name", render: (p) => <span className="font-medium text-ink">{p.full_name}</span> },
-    { key: "product", label: "product", render: (p) => <span className="uppercase text-ink/70">{p.product}</span> },
+    { key: "name", label: "Name", render: (p) => <span className="font-medium text-ink">{p.full_name}</span> },
+    { key: "product", label: "Product", render: (p) => <span className="uppercase text-ink/70">{p.product}</span> },
     { key: "email", label: "email", render: (p) => (p.email ? <a href={`mailto:${p.email}`} className="text-ink underline">{p.email}</a> : <span className="text-ink/40">—</span>) },
-    { key: "mobile", label: "mobile", render: (p) => <span className="text-ink/60">{p.mobile ?? "—"}</span> },
-    { key: "city", label: "city", render: (p) => <span className="text-ink/60">{p.city ?? "—"}</span> },
-    { key: "date", label: "received", render: (p) => <span className="text-ink/60">{formatDate(p.created_at)}</span> },
+    { key: "mobile", label: "Mobile", render: (p) => <span className="text-ink/60">{p.mobile ?? "—"}</span> },
+    { key: "city", label: "City", render: (p) => <span className="text-ink/60">{p.city ?? "—"}</span> },
+    { key: "date", label: "Received", render: (p) => <span className="text-ink/60">{formatDate(p.created_at)}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="feelz preorders" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="feelz-preorders" rows={rows} />} />
+      <AdminPageHeader title="Feelz Preorders" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="feelz-preorders" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, email, mobile, or product…" />
       <AdminTable columns={columns} rows={rows} getRowId={(p) => p.id} isLoading={query.isLoading} emptyLabel="No preorders yet." />
     </div>

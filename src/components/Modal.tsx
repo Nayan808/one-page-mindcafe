@@ -2,6 +2,7 @@
 
 import { useEffect, type ReactNode } from "react";
 import { X } from "lucide-react";
+import { titleCase } from "@/lib/textCase";
 
 // Same centered-popup treatment as the cart drawer, factored out so the
 // login and orders popups don't each reimplement the overlay/escape/
@@ -54,7 +55,7 @@ export function Modal({
         className={`relative flex max-h-[85vh] w-full max-w-md flex-col rounded-3xl ${bgClassName} shadow-2xl transition-all duration-300 ${isOpen ? "translate-y-0 scale-100 opacity-100" : "translate-y-4 scale-95 opacity-0"} ${panelClassName}`}
       >
         <div className="flex items-center justify-between border-b border-ink/10 px-5 py-4">
-          <h2 className="font-display text-xl font-bold lowercase">{title}</h2>
+          <h2 className="font-display text-xl font-bold">{typeof title === "string" ? titleCase(title) : title}</h2>
           <button
             type="button"
             onClick={onClose}

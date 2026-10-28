@@ -229,7 +229,7 @@ export function Hero() {
                       {isAdded ? "Added" : "Add to Cart"}
                     </button>
                   )}
-                  {hasError && <p className="text-[10px] font-medium text-red-600">couldn&apos;t add, try again</p>}
+                  {hasError && <p className="text-[10px] font-medium text-red-600">Couldn&apos;t add, try again</p>}
                 </div>
               </TimelineContent>
             );
@@ -317,7 +317,7 @@ function BundleCard() {
             {bundle.isAdded ? "Added" : bundle.inStock ? "Add bundle to cart" : "Out of stock"}
           </button>
         )}
-        {bundle.hasError && <p className="text-[10px] font-medium text-red-600">couldn&apos;t add, try again</p>}
+        {bundle.hasError && <p className="text-[10px] font-medium text-red-600">Couldn&apos;t add, try again</p>}
       </div>
     </div>
   );

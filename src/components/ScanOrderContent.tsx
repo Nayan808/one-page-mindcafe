@@ -220,7 +220,7 @@ function ProductsStep({ onProceedToPay }: { onProceedToPay: () => void }) {
                       </button>
                     )}
                   </div>
-                  {hasError && <p className="mt-1 text-[10px] font-medium text-red-700/80">couldn&apos;t add, try again</p>}
+                  {hasError && <p className="mt-1 text-[10px] font-medium text-red-700/80">Couldn&apos;t add, try again</p>}
                 </div>
               </div>
             );

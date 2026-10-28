@@ -4,7 +4,7 @@ const FAQS = [
   {
     question: "What is Feelz?",
     answer:
-      "Feelz is a wellness brand by Mindcafe offering melt-in-mouth wellness strips designed around everyday mental states, including focus, emotional wellbeing, social confidence and rest.",
+      "Feelz is a wellness brand by mindcafe offering melt-in-mouth wellness strips designed around everyday mental states, including focus, emotional wellbeing, social confidence and rest.",
   },
   {
     question: "Is Feelz a medicine?",

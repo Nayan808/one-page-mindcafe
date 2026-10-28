@@ -16,10 +16,10 @@ export default function AboutPage() {
       <ImageHero
         src="/heroes/about.webp"
         alt="Two people working through wellbeing tools together on a tablet."
-        eyebrow="About Mindcafe"
+        eyebrow="About mindcafe"
         title="Mental wellbeing, made"
         accent="easier to reach."
-        body="Mindcafe brings online counselling, self-assessments and everyday wellbeing tools together for individuals and workplaces."
+        body="mindcafe brings online counselling, self-assessments and everyday wellbeing tools together for individuals and workplaces."
         cta={{ left: 3.2, top: 74 }}
         mobileFocus="45%"
       />
@@ -33,10 +33,10 @@ export default function AboutPage() {
       <section className="relative z-10 -mt-10 rounded-t-[2.5rem] bg-surface text-ink sm:-mt-12 sm:rounded-t-[3rem]">
         <div className="mx-auto max-w-2xl px-4 py-20 text-center sm:px-6">
           <h2 className="font-display text-4xl font-bold leading-[1.1] sm:text-5xl">
-            Ready to be part of the <span className="font-tagline italic text-brand">Mindcafe story?</span>
+            Ready to be part of the <span className="font-tagline italic text-brand">mindcafe story?</span>
           </h2>
           <p className="mt-4 text-sm text-ink/70 sm:text-base">
-            Whether you need personal support or want to bring wellness to your organisation, Mindcafe is here for
+            Whether you need personal support or want to bring wellness to your organisation, mindcafe is here for
             you.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">

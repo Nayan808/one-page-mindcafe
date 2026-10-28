@@ -159,7 +159,7 @@ export default function TrustPage() {
             </h1>
             <div className="mt-6 h-px w-12 bg-ink/15" aria-hidden />
             <p className="mt-6 text-sm text-ink/60 sm:text-base">
-              At Mindcafe, we believe mental wellness products should be built on a foundation of safety,
+              At mindcafe, we believe mental wellness products should be built on a foundation of safety,
               responsibility, and transparency. Every step of product development, from ingredient selection to
               manufacturing, is guided by recognised safety standards for nutraceutical products.
             </p>
@@ -460,7 +460,7 @@ export default function TrustPage() {
           <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-ink/60">
             Mental wellbeing is complex and deeply personal. Feelz products support everyday lifestyle challenges;
             they are not a replacement for professional mental health care. If you&apos;re experiencing ongoing
-            emotional distress or a condition requiring clinical support, Mindcafe&apos;s 1:1 counselling connects
+            emotional distress or a condition requiring clinical support, mindcafe&apos;s 1:1 counselling connects
             you with certified professionals in a private, judgment-free space.
           </p>
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -513,7 +513,7 @@ export default function TrustPage() {
           </p>
           <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
             <a href="mailto:team@mindcafe.app" className="text-sm font-semibold text-ink underline">
-              Contact Mindcafe Support →
+              Contact mindcafe Support →
             </a>
             <Link href="/feelz" className="text-sm font-semibold text-ink underline">
               Back to Feelz

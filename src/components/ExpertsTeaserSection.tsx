@@ -89,7 +89,7 @@ export function ExpertsTeaserSection() {
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="search by name or specialty"
+            placeholder="Search by name or specialty"
             className="w-full rounded-full border border-ink/20 bg-white py-2.5 pl-10 pr-4 text-sm text-ink placeholder:text-ink/40 focus:border-ink/40 focus:outline-none"
           />
         </div>

@@ -152,20 +152,20 @@ export default function AdminProductsPage() {
   });
 
   const columns: AdminColumn<ProductWithVariants>[] = [
-    { key: "name", label: "name", render: (p) => <span className="font-medium text-ink">{p.name}</span> },
-    { key: "price", label: "price", render: (p) => <span>{formatInr(p.price)}</span> },
-    { key: "variants", label: "variants", render: (p) => (
+    { key: "name", label: "Name", render: (p) => <span className="font-medium text-ink">{p.name}</span> },
+    { key: "price", label: "Price", render: (p) => <span>{formatInr(p.price)}</span> },
+    { key: "variants", label: "Variants", render: (p) => (
       <button type="button" onClick={() => { setVariantsFor(p); setVariantError(null); }} className="text-xs font-medium text-ink underline">
         {p.product_variants.length} — manage
       </button>
     ) },
-    { key: "active", label: "active", render: (p) => <span>{p.is_active ? "yes" : "no"}</span> },
+    { key: "active", label: "Active", render: (p) => <span>{p.is_active ? "Yes" : "No"}</span> },
   ];
 
   return (
     <div>
       <AdminPageHeader
-        title="products"
+        title="Products"
         description="Feelz catalog."
         action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="products" rows={filteredProducts} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new product</button></div>}
       />
@@ -179,13 +179,13 @@ export default function AdminProductsPage() {
         isLoading={productsQuery.isLoading}
         onEdit={openEdit}
         onDelete={async (p) => {
-          if (await confirmDialog({ title: "delete product", message: `Delete "${p.name}"? This can't be undone.`, danger: true })) {
+          if (await confirmDialog({ title: "Delete Product", message: `Delete "${p.name}"? This can't be undone.`, danger: true })) {
             deleteProduct.mutate(p.id);
           }
         }}
       />
 
-      <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={editing ? "edit product" : "new product"}>
+      <Modal isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} title={editing ? "Edit Product" : "New Product"}>
         <div className="space-y-3">
           <div>
             <label className="mb-1 block text-sm text-ink/70">Name</label>
@@ -213,7 +213,7 @@ export default function AdminProductsPage() {
           </label>
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => saveProduct.mutate()} disabled={saveProduct.isPending} className="pill-btn w-full">
-            {saveProduct.isPending ? "saving…" : "save"}
+            {saveProduct.isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </Modal>
@@ -274,10 +274,10 @@ export default function AdminProductsPage() {
                   </div>
                   <div className="flex gap-2">
                     <button type="button" onClick={() => saveVariant.mutate()} className="pill-btn !py-1.5 text-xs">
-                      save
+                      Save
                     </button>
                     <button type="button" onClick={() => setEditingVariant(null)} className="pill-btn-outline !py-1.5 text-xs">
-                      cancel
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -305,10 +305,10 @@ export default function AdminProductsPage() {
                       }}
                       className="text-xs font-medium text-ink underline"
                     >
-                      edit
+                      Edit
                     </button>
                     <button type="button" onClick={() => deleteVariant.mutate(variant.id)} className="text-xs font-medium text-red-600 underline">
-                      delete
+                      Delete
                     </button>
                   </div>
                 </div>
@@ -318,7 +318,7 @@ export default function AdminProductsPage() {
 
           {!editingVariant && (
             <div className="rounded-lg border border-dashed border-ink/20 p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">add variant</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">Add Variant</p>
               <div className="space-y-2">
                 <input value={variantForm.variant_label} onChange={(e) => setVariantForm({ ...variantForm, variant_label: e.target.value })} placeholder="Label (e.g. 10-pack)" className="input" />
                 <input value={variantForm.price_override} onChange={(e) => setVariantForm({ ...variantForm, price_override: e.target.value })} placeholder="Price override (optional)" className="input" />
@@ -355,7 +355,7 @@ export default function AdminProductsPage() {
                   />
                 </div>
                 <button type="button" onClick={() => saveVariant.mutate()} disabled={!variantForm.variant_label} className="pill-btn w-full !py-1.5 text-xs">
-                  add variant
+                  Add Variant
                 </button>
               </div>
             </div>
