@@ -19,6 +19,32 @@ const MILESTONE_IMAGES: Record<string, string> = {
   2026: "/about/ms-feelz.webp",
 };
 
+// Each card's text area cycles through the four Feelz pack colours, so
+// the timeline reads as part of the brand instead of plain white boxes.
+// Literal class strings so Tailwind generates them.
+const CARD_TONES = [
+  { panel: "bg-feelz-berry/[0.1]", border: "border-feelz-berry/30", pill: "bg-feelz-berry", title: "text-feelz-berry" },
+  { panel: "bg-feelz-navy/[0.08]", border: "border-feelz-navy/25", pill: "bg-feelz-navy", title: "text-feelz-navy" },
+  { panel: "bg-feelz-orange/[0.12]", border: "border-feelz-orange/35", pill: "bg-feelz-orange", title: "text-[#94560a]" },
+  { panel: "bg-feelz-rest/[0.1]", border: "border-feelz-rest/30", pill: "bg-feelz-rest", title: "text-feelz-rest" },
+];
+
+// Milestone titles are stored lowercase ("mindcafe founded"); shown in
+// Title Case, keeping short joining words lowercase and brand names right.
+const SMALL_WORDS = new Set(["a", "an", "and", "at", "by", "for", "in", "of", "on", "or", "the", "to", "with"]);
+const BRANDS: Record<string, string> = { mindcafe: "Mindcafe", feelz: "Feelz", zostel: "Zostel", ikca: "IKCA", eap: "EAP" };
+function titleCase(text: string): string {
+  return text
+    .split(" ")
+    .map((word, i) => {
+      const lower = word.toLowerCase();
+      if (BRANDS[lower]) return BRANDS[lower];
+      if (i > 0 && SMALL_WORDS.has(lower)) return lower;
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(" ");
+}
+
 export function MilestonesSection() {
   const milestonesQuery = useQuery({
     queryKey: ["milestones"],
@@ -62,6 +88,7 @@ export function MilestonesSection() {
           <ul className="space-y-10 sm:space-y-14">
             {milestones.map((milestone, index) => {
               const isRight = index % 2 === 0;
+              const tone = CARD_TONES[index % CARD_TONES.length];
               return (
                 <li key={milestone.id} className="relative">
                   <span className="absolute left-6 top-6 z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-ink bg-white sm:left-1/2" aria-hidden />
@@ -73,19 +100,19 @@ export function MilestonesSection() {
                     transition={{ duration: 0.5, ease: "easeOut" }}
                     className={`ml-14 sm:ml-0 sm:w-[calc(50%-2.5rem)] ${isRight ? "sm:ml-auto" : "sm:mr-auto sm:text-right"}`}
                   >
-                    <div className="overflow-hidden rounded-2xl border border-ink bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+                    <div className={`overflow-hidden rounded-2xl border bg-white shadow-lg transition hover:-translate-y-1 hover:shadow-xl ${tone.border}`}>
                       {MILESTONE_IMAGES[milestone.year] && (
                         <div className="relative aspect-[684/300] w-full">
-                          <Image src={MILESTONE_IMAGES[milestone.year]} alt={milestone.title} fill className="object-cover" />
+                          <Image src={MILESTONE_IMAGES[milestone.year]} alt={titleCase(milestone.title)} fill className="object-cover" />
                         </div>
                       )}
-                      <div className="p-5">
-                        <span className="font-display inline-block rounded-full bg-ink px-3 py-1 text-xs font-bold text-cream">
+                      <div className={`p-5 ${tone.panel}`}>
+                        <span className={`font-display inline-block rounded-full px-3 py-1 text-xs font-bold text-white ${tone.pill}`}>
                           {milestone.year}
                         </span>
-                        <h3 className="font-display mt-3 text-lg font-bold text-ink">{milestone.title}</h3>
+                        <h3 className={`font-display mt-3 text-lg font-bold ${tone.title}`}>{titleCase(milestone.title)}</h3>
                         {milestone.description && (
-                          <p className="mt-1.5 text-sm leading-relaxed text-ink/60">{milestone.description}</p>
+                          <p className="mt-1.5 text-sm leading-relaxed text-ink/70">{milestone.description}</p>
                         )}
                       </div>
                     </div>
