@@ -24,6 +24,7 @@ import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatDateTime, formatInr } from "@/lib/utils";
 import { downloadCsv, toCsv } from "@/lib/csv";
 import type { OrderWithItemDetailsAndLocation } from "@/types/domain";
+import { titleCase } from "@/lib/textCase";
 
 const STATUSES = [
   "placed",
@@ -38,21 +39,21 @@ const STATUSES = [
 ];
 
 const STATUS_FILTER_OPTIONS: FilterOption[] = [
-  { value: "", label: "all statuses" },
+  { value: "", label: "All Statuses" },
   ...STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
 ];
 
 const PAYMENT_STATUSES = ["pending", "pending_cash", "paid", "refund_required", "refunded", "failed"];
 
 const PAYMENT_STATUS_FILTER_OPTIONS: FilterOption[] = [
-  { value: "", label: "all payments" },
+  { value: "", label: "All Payments" },
   ...PAYMENT_STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") })),
 ];
 
 const FULFILLMENT_FILTER_OPTIONS: FilterOption[] = [
-  { value: "", label: "all types" },
-  { value: "delivery", label: "delivery" },
-  { value: "takeaway", label: "takeaway" },
+  { value: "", label: "All Types" },
+  { value: "delivery", label: "Delivery" },
+  { value: "takeaway", label: "Takeaway" },
 ];
 
 const PAGE_SIZE = 20;
@@ -109,8 +110,8 @@ export default function AdminOrdersPage() {
 
   const locationFilterOptions: FilterOption[] = useMemo(
     () => [
-      { value: "", label: "all locations" },
-      { value: "online", label: "online (delivery)" },
+      { value: "", label: "All Locations" },
+      { value: "online", label: "Online (Delivery)" },
       ...(locationsQuery.data ?? []).map((l) => ({ value: l.id, label: l.city ? `${l.name}, ${l.city}` : l.name })),
     ],
     [locationsQuery.data],
@@ -365,7 +366,7 @@ export default function AdminOrdersPage() {
     { key: "order_number", label: "order", render: (o) => <span className="font-medium text-ink">{o.order_number}</span> },
     {
       key: "contact",
-      label: "customer",
+      label: "Customer",
       render: (o) => {
         // Guest checkout (scan-and-order or site-direct) always collects a
         // phone number and optionally an email, both stored on the order
@@ -390,10 +391,10 @@ export default function AdminOrdersPage() {
         );
       },
     },
-    { key: "type", label: "fulfillment", render: (o) => <span className="capitalize">{o.fulfillment_type}</span> },
+    { key: "type", label: "Fulfillment", render: (o) => <span className="capitalize">{o.fulfillment_type}</span> },
     {
       key: "items",
-      label: "type / variant",
+      label: "Type / Variant",
       render: (o) => (
         <div className="space-y-0.5">
           {o.order_items.map((item) => (
@@ -406,7 +407,7 @@ export default function AdminOrdersPage() {
     },
     {
       key: "location",
-      label: "location",
+      label: "Location",
       render: (o) =>
         o.pickup_locations ? (
           <span>
@@ -419,7 +420,7 @@ export default function AdminOrdersPage() {
     },
     {
       key: "city_pincode",
-      label: "city / pincode",
+      label: "City / Pincode",
       render: (o) => {
         if (o.fulfillment_type !== "delivery") return <span className="text-ink/30">—</span>;
         // Signed-in checkout carries city/pincode via the saved address row
@@ -436,10 +437,10 @@ export default function AdminOrdersPage() {
         );
       },
     },
-    { key: "total", label: "total", render: (o) => <span>{formatInr(o.total)}</span> },
+    { key: "total", label: "Total", render: (o) => <span>{formatInr(o.total)}</span> },
     {
       key: "coupon",
-      label: "coupon",
+      label: "Coupon",
       render: (o) =>
         o.coupon_code ? (
           <span className="whitespace-nowrap">
@@ -450,7 +451,7 @@ export default function AdminOrdersPage() {
           <span className="text-ink/30">—</span>
         ),
     },
-    { key: "payment", label: "payment", render: (o) => <span className="capitalize">{o.payment_status}</span> },
+    { key: "payment", label: "Payment", render: (o) => <span className="capitalize">{o.payment_status}</span> },
     {
       key: "status",
       label: "status",
@@ -462,7 +463,7 @@ export default function AdminOrdersPage() {
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s.replace(/_/g, " ")}
+              {titleCase(s.replace(/_/g, " "))}
             </option>
           ))}
         </select>
@@ -470,7 +471,7 @@ export default function AdminOrdersPage() {
     },
     {
       key: "tracking",
-      label: "tracking",
+      label: "Tracking",
       render: (o) =>
         o.fulfillment_type !== "delivery" ? (
           <span className="text-ink/30">—</span>
@@ -479,17 +480,17 @@ export default function AdminOrdersPage() {
             <p className="text-ink">{o.awb_code}</p>
             {o.tracking_url && (
               <a href={o.tracking_url} target="_blank" rel="noreferrer" className="text-ink/60 underline">
-                track
+                Track
               </a>
             )}
           </div>
         ) : o.shiprocket_order_id ? (
-          <span className="text-amber-600">shipment created, no AWB yet</span>
+          <span className="text-amber-600">Shipment created, no AWB yet</span>
         ) : (
-          <span className="text-ink/40">not shipped</span>
+          <span className="text-ink/40">Not Shipped</span>
         ),
     },
-    { key: "date", label: "placed", render: (o) => <span className="whitespace-nowrap text-ink/60">{formatDateTime(o.created_at)}</span> },
+    { key: "date", label: "Placed", render: (o) => <span className="whitespace-nowrap text-ink/60">{formatDateTime(o.created_at)}</span> },
     {
       key: "notification",
       label: "email",
@@ -501,7 +502,7 @@ export default function AdminOrdersPage() {
             ✗ failed
           </span>
         ) : o.last_notification_status === "no_email" ? (
-          <span className="text-xs font-medium text-amber-600">no email on file</span>
+          <span className="text-xs font-medium text-amber-600">No Email on File</span>
         ) : (
           <span className="text-xs text-ink/30">—</span>
         ),
@@ -598,7 +599,7 @@ export default function AdminOrdersPage() {
             }}
             className="text-xs text-ink/50 underline hover:text-ink"
           >
-            clear filters
+            Clear Filters
           </button>
         )}
         <button
@@ -608,7 +609,7 @@ export default function AdminOrdersPage() {
           className="pill-btn-outline ml-auto !py-1.5 text-xs disabled:opacity-40"
           title="Download every order matching the current filters"
         >
-          {isExporting ? "exporting…" : `download csv (${total})`}
+          {isExporting ? "Exporting…" : `download csv (${total})`}
         </button>
       </div>
 
@@ -621,7 +622,7 @@ export default function AdminOrdersPage() {
             disabled={bulkMarkPickedUp.isPending}
             className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
           >
-            {bulkMarkPickedUp.isPending ? "updating…" : "mark picked up"}
+            {bulkMarkPickedUp.isPending ? "Updating…" : "Mark Picked Up"}
           </button>
           {isSuperAdmin && (
             <button
@@ -629,7 +630,7 @@ export default function AdminOrdersPage() {
               onClick={async () => {
                 if (
                   await confirmDialog({
-                    title: "delete orders",
+                    title: "Delete Orders",
                     message: `Delete ${selectedIds.size} selected order${selectedIds.size === 1 ? "" : "s"} permanently? This can't be undone.`,
                     danger: true,
                   })
@@ -640,7 +641,7 @@ export default function AdminOrdersPage() {
               disabled={bulkDelete.isPending}
               className="text-xs font-medium text-red-600 hover:text-red-700 disabled:opacity-40"
             >
-              {bulkDelete.isPending ? "deleting…" : "delete selected"}
+              {bulkDelete.isPending ? "Deleting…" : "Delete Selected"}
             </button>
           )}
           <button type="button" onClick={() => setSelectedIds(new Set())} className="ml-auto text-xs text-ink/50 hover:text-ink">
@@ -664,7 +665,7 @@ export default function AdminOrdersPage() {
             ? async (o) => {
                 if (
                   await confirmDialog({
-                    title: "delete order",
+                    title: "Delete Order",
                     message: `Delete order "${o.order_number}" permanently? This can't be undone.`,
                     danger: true,
                   })
@@ -679,7 +680,7 @@ export default function AdminOrdersPage() {
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-3 text-xs">
           <button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="pill-btn-outline !py-1.5 disabled:opacity-40">
-            previous
+            Previous
           </button>
           <span className="text-ink/50">
             page {page + 1} of {totalPages}
@@ -690,12 +691,12 @@ export default function AdminOrdersPage() {
             disabled={page >= totalPages - 1}
             className="pill-btn-outline !py-1.5 disabled:opacity-40"
           >
-            next
+            Next
           </button>
         </div>
       )}
 
-      <Modal isOpen={!!editingOrder} onClose={() => setEditingOrder(null)} title={editingOrder ? `edit — ${editingOrder.order_number}` : "edit order"}>
+      <Modal isOpen={!!editingOrder} onClose={() => setEditingOrder(null)} title={editingOrder ? `edit — ${editingOrder.order_number}` : "Edit Order"}>
         {editingOrder && (
           <div className="space-y-5">
             <div>
@@ -732,7 +733,7 @@ export default function AdminOrdersPage() {
                         onClick={async () => {
                           if (
                             await confirmDialog({
-                              title: "remove item",
+                              title: "Remove Item",
                               message: `Remove "${item.product_variants.products.name} · ${item.product_variants.variant_label}" from this order? If stock was already taken for it, it'll be restocked.`,
                               danger: true,
                             })
@@ -743,7 +744,7 @@ export default function AdminOrdersPage() {
                         disabled={updateItemQty.isPending}
                         className="text-xs text-red-600 hover:text-red-700 disabled:opacity-30"
                       >
-                        remove
+                        Remove
                       </button>
                     </div>
                   </div>
@@ -755,21 +756,21 @@ export default function AdminOrdersPage() {
                 </p>
               )}
               <div className="mt-2 flex justify-between text-xs text-ink/60">
-                <span>subtotal</span>
+                <span>Subtotal</span>
                 <span>{formatInr(editingOrder.subtotal)}</span>
               </div>
               <div className="flex justify-between text-xs text-ink/60">
-                <span>delivery fee</span>
+                <span>Delivery Fee</span>
                 <span>{formatInr(editingOrder.delivery_fee)}</span>
               </div>
               {editingOrder.discount_amount > 0 && (
                 <div className="flex justify-between text-xs text-ink/60">
-                  <span>discount</span>
+                  <span>Discount</span>
                   <span>−{formatInr(editingOrder.discount_amount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm font-medium text-ink">
-                <span>total</span>
+                <span>Total</span>
                 <span>{formatInr(editingOrder.total)}</span>
               </div>
             </div>
@@ -860,7 +861,7 @@ export default function AdminOrdersPage() {
               >
                 {PAYMENT_STATUSES.map((s) => (
                   <option key={s} value={s}>
-                    {s.replace(/_/g, " ")}
+                    {titleCase(s.replace(/_/g, " "))}
                   </option>
                 ))}
               </select>
@@ -887,7 +888,7 @@ export default function AdminOrdersPage() {
               disabled={saveDetails.isPending}
               className="pill-btn w-full"
             >
-              {saveDetails.isPending ? "saving…" : "save"}
+              {saveDetails.isPending ? "Saving…" : "Save"}
             </button>
           </div>
         )}

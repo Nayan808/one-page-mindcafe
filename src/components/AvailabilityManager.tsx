@@ -128,7 +128,7 @@ export function AvailabilityManager({ expertId }: { expertId: string }) {
               onClick={() => saveHours.mutate(hoursDraft)}
               className="pill-btn !py-1.5 text-xs disabled:opacity-40"
             >
-              {saveHours.isPending ? "saving…" : "save"}
+              {saveHours.isPending ? "Saving…" : "Save"}
             </button>
           </div>
         )}
@@ -186,8 +186,8 @@ export function AvailabilityManager({ expertId }: { expertId: string }) {
                   } ${isPending ? "opacity-50" : ""}`}
                 >
                   {slot.label}
-                  {bookedInfo && <span className="mt-0.5 block text-[9px] uppercase tracking-label text-ink/40">booked</span>}
-                  {isBlocked && !bookedInfo && <span className="mt-0.5 block text-[9px] uppercase tracking-label text-ink/40">blocked</span>}
+                  {bookedInfo && <span className="mt-0.5 block text-[9px] uppercase tracking-label text-ink/40">Booked</span>}
+                  {isBlocked && !bookedInfo && <span className="mt-0.5 block text-[9px] uppercase tracking-label text-ink/40">Blocked</span>}
                 </button>
 
                 {isPopupOpen && bookedInfo && (
@@ -231,21 +231,21 @@ export function AvailabilityManager({ expertId }: { expertId: string }) {
                             }
                             className="flex-1 rounded bg-cream px-2 py-1 text-[11px] font-semibold text-ink disabled:opacity-40"
                           >
-                            {reschedule.isPending ? "saving…" : "save"}
+                            {reschedule.isPending ? "Saving…" : "Save"}
                           </button>
                           <button
                             type="button"
                             onClick={() => setEditingAppointmentId(null)}
                             className="rounded border border-cream/30 px-2 py-1 text-[11px] text-cream/80"
                           >
-                            cancel
+                            Cancel
                           </button>
                         </div>
                       </div>
                     ) : (
                       <div className="flex items-start justify-between gap-1.5">
                         <div>
-                          <p className="text-ink/40">booked by</p>
+                          <p className="text-ink/40">Booked by</p>
                           <p className="font-medium">{bookedInfo.customerName ?? "a customer"}</p>
                           <button
                             type="button"
@@ -256,7 +256,7 @@ export function AvailabilityManager({ expertId }: { expertId: string }) {
                             }}
                             className="mt-1.5 text-[11px] font-semibold underline"
                           >
-                            edit
+                            Edit
                           </button>
                         </div>
                         <button type="button" onClick={() => setOpenSlot(null)} aria-label="Close" className="text-cream/70 hover:text-cream">

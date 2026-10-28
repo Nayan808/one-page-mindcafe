@@ -3,8 +3,8 @@ import { Suspense } from "react";
 import { FeedbackForm } from "@/components/FeedbackForm";
 
 export const metadata: Metadata = {
-  title: "Share your feedback — Mindcafe",
-  description: "Tell us how Feelz or your Mindcafe session worked for you. It takes about a minute.",
+  title: "Share your feedback — mindcafe",
+  description: "Tell us how Feelz or your mindcafe session worked for you. It takes about a minute.",
 };
 
 // Shareable link: /feedback, optionally /feedback?ref=<tag> so the admin

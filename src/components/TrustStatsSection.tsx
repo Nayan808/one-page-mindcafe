@@ -50,12 +50,12 @@ export function TrustStatsSection() {
   const items = [
     {
       figure: stats ? floorPlus(stats.sessionsBooked, 100) : FALLBACK.sessionsBooked,
-      label: "sessions booked",
+      label: "Sessions Booked",
     },
-    { figure: UNITS_SOLD_FIGURE, label: "units sold" },
+    { figure: UNITS_SOLD_FIGURE, label: "Units Sold" },
     {
       figure: stats ? floorPlus(stats.expertsCount, 25) : FALLBACK.expertsCount,
-      label: "experts",
+      label: "Experts",
     },
     {
       figure: stats ? floorPlus(stats.zostelLocationsCount, 10) : FALLBACK.zostelLocationsCount,

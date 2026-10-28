@@ -59,13 +59,13 @@ function PhotoUploadField({ value, onChange }: { value: string; onChange: (url: 
           <img src={value} alt="" className="h-14 w-14 shrink-0 rounded-full border border-ink/15 object-cover" />
         ) : (
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border border-dashed border-ink/25 text-center text-[9px] leading-tight text-ink/40">
-            no photo
+            No Photo
           </div>
         )}
         <div className="flex-1 space-y-1.5">
           <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Photo URL" className="input" />
           <label className="pill-btn-outline flex w-full cursor-pointer items-center justify-center !py-1.5 text-xs">
-            {isUploading ? "uploading…" : "upload a photo"}
+            {isUploading ? "Uploading…" : "Upload a Photo"}
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp"
@@ -221,17 +221,17 @@ export default function AdminExpertsPage() {
   }
 
   const columns: AdminColumn<Expert>[] = [
-    { key: "name", label: "name", render: (e) => <span className="font-medium text-ink">{e.name}</span> },
-    { key: "certifications", label: "certifications", render: (e) => <span className="text-ink/60">{e.certifications.join(", ") || "—"}</span> },
-    { key: "login", label: "login access", render: (e) => <span>{e.profile_id ? "yes" : "no"}</span> },
-    { key: "specialties", label: "specialties", render: (e) => <span className="text-ink/60">{e.specialties.join(", ") || "—"}</span> },
-    { key: "bookable", label: "bookable", render: (e) => <span>{e.is_bookable ? "yes" : "no"}</span> },
-    { key: "active", label: "active", render: (e) => <span>{e.is_active ? "yes" : "no"}</span> },
+    { key: "name", label: "Name", render: (e) => <span className="font-medium text-ink">{e.name}</span> },
+    { key: "certifications", label: "Certifications", render: (e) => <span className="text-ink/60">{e.certifications.join(", ") || "—"}</span> },
+    { key: "login", label: "Login Access", render: (e) => <span>{e.profile_id ? "Yes" : "No"}</span> },
+    { key: "specialties", label: "Specialties", render: (e) => <span className="text-ink/60">{e.specialties.join(", ") || "—"}</span> },
+    { key: "bookable", label: "Bookable", render: (e) => <span>{e.is_bookable ? "Yes" : "No"}</span> },
+    { key: "active", label: "Active", render: (e) => <span>{e.is_active ? "Yes" : "No"}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="experts" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="experts" rows={rows} /><button type="button" onClick={openCreate} className="pill-btn !py-2 text-xs">+ create expert account</button></div>} />
+      <AdminPageHeader title="Experts" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="experts" rows={rows} /><button type="button" onClick={openCreate} className="pill-btn !py-2 text-xs">+ create expert account</button></div>} />
       {listError && <p className="mb-4 text-sm text-red-600">{listError}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name or specialty…" />
       <AdminTable
@@ -243,7 +243,7 @@ export default function AdminExpertsPage() {
         onDelete={async (e) => {
           if (
             await confirmDialog({
-              title: "delete expert",
+              title: "Delete Expert",
               message: `Delete "${e.name}"? This does not delete their login account if they have one.`,
               danger: true,
             })
@@ -300,7 +300,7 @@ export default function AdminExpertsPage() {
             </label>
             {editError && <p className="text-sm text-red-600">{editError}</p>}
             <button type="button" onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending} className="pill-btn w-full">
-              {saveEdit.isPending ? "saving…" : "save"}
+              {saveEdit.isPending ? "Saving…" : "Save"}
             </button>
 
             <div className="border-t border-ink/10 pt-3">
@@ -310,7 +310,7 @@ export default function AdminExpertsPage() {
                   <span className="text-emerald-700">Linked to an account.</span>
                   {isSuperAdmin ? (
                     <button type="button" onClick={() => unlinkUser.mutate()} disabled={unlinkUser.isPending} className="text-xs font-medium text-red-600 underline">
-                      unlink
+                      Unlink
                     </button>
                   ) : (
                     <span className="text-xs text-ink/40">super_admin-only to unlink</span>
@@ -334,7 +334,7 @@ export default function AdminExpertsPage() {
                   />
                   {linkError && <p className="text-xs text-red-600">{linkError}</p>}
                   <button type="button" onClick={() => linkUser.mutate()} disabled={!linkUserId || linkUser.isPending} className="pill-btn-outline w-full !py-2 text-xs">
-                    {linkUser.isPending ? "linking…" : "link this account"}
+                    {linkUser.isPending ? "Linking…" : "Link This Account"}
                   </button>
                 </div>
               ) : (
@@ -348,7 +348,7 @@ export default function AdminExpertsPage() {
         )}
       </Modal>
 
-      <Modal isOpen={createOpen} onClose={() => setCreateOpen(false)} title="create expert account">
+      <Modal isOpen={createOpen} onClose={() => setCreateOpen(false)} title="Create Expert Account">
         {createResult ? (
           <div className="space-y-3 text-center">
             <p className="text-sm text-emerald-700">Account created.</p>
@@ -358,7 +358,7 @@ export default function AdminExpertsPage() {
             </div>
             <p className="text-xs text-ink/50">Save this password now — it won&apos;t be shown again. Share it with them securely.</p>
             <button type="button" onClick={() => setCreateOpen(false)} className="pill-btn w-full">
-              done
+              Done
             </button>
           </div>
         ) : (
@@ -376,7 +376,7 @@ export default function AdminExpertsPage() {
               disabled={createExpert.isPending || !createForm.email || !createForm.password || !createForm.name}
               className="pill-btn w-full"
             >
-              {createExpert.isPending ? "creating…" : "create account"}
+              {createExpert.isPending ? "Creating…" : "Create Account"}
             </button>
           </div>
         )}

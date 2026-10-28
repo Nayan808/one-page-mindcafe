@@ -10,6 +10,7 @@ import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
 import type { ContactMessage } from "@/types/domain";
+import { titleCase } from "@/lib/textCase";
 
 const STATUSES: ContactMessage["status"][] = ["new", "contacted", "closed"];
 
@@ -50,10 +51,10 @@ export default function AdminContactMessagesPage() {
   });
 
   const columns: AdminColumn<ContactMessage>[] = [
-    { key: "name", label: "name", render: (m) => <span className="font-medium text-ink">{m.name}</span> },
+    { key: "name", label: "Name", render: (m) => <span className="font-medium text-ink">{m.name}</span> },
     { key: "email", label: "email", render: (m) => <a href={`mailto:${m.email}`} className="text-ink underline">{m.email}</a> },
-    { key: "phone", label: "phone", render: (m) => <span className="text-ink/60">{m.phone ?? "—"}</span> },
-    { key: "message", label: "message", render: (m) => <span className="block max-w-sm truncate text-ink/60" title={m.message ?? ""}>{m.message ?? "—"}</span> },
+    { key: "phone", label: "Phone", render: (m) => <span className="text-ink/60">{m.phone ?? "—"}</span> },
+    { key: "message", label: "Message", render: (m) => <span className="block max-w-sm truncate text-ink/60" title={m.message ?? ""}>{m.message ?? "—"}</span> },
     {
       key: "status",
       label: "status",
@@ -61,18 +62,18 @@ export default function AdminContactMessagesPage() {
         <select value={m.status} onChange={(e) => update.mutate({ id: m.id, status: e.target.value as ContactMessage["status"] })} className="input !w-auto !py-1.5 text-xs">
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {titleCase(s.replace(/_/g, " "))}
             </option>
           ))}
         </select>
       ),
     },
-    { key: "date", label: "received", render: (m) => <span className="text-ink/60">{formatDate(m.created_at)}</span> },
+    { key: "date", label: "Received", render: (m) => <span className="text-ink/60">{formatDate(m.created_at)}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="contact messages" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="contact-messages" rows={rows} />} />
+      <AdminPageHeader title="Contact Messages" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="contact-messages" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, email, phone, or message…" />
       <AdminTable columns={columns} rows={rows} getRowId={(m) => m.id} isLoading={query.isLoading} emptyLabel="No matching messages." />
     </div>

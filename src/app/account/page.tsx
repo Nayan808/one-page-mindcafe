@@ -725,7 +725,7 @@ function AccountDashboard() {
     >
       <PageHead
         id="overview"
-        eyebrow="Your Mindcafe space"
+        eyebrow="Your mindcafe space"
         title={firstName ? `Welcome back, ${firstName}` : "Welcome back"}
         description="Take things one step at a time. Your support and activity are here."
         action={<span className="hidden whitespace-nowrap text-xs text-[#818b99] sm:inline">Personal account</span>}
@@ -737,7 +737,7 @@ function AccountDashboard() {
         </span>
         <span>
           <strong className="text-brand-navy">Your space is private.</strong> Your sessions and orders are visible only
-          to you, the counsellor you book with, and the Mindcafe team.
+          to you, the counsellor you book with, and the mindcafe team.
         </span>
         <Link href="/legal/privacy" className="whitespace-nowrap font-bold text-brand hover:underline sm:ml-auto">
           Privacy details ↗
@@ -816,7 +816,7 @@ export default function AccountPage() {
     return (
       <div className="bg-[#f7f5f6] px-4 py-20 sm:px-6">
         <div className="mx-auto max-w-sm rounded-[18px] border border-[#eee4e9] bg-white p-8 text-center shadow-[0_14px_36px_rgba(45,65,96,0.08)]">
-          <Eyebrow>Your Mindcafe space</Eyebrow>
+          <Eyebrow>Your mindcafe space</Eyebrow>
           <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-brand-navy">
             Sign in to view your account
           </h1>

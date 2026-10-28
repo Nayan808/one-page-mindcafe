@@ -60,7 +60,7 @@ export function AppointmentConfirmation({
         amount: result.amount,
         currency: result.currency,
         razorpayOrderId: result.razorpay_order_id,
-        name: "Mindcafe Counselling",
+        name: "mindcafe Counselling",
         onSuccess: () => {
           /* Realtime subscription in useAppointmentTracking picks up the
              confirmed payment_status on its own — nothing to do here. */

@@ -62,7 +62,7 @@ export function FeelDifferenceSection({ label, bgClass, benefits }: { label: str
         typeRows="bottom"
         phrase={
           <>
-            feel · more · <span className="font-tagline italic font-normal">{mood}</span> ·
+            Feel · More · <span className="font-tagline italic font-normal">{label}</span> ·
           </>
         }
       />

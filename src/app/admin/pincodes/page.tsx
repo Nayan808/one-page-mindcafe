@@ -77,15 +77,15 @@ export default function AdminPincodesPage() {
   }
 
   const columns: AdminColumn<Pincode>[] = [
-    { key: "pincode", label: "pincode", render: (p) => <span className="font-medium text-ink">{p.pincode}</span> },
-    { key: "city", label: "city", render: (p) => <span>{p.city}</span> },
-    { key: "fee", label: "delivery fee", render: (p) => <span>{formatInr(p.delivery_fee)}</span> },
-    { key: "free_at", label: "free above", render: (p) => <span className="text-ink/60">{p.free_delivery_threshold ? formatInr(p.free_delivery_threshold) : "—"}</span> },
+    { key: "pincode", label: "Pincode", render: (p) => <span className="font-medium text-ink">{p.pincode}</span> },
+    { key: "city", label: "City", render: (p) => <span>{p.city}</span> },
+    { key: "fee", label: "Delivery Fee", render: (p) => <span>{formatInr(p.delivery_fee)}</span> },
+    { key: "free_at", label: "Free Above", render: (p) => <span className="text-ink/60">{p.free_delivery_threshold ? formatInr(p.free_delivery_threshold) : "—"}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="serviceable pincodes" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="pincodes" rows={rows} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new pincode</button></div>} />
+      <AdminPageHeader title="Serviceable Pincodes" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="pincodes" rows={rows} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new pincode</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by pincode or city…" />
       <AdminTable
@@ -95,14 +95,14 @@ export default function AdminPincodesPage() {
         isLoading={query.isLoading}
         onEdit={openEdit}
         onDelete={async (p) => {
-          if (await confirmDialog({ title: "delete pincode", message: `Delete "${p.pincode}"? This can't be undone.`, danger: true })) {
+          if (await confirmDialog({ title: "Delete Pincode", message: `Delete "${p.pincode}"? This can't be undone.`, danger: true })) {
             remove.mutate(p.id);
           }
         }}
         emptyLabel="No matching pincodes."
       />
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit pincode" : "new pincode"}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "Edit Pincode" : "New Pincode"}>
         <div className="space-y-3">
           <input value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value })} placeholder="Pincode" className="input" />
           <input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} placeholder="City" className="input" />
@@ -110,7 +110,7 @@ export default function AdminPincodesPage() {
           <input value={form.free_delivery_threshold} onChange={(e) => setForm({ ...form, free_delivery_threshold: e.target.value })} placeholder="Free delivery above (optional)" type="number" className="input" />
           {error && <p className="text-sm text-red-600">{error}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
-            {save.isPending ? "saving…" : "save"}
+            {save.isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </Modal>

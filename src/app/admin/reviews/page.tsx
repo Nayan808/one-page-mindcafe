@@ -55,11 +55,11 @@ export default function AdminReviewsPage() {
   });
 
   const columns: AdminColumn<Review>[] = [
-    { key: "reviewer", label: "reviewer", render: (r) => <span className="font-medium text-ink">{r.reviewer_name}</span> },
-    { key: "city", label: "city", render: (r) => <span className="text-ink/60">{r.city ?? "—"}</span> },
+    { key: "reviewer", label: "Reviewer", render: (r) => <span className="font-medium text-ink">{r.reviewer_name}</span> },
+    { key: "city", label: "City", render: (r) => <span className="text-ink/60">{r.city ?? "—"}</span> },
     {
       key: "rating",
-      label: "rating",
+      label: "Rating",
       render: (r) => (
         <span className="flex gap-0.5 text-amber-400">
           {Array.from({ length: 5 }).map((_, i) => (
@@ -68,14 +68,14 @@ export default function AdminReviewsPage() {
         </span>
       ),
     },
-    { key: "comment", label: "comment", render: (r) => <span className="block max-w-xs truncate text-ink/60">{r.comment ?? "—"}</span> },
+    { key: "comment", label: "Comment", render: (r) => <span className="block max-w-xs truncate text-ink/60">{r.comment ?? "—"}</span> },
     {
       key: "corporate",
-      label: "corporate",
+      label: "Corporate",
       render: (r) => (
         <label className="flex items-center gap-1.5 text-xs">
           <input type="checkbox" checked={r.is_corporate} onChange={(e) => toggleCorporate.mutate({ id: r.id, is_corporate: e.target.checked })} />
-          shows on /business
+          Shows on /Business
         </label>
       ),
     },
@@ -92,7 +92,7 @@ export default function AdminReviewsPage() {
         getRowId={(r) => r.id}
         isLoading={query.isLoading}
         onDelete={async (r) => {
-          if (await confirmDialog({ title: "delete review", message: `Delete this review from "${r.reviewer_name}"?`, danger: true })) {
+          if (await confirmDialog({ title: "Delete Review", message: `Delete this review from "${r.reviewer_name}"?`, danger: true })) {
             remove.mutate(r.id);
           }
         }}

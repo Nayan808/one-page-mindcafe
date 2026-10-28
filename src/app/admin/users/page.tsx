@@ -10,6 +10,7 @@ import { CsvDownloadButton } from "@/components/admin/CsvDownloadButton";
 import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
+import { titleCase } from "@/lib/textCase";
 
 const ROLES = ["customer", "expert", "employer", "admin", "super_admin"];
 
@@ -60,12 +61,12 @@ export default function AdminUsersPage() {
 
   const columns: AdminColumn<AdminUserRow>[] = [
     { key: "email", label: "email", render: (u) => <span className="font-medium text-ink">{u.email ?? "—"}</span> },
-    { key: "phone", label: "phone", render: (u) => <span className="font-medium text-ink">{u.phone ?? "—"}</span> },
-    { key: "name", label: "name", render: (u) => <span className="text-ink/60">{u.full_name ?? "—"}</span> },
-    { key: "created", label: "joined", render: (u) => <span className="text-ink/60">{formatDate(u.created_at)}</span> },
+    { key: "phone", label: "Phone", render: (u) => <span className="font-medium text-ink">{u.phone ?? "—"}</span> },
+    { key: "name", label: "Name", render: (u) => <span className="text-ink/60">{u.full_name ?? "—"}</span> },
+    { key: "created", label: "Joined", render: (u) => <span className="text-ink/60">{formatDate(u.created_at)}</span> },
     {
       key: "role",
-      label: "role",
+      label: "Role",
       render: (u) => (
         <select
           value={u.role}
@@ -75,7 +76,7 @@ export default function AdminUsersPage() {
         >
           {ROLES.map((r) => (
             <option key={r} value={r}>
-              {r}
+              {titleCase(r.replace(/_/g, " "))}
             </option>
           ))}
         </select>
@@ -85,7 +86,7 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <AdminPageHeader title="users & roles" description={`${rows.length} of ${query.data?.length ?? 0} accounts`} action={<CsvDownloadButton filename="users" rows={rows} />} />
+      <AdminPageHeader title="Users & Roles" description={`${rows.length} of ${query.data?.length ?? 0} accounts`} action={<CsvDownloadButton filename="users" rows={rows} />} />
 
       {!isSuperAdmin && (
         <p className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">

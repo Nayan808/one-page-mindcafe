@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Mindcafe Assessments — Coming soon",
+  title: "mindcafe Assessments — Coming Soon",
   description:
     "Our mental health self-assessments are coming soon. Take a moment to check in with yourself and think about what support may help.",
 };
@@ -64,7 +64,7 @@ export default function AssessmentsPage() {
       <CornerCurves />
 
       <div className="relative mx-auto max-w-3xl text-center">
-        <p className="text-3xl font-bold tracking-tight text-[#a8567c] sm:text-4xl lg:text-[2.75rem]">MINDCAFE ASSESSMENTS</p>
+        <p className="text-3xl font-bold tracking-tight text-[#a8567c] sm:text-4xl lg:text-[2.75rem]">mindcafe Assessments</p>
         <p className="mt-3 text-xs font-bold tracking-[0.5em] text-[#1d3458] sm:text-sm lg:text-base">COMING SOON...</p>
 
         <h1 className="mt-12 text-[2.5rem] font-semibold leading-[1.08] tracking-[-0.03em] text-[#1d3458] sm:text-6xl lg:mt-16 lg:text-7xl">

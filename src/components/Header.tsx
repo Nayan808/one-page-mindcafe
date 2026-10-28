@@ -20,10 +20,10 @@ function scrollToTop() {
 // Plain top-level links — Feelz gets the ShopMenu mega-menu instead (it's
 // the only item with real subcategories), see below.
 const NAV_LINKS = [
-  { href: "/counselling", label: "counselling" },
-  { href: "/business", label: "for business" },
-  { href: "/assessments", label: "assessments" },
-  { href: "/about", label: "about" },
+  { href: "/counselling", label: "Counselling" },
+  { href: "/business", label: "For Business" },
+  { href: "/assessments", label: "Assessments" },
+  { href: "/about", label: "About" },
 ];
 
 export function Header() {

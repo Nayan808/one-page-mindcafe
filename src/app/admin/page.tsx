@@ -22,18 +22,18 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const RANGE_OPTIONS: { value: DashboardRange; label: string }[] = [
-  { value: "1d", label: "today" },
+  { value: "1d", label: "Today" },
   { value: "7d", label: "7 days" },
   { value: "30d", label: "30 days" },
-  { value: "all", label: "all time" },
+  { value: "all", label: "All Time" },
 ];
 
 type Segment = "combined" | "feelz" | "counselling";
 
 const SEGMENT_OPTIONS: { value: Segment; label: string }[] = [
-  { value: "combined", label: "combined" },
-  { value: "feelz", label: "feelz" },
-  { value: "counselling", label: "counselling" },
+  { value: "combined", label: "Combined" },
+  { value: "feelz", label: "Feelz" },
+  { value: "counselling", label: "Counselling" },
 ];
 
 const APPOINTMENT_STATUS_LABELS: Record<string, string> = {
@@ -115,7 +115,7 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <AdminPageHeader title="dashboard" description="Sales, bookings, and everything that needs attention." />
+      <AdminPageHeader title="Dashboard" description="Sales, bookings, and everything that needs attention." />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2">
@@ -137,7 +137,7 @@ export default function AdminDashboardPage() {
           className="pill-btn-outline gap-1.5 !py-2 text-xs disabled:opacity-40"
         >
           <Download className="h-3.5 w-3.5" aria-hidden />
-          download report (CSV)
+          Download Report (CSV)
         </button>
       </div>
 
@@ -159,15 +159,15 @@ export default function AdminDashboardPage() {
       ) : summary ? (
         <div className="space-y-8">
           <div>
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">needs attention right now</p>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">Needs Attention Right Now</p>
             <div className="grid gap-4 sm:grid-cols-3">
               {segment !== "feelz" && (
-                <StatCard label="pending appointments" value={String(summary.pendingAppointments)} href="/admin/appointments" />
+                <StatCard label="Pending Appointments" value={String(summary.pendingAppointments)} href="/admin/appointments" />
               )}
               {segment !== "counselling" && (
                 <>
-                  <StatCard label="unactioned business leads" value={String(summary.newBusinessLeadsQueue)} href="/admin/business-leads" />
-                  <StatCard label="feelz preorders" value={String(summary.feelzPreordersTotal)} href="/admin/feelz-preorders" />
+                  <StatCard label="Unactioned Business Leads" value={String(summary.newBusinessLeadsQueue)} href="/admin/business-leads" />
+                  <StatCard label="Feelz Preorders" value={String(summary.feelzPreordersTotal)} href="/admin/feelz-preorders" />
                 </>
               )}
             </div>
@@ -176,17 +176,17 @@ export default function AdminDashboardPage() {
           <div>
             <p className="mb-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">performance — {rangeLabel}</p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {segment === "combined" && <StatCard label="total revenue" value={formatInr(summary.range.totalRevenue)} />}
-              {segment !== "counselling" && <StatCard label="feelz revenue" value={formatInr(summary.range.productRevenue)} />}
-              {segment !== "feelz" && <StatCard label="counselling revenue" value={formatInr(summary.range.appointmentRevenue)} />}
-              {segment !== "counselling" && <StatCard label="paid orders" value={String(summary.range.paidOrderCount)} />}
+              {segment === "combined" && <StatCard label="Total Revenue" value={formatInr(summary.range.totalRevenue)} />}
+              {segment !== "counselling" && <StatCard label="Feelz Revenue" value={formatInr(summary.range.productRevenue)} />}
+              {segment !== "feelz" && <StatCard label="Counselling Revenue" value={formatInr(summary.range.appointmentRevenue)} />}
+              {segment !== "counselling" && <StatCard label="Paid Orders" value={String(summary.range.paidOrderCount)} />}
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {segment !== "feelz" && <StatCard label="paid sessions" value={String(summary.range.paidAppointmentCount)} />}
-              {segment !== "feelz" && <StatCard label="new appointments" value={String(summary.range.newAppointments)} />}
-              {segment !== "counselling" && <StatCard label="new business leads" value={String(summary.range.newBusinessLeads)} />}
+              {segment !== "feelz" && <StatCard label="Paid Sessions" value={String(summary.range.paidAppointmentCount)} />}
+              {segment !== "feelz" && <StatCard label="New Appointments" value={String(summary.range.newAppointments)} />}
+              {segment !== "counselling" && <StatCard label="New Business Leads" value={String(summary.range.newBusinessLeads)} />}
               {segment !== "counselling" && (
-                <StatCard label="new feelz preorders" value={String(summary.range.newFeelzPreorders)} href="/admin/feelz-preorders" />
+                <StatCard label="New Feelz Preorders" value={String(summary.range.newFeelzPreorders)} href="/admin/feelz-preorders" />
               )}
             </div>
           </div>
@@ -231,7 +231,7 @@ export default function AdminDashboardPage() {
                 <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">other — {rangeLabel}</p>
                 <ul className="mt-3 space-y-1.5 text-sm">
                   <li className="flex items-center justify-between">
-                    <span className="text-ink/70">new newsletter subscribers</span>
+                    <span className="text-ink/70">New Newsletter Subscribers</span>
                     <span className="font-medium text-ink">{summary.range.newNewsletterSubscribers}</span>
                   </li>
                 </ul>

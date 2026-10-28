@@ -16,9 +16,9 @@ Deno.serve(async (req) => {
 
   const { text, html } = renderEmail({
     heading: "You're on the list",
-    paragraphs: ["Thanks for subscribing to Mindcafe. We'll send you updates on feelz, counselling, and the occasional offer — nothing more."],
+    paragraphs: ["Thanks for subscribing to mindcafe. We'll send you updates on Feelz, counselling, and the occasional offer — nothing more."],
     cta: { label: "shop feelz", url: `${SITE_URL}/feelz` },
   });
-  await sendEmail(record.email, "You're on the list — Mindcafe", text, html);
+  await sendEmail(record.email, "You're on the list — mindcafe", text, html);
   return jsonResponse({ sent: true });
 });

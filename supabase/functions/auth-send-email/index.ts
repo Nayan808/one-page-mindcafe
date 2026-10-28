@@ -15,7 +15,7 @@
 // never arrives.
 import { jsonResponse } from "../_shared/cors.ts";
 
-const FROM_ADDRESS = "Mindcafe <login@mindcafe.app>";
+const FROM_ADDRESS = "mindcafe <login@mindcafe.app>";
 
 type SendEmailPayload = {
   user: { email: string };
@@ -29,12 +29,12 @@ const COPY: Record<string, { subject: string; heading: string; body: string }> =
   magiclink: {
     subject: "your mindcafe sign-in code",
     heading: "here&rsquo;s your one-time code",
-    body: "Enter this code on the sign-in screen to continue to Mindcafe. It expires shortly and can only be used once.",
+    body: "Enter this code on the sign-in screen to continue to mindcafe. It expires shortly and can only be used once.",
   },
   signup: {
     subject: "confirm your mindcafe account",
     heading: "confirm your account",
-    body: "Enter this code to finish creating your Mindcafe account.",
+    body: "Enter this code to finish creating your mindcafe account.",
   },
   recovery: {
     subject: "reset your mindcafe password",
@@ -66,7 +66,7 @@ function renderHtml(token: string, actionType: string): string {
   return `<div style="background-color:#f6f1e6; padding:40px 16px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
   <div style="max-width:420px; margin:0 auto; background-color:#ffffff; border:1px solid rgba(17,17,16,0.1); border-radius:24px; overflow:hidden;">
     <div style="background-color:#111110; padding:28px 32px; text-align:center;">
-      <span style="font-size:20px; font-weight:700; color:#f6f1e6; letter-spacing:-0.02em;">Mindcafe</span>
+      <span style="font-size:20px; font-weight:700; color:#f6f1e6; letter-spacing:-0.02em;">mindcafe</span>
     </div>
     <div style="padding:32px 32px 36px; text-align:center;">
       <p style="margin:0 0 4px; font-size:13px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; color:rgba(17,17,16,0.5);">
@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
         from: FROM_ADDRESS,
         to: email,
         subject: copy.subject,
-        text: `Your Mindcafe code is ${token}. It expires shortly and can only be used once.`,
+        text: `Your mindcafe code is ${token}. It expires shortly and can only be used once.`,
         html: renderHtml(token, email_action_type),
       }),
     });

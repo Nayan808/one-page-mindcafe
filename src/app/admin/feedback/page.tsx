@@ -17,6 +17,7 @@ import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { formatDate } from "@/lib/utils";
 import type { Feedback } from "@/types/domain";
+import { titleCase } from "@/lib/textCase";
 
 const STATUSES: Feedback["status"][] = ["new", "reviewed", "published"];
 const QUERY_KEY = ["admin", "feedback"];
@@ -48,7 +49,7 @@ function ShareLink() {
         <input
           value={tag}
           onChange={(e) => setTag(e.target.value)}
-          placeholder="tag (optional)"
+          placeholder="Tag (Optional)"
           className="input sm:!w-48"
         />
         <div className="flex min-w-0 flex-1 items-center rounded-xl border border-ink/15 bg-ink/[0.03] px-3 text-sm text-ink/70">
@@ -99,10 +100,10 @@ export default function AdminFeedbackPage() {
   });
 
   const columns: AdminColumn<Feedback>[] = [
-    { key: "date", label: "received", render: (f) => <span className="whitespace-nowrap text-ink/60">{formatDate(f.created_at)}</span> },
+    { key: "date", label: "Received", render: (f) => <span className="whitespace-nowrap text-ink/60">{formatDate(f.created_at)}</span> },
     {
       key: "rating",
-      label: "rating",
+      label: "Rating",
       render: (f) => (
         <span className="flex gap-0.5 text-amber-400" aria-label={`${f.rating} of 5`}>
           {Array.from({ length: 5 }).map((_, i) => (
@@ -113,7 +114,7 @@ export default function AdminFeedbackPage() {
     },
     {
       key: "name",
-      label: "name",
+      label: "Name",
       render: (f) => (
         <span className="block">
           <span className="font-medium text-ink">{f.name}</span>
@@ -132,7 +133,7 @@ export default function AdminFeedbackPage() {
     },
     {
       key: "about",
-      label: "about",
+      label: "About",
       render: (f) => (
         <span className="text-ink/70 capitalize">
           {f.topic}
@@ -142,20 +143,20 @@ export default function AdminFeedbackPage() {
     },
     {
       key: "message",
-      label: "feedback",
+      label: "Feedback",
       render: (f) => (
         <span className="block max-w-sm whitespace-pre-line text-ink/70" title={f.message}>
           {f.message}
         </span>
       ),
     },
-    { key: "source", label: "source", render: (f) => <span className="text-ink/60">{f.source ?? "—"}</span> },
+    { key: "source", label: "Source", render: (f) => <span className="text-ink/60">{f.source ?? "—"}</span> },
     {
       key: "publish",
-      label: "on website",
+      label: "On Website",
       render: (f) =>
         f.status === "published" ? (
-          <span className="text-xs font-medium text-emerald-700">published</span>
+          <span className="text-xs font-medium text-emerald-700">Published</span>
         ) : f.can_publish ? (
           <button
             type="button"
@@ -163,7 +164,7 @@ export default function AdminFeedbackPage() {
             onClick={async () => {
               if (
                 await confirmDialog({
-                  title: "publish as testimonial",
+                  title: "Publish as Testimonial",
                   message: `Show ${f.name}'s feedback (${f.rating}★) in the testimonials on the website?`,
                 })
               ) {
@@ -172,10 +173,10 @@ export default function AdminFeedbackPage() {
             }}
             className="pill-btn-outline !py-1 text-xs"
           >
-            publish
+            Publish
           </button>
         ) : (
-          <span className="text-xs text-ink/40">not allowed</span>
+          <span className="text-xs text-ink/40">Not Allowed</span>
         ),
     },
     {
@@ -189,7 +190,7 @@ export default function AdminFeedbackPage() {
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {titleCase(s.replace(/_/g, " "))}
             </option>
           ))}
         </select>
@@ -201,7 +202,7 @@ export default function AdminFeedbackPage() {
   return (
     <div>
       <AdminPageHeader
-        title="feedback"
+        title="Feedback"
         description={`${rows.length} of ${total} total${average !== null ? ` · average ${average.toFixed(1)}★` : ""}`}
         action={<CsvDownloadButton filename="feedback" rows={rows} />}
       />
@@ -213,7 +214,7 @@ export default function AdminFeedbackPage() {
         getRowId={(f) => f.id}
         isLoading={query.isLoading}
         onDelete={async (f) => {
-          if (await confirmDialog({ title: "delete feedback", message: `Delete this feedback from "${f.name}"?`, danger: true })) {
+          if (await confirmDialog({ title: "Delete Feedback", message: `Delete this feedback from "${f.name}"?`, danger: true })) {
             remove.mutate(f.id);
           }
         }}

@@ -5,7 +5,7 @@ import { ScanOrderContent } from "@/components/ScanOrderContent";
 // listed in Header's NAV_LINKS and marked noindex, so it's only reachable
 // via a direct link (the printed QR code), never from site nav or search.
 export const metadata: Metadata = {
-  title: "Scan & Order — Mindcafe",
+  title: "Scan & Order — mindcafe",
   robots: { index: false, follow: false },
 };
 

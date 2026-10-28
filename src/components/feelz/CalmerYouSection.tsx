@@ -30,8 +30,10 @@ const STEPS = [
     title: "Life gets loud.",
     body: "Deadlines, notifications and a never-ending to-do list can throw you off balance.",
     color: FEELZ_COLOR_CLASSES["feelz-berry"],
-    image: "/feelz-creative/moments/joy-workstress-v3.webp",
-    focus: "50% 40%",
+    image: "/feelz-creative/calmer/daydream.webp",
+    focus: "50% 50%",
+    // A collage with moments in every corner — shown whole.
+    fit: "contain",
     caption: "The everyday noise",
   },
   {
@@ -40,8 +42,8 @@ const STEPS = [
     title: "A small strip. A big shift.",
     body: "Place a FEELZ strip on your tongue — no water needed. It starts dissolving in seconds.",
     color: FEELZ_COLOR_CLASSES["feelz-orange"],
-    image: "/feelz-creative/calmer/focus.webp",
-    focus: "72% 50%",
+    image: "/feelz-creative/calmer/strip-tongue.webp",
+    focus: "38% 50%",
     caption: "Melts in seconds",
   },
   {
@@ -52,6 +54,8 @@ const STEPS = [
     color: FEELZ_COLOR_CLASSES["feelz-navy"],
     image: "/feelz-creative/calmer/joy.webp",
     focus: "50% 50%",
+    // Four ingredient bowls, one per corner — shown whole.
+    fit: "contain",
     caption: "Real botanicals",
   },
   {
@@ -129,7 +133,7 @@ export function CalmerYouSection() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-12 lg:mt-20 lg:grid-cols-[28rem_minmax(0,1fr)] lg:items-center lg:gap-20">
+        <div className="mt-14 grid gap-12 lg:mt-20 lg:grid-cols-[32rem_minmax(0,1fr)] lg:items-center lg:gap-20">
           {/* --- The frame --- */}
           <Reveal delayMs={80} className="mx-auto w-full max-w-md lg:max-w-none">
             {/* Expanding panels — all four beats side by side; the active
@@ -149,16 +153,33 @@ export function CalmerYouSection() {
                     data-active={isActive ? "" : undefined}
                     className="calmer-panel group relative min-w-0 overflow-hidden rounded-[1.75rem] bg-feelz-paper text-left shadow-[0_30px_60px_-36px_rgba(16,35,63,0.5)] ring-1 ring-feelz-ink/10"
                   >
-                    <Image
-                      src={step.image}
-                      alt={step.caption}
-                      fill
-                      sizes="(min-width: 1024px) 28rem, 90vw"
-                      quality={90}
-                      className="calmer-panel-img object-cover"
-                      // Landscape shots in a tall panel: keep each subject in frame.
-                      style={{ objectPosition: step.focus }}
-                    />
+                    {"fit" in step && step.fit === "contain" ? (
+                      <>
+                        {/* Whole image, centred, over a soft blurred copy of
+                            itself — a wide/square shot in this tall panel
+                            would otherwise lose its corners. */}
+                        <Image src={step.image} alt="" fill sizes="10rem" quality={40} className="scale-125 object-cover blur-2xl" aria-hidden />
+                        <Image
+                          src={step.image}
+                          alt={step.caption}
+                          fill
+                          sizes="(min-width: 1024px) 32rem, 90vw"
+                          quality={90}
+                          className="calmer-panel-img object-contain drop-shadow-[0_18px_30px_rgba(16,35,63,0.25)]"
+                        />
+                      </>
+                    ) : (
+                      <Image
+                        src={step.image}
+                        alt={step.caption}
+                        fill
+                        sizes="(min-width: 1024px) 32rem, 90vw"
+                        quality={90}
+                        className="calmer-panel-img object-cover"
+                        // Landscape shots in a tall panel: keep each subject in frame.
+                        style={{ objectPosition: step.focus }}
+                      />
+                    )}
                     {index === 0 && (
                       <span className="calmer-panel-noise absolute inset-0 bg-feelz-ink/25" aria-hidden>
                         {NOISE.map((item, n) => (

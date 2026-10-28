@@ -83,7 +83,7 @@ export function CsvDownloadButton<T extends object>({
       className="pill-btn-outline !py-2 text-xs disabled:opacity-40"
       title="Download these rows as a CSV file"
     >
-      {isExporting ? "exporting…" : count === null ? "download csv" : `download csv (${count})`}
+      {isExporting ? "Exporting…" : count === null ? "download csv" : `download csv (${count})`}
     </button>
   );
 }

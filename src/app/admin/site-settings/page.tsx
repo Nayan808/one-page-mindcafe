@@ -68,14 +68,14 @@ export default function AdminSiteSettingsPage() {
   }
 
   const columns: AdminColumn<SiteSetting>[] = [
-    { key: "key", label: "key", render: (s) => <span className="font-medium text-ink">{s.key}</span> },
-    { key: "value", label: "value", render: (s) => <code className="block max-w-sm truncate text-xs text-ink/60">{JSON.stringify(s.value)}</code> },
+    { key: "key", label: "Key", render: (s) => <span className="font-medium text-ink">{s.key}</span> },
+    { key: "value", label: "Value", render: (s) => <code className="block max-w-sm truncate text-xs text-ink/60">{JSON.stringify(s.value)}</code> },
   ];
 
   return (
     <div>
       <AdminPageHeader
-        title="site settings"
+        title="Site Settings"
         description="Generic key/value CMS store — powers the announcement bar and homepage stat chips."
         action={<button type="button" onClick={() => openNew()} className="pill-btn !py-2 text-xs">+ new key</button>}
       />
@@ -99,7 +99,7 @@ export default function AdminSiteSettingsPage() {
         onDelete={async (s) => {
           if (
             await confirmDialog({
-              title: "delete setting",
+              title: "Delete Setting",
               message: `Delete key "${s.key}"? If this powers the announcement bar or homepage stats, they'll fall back to defaults immediately.`,
               danger: true,
             })
@@ -109,13 +109,13 @@ export default function AdminSiteSettingsPage() {
         }}
       />
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? `edit — ${key}` : "new setting"}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? `edit — ${key}` : "New Setting"}>
         <div className="space-y-3">
-          <input value={key} onChange={(e) => setKey(e.target.value)} placeholder="key" disabled={Boolean(editing)} className="input disabled:opacity-60" />
+          <input value={key} onChange={(e) => setKey(e.target.value)} placeholder="Key" disabled={Boolean(editing)} className="input disabled:opacity-60" />
           <textarea value={valueText} onChange={(e) => setValueText(e.target.value)} rows={6} className="input font-mono text-xs" />
           {jsonError && <p className="text-sm text-red-600">{jsonError}</p>}
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending || !key} className="pill-btn w-full">
-            {save.isPending ? "saving…" : "save"}
+            {save.isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </Modal>

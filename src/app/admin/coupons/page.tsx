@@ -111,17 +111,17 @@ export default function AdminCouponsPage() {
   }
 
   const columns: AdminColumn<Coupon>[] = [
-    { key: "code", label: "code", render: (c) => <span className="font-medium text-ink">{c.code}</span> },
-    { key: "discount", label: "discount", render: (c) => <span>{c.discount_type === "percent" ? `${c.discount_value}%` : formatInr(c.discount_value)}</span> },
-    { key: "applies_to", label: "applies to", render: (c) => <span className="text-ink/60">{c.applies_to}</span> },
-    { key: "used", label: "used", render: (c) => <span>{c.times_used}{c.usage_limit ? ` / ${c.usage_limit}` : ""}</span> },
-    { key: "expires", label: "expires", render: (c) => <span className="text-ink/60">{c.expires_at ? formatDate(c.expires_at) : "never"}</span> },
-    { key: "active", label: "active", render: (c) => <span>{c.is_active ? "yes" : "no"}</span> },
+    { key: "code", label: "Code", render: (c) => <span className="font-medium text-ink">{c.code}</span> },
+    { key: "discount", label: "Discount", render: (c) => <span>{c.discount_type === "percent" ? `${c.discount_value}%` : formatInr(c.discount_value)}</span> },
+    { key: "applies_to", label: "Applies to", render: (c) => <span className="text-ink/60">{c.applies_to}</span> },
+    { key: "used", label: "Used", render: (c) => <span>{c.times_used}{c.usage_limit ? ` / ${c.usage_limit}` : ""}</span> },
+    { key: "expires", label: "Expires", render: (c) => <span className="text-ink/60">{c.expires_at ? formatDate(c.expires_at) : "Never"}</span> },
+    { key: "active", label: "Active", render: (c) => <span>{c.is_active ? "Yes" : "No"}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="coupons" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="coupons" rows={rows} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new coupon</button></div>} />
+      <AdminPageHeader title="Coupons" action={<div className="flex flex-wrap gap-2"><CsvDownloadButton filename="coupons" rows={rows} /><button type="button" onClick={openNew} className="pill-btn !py-2 text-xs">+ new coupon</button></div>} />
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by code…" />
       <AdminTable
@@ -131,14 +131,14 @@ export default function AdminCouponsPage() {
         isLoading={couponsQuery.isLoading}
         onEdit={openEdit}
         onDelete={async (c) => {
-          if (await confirmDialog({ title: "delete coupon", message: `Delete "${c.code}"? This can't be undone.`, danger: true })) {
+          if (await confirmDialog({ title: "Delete Coupon", message: `Delete "${c.code}"? This can't be undone.`, danger: true })) {
             remove.mutate(c.id);
           }
         }}
         emptyLabel="No matching coupons."
       />
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "edit coupon" : "new coupon"}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? "Edit Coupon" : "New Coupon"}>
         <div className="space-y-3">
           <input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="CODE" className="input uppercase" />
           <div className="grid grid-cols-2 gap-2">
@@ -168,7 +168,7 @@ export default function AdminCouponsPage() {
             Active
           </label>
           <button type="button" onClick={() => save.mutate()} disabled={save.isPending} className="pill-btn w-full">
-            {save.isPending ? "saving…" : "save"}
+            {save.isPending ? "Saving…" : "Save"}
           </button>
         </div>
       </Modal>

@@ -238,11 +238,11 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
         <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">add transaction</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">date</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Date</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input" />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">type</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Type</label>
             <select value={type} onChange={(e) => setType(e.target.value as typeof type)} className="input">
               <option value="received">Received</option>
               <option value="shipped">Shipped</option>
@@ -280,7 +280,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
 
           <div>
             <div className="mb-1 flex items-center justify-between">
-              <p className="text-[11px] font-medium text-ink/50">product</p>
+              <p className="text-[11px] font-medium text-ink/50">Product</p>
               <label className="flex items-center gap-1.5 text-[11px] text-ink/50">
                 <input
                   type="checkbox"
@@ -314,7 +314,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
             />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">reference / notes</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Reference / Notes</label>
             <input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -336,7 +336,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
           disabled={!date || comboCount === 0 || !quantity || Number(quantity) < comboCount || createTransactions.isPending}
           className="pill-btn mt-3 !py-1.5 text-xs disabled:opacity-40"
         >
-          {createTransactions.isPending ? "adding…" : comboCount > 1 ? `add ${comboCount} transactions` : "add transaction"}
+          {createTransactions.isPending ? "Adding…" : comboCount > 1 ? `add ${comboCount} transactions` : "add transaction"}
         </button>
       </div>
 
@@ -344,13 +344,13 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-[11px] uppercase tracking-label text-ink/50">
-              <th className="px-4 py-2.5">date</th>
-              <th className="px-4 py-2.5">type</th>
-              <th className="px-4 py-2.5">place</th>
-              <th className="px-4 py-2.5">product</th>
-              <th className="px-4 py-2.5">qty in</th>
-              <th className="px-4 py-2.5">qty out</th>
-              <th className="px-4 py-2.5">notes</th>
+              <th className="px-4 py-2.5">Date</th>
+              <th className="px-4 py-2.5">Type</th>
+              <th className="px-4 py-2.5">Place</th>
+              <th className="px-4 py-2.5">Product</th>
+              <th className="px-4 py-2.5">Qty in</th>
+              <th className="px-4 py-2.5">Qty Out</th>
+              <th className="px-4 py-2.5">Notes</th>
               <th className="px-4 py-2.5" />
             </tr>
           </thead>
@@ -420,7 +420,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
                           disabled={!editDate || !editVariantId || !editQuantity || Number(editQuantity) <= 0 || updateTransaction.isPending}
                           className="pill-btn !py-1 text-[11px] disabled:opacity-40"
                         >
-                          {updateTransaction.isPending ? "saving…" : "save"}
+                          {updateTransaction.isPending ? "Saving…" : "Save"}
                         </button>
                         <button
                           type="button"
@@ -526,7 +526,7 @@ function ReorderThresholdCell({ summary }: { summary: SummaryRow }) {
       <input
         type="number"
         min="1"
-        placeholder="not set"
+        placeholder="Not Set"
         value={value}
         onChange={(e) => {
           setValue(e.target.value);
@@ -540,7 +540,7 @@ function ReorderThresholdCell({ summary }: { summary: SummaryRow }) {
         disabled={!dirty || save.isPending}
         className="pill-btn-outline !py-1 text-[11px] disabled:opacity-40"
       >
-        {save.isPending ? "…" : "save"}
+        {save.isPending ? "…" : "Save"}
       </button>
       {justSaved && <span className="text-[11px] font-medium text-emerald-700">✓</span>}
     </div>
@@ -593,7 +593,7 @@ function QuantityCell({ row }: { row: { id: string; quantity_available: number }
         disabled={!dirty || save.isPending}
         className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
       >
-        {save.isPending ? "saving…" : "save"}
+        {save.isPending ? "Saving…" : "Save"}
       </button>
       {justSaved && <span className="text-xs font-medium text-emerald-700">✓ saved</span>}
       {save.isError && (
@@ -602,7 +602,7 @@ function QuantityCell({ row }: { row: { id: string; quantity_available: number }
         </span>
       )}
       {!save.isError && !justSaved && row.quantity_available === 0 && (
-        <span className="text-xs font-medium text-red-600">out of stock</span>
+        <span className="text-xs font-medium text-red-600">Out of Stock</span>
       )}
     </div>
   );
@@ -693,7 +693,7 @@ function AggregateQuantityCell({ rows }: { rows: FullInventoryRow[] }) {
         disabled={!dirty || save.isPending || rows.length === 0}
         className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
       >
-        {save.isPending ? "saving…" : "save"}
+        {save.isPending ? "Saving…" : "Save"}
       </button>
       {justSaved && <span className="text-xs font-medium text-emerald-700">✓ saved</span>}
       {save.isError && (
@@ -844,7 +844,7 @@ function MissingSummaryTableRow({
             disabled={add.isPending}
             className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
           >
-            {add.isPending ? "adding…" : "add"}
+            {add.isPending ? "Adding…" : "Add"}
           </button>
         </div>
         {add.isError && (
@@ -984,11 +984,11 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
         <p className="mb-2 text-xs font-semibold uppercase tracking-label text-ink/50">log a missing/misplaced item</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">date</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Date</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="input" />
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">place</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Place</label>
             <select value={place} onChange={(e) => setPlace(e.target.value)} className="input">
               <option value="">Online</option>
               {activeLocations.map((loc) => (
@@ -999,7 +999,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">product</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Product</label>
             <select value={variantId} onChange={(e) => setVariantId(e.target.value)} className="input">
               <option value="">Select a product…</option>
               {variantOptions.map((v) => (
@@ -1010,7 +1010,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">quantity</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Quantity</label>
             <input
               type="number"
               min="1"
@@ -1021,7 +1021,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
             />
           </div>
           <div className="sm:col-span-2">
-            <label className="mb-1 block text-[11px] font-medium text-ink/50">notes</label>
+            <label className="mb-1 block text-[11px] font-medium text-ink/50">Notes</label>
             <input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
@@ -1037,7 +1037,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
           disabled={!date || !variantId || !quantity || Number(quantity) <= 0 || create.isPending}
           className="pill-btn mt-3 !py-1.5 text-xs disabled:opacity-40"
         >
-          {create.isPending ? "logging…" : "log entry"}
+          {create.isPending ? "Logging…" : "Log Entry"}
         </button>
       </div>
 
@@ -1046,11 +1046,11 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
       <div className="grid grid-cols-2 gap-3 border-b border-ink/10 p-4 sm:grid-cols-4">
         <div className="rounded-xl border border-ink/10 p-3 text-center">
           <p className="font-display text-2xl font-bold text-ink">{logs.length}</p>
-          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">entries logged</p>
+          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">Entries Logged</p>
         </div>
         <div className="rounded-xl border border-ink/10 p-3 text-center">
           <p className="font-display text-2xl font-bold text-ink">{totalMissing}</p>
-          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">units missing</p>
+          <p className="mt-0.5 text-[11px] uppercase tracking-label text-ink/50">Units Missing</p>
         </div>
         <div className="col-span-2 rounded-xl border border-ink/10 p-3">
           <p className="mb-1 text-[11px] uppercase tracking-label text-ink/50">by place</p>
@@ -1072,11 +1072,11 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-ink/10 text-[11px] uppercase tracking-label text-ink/50">
-              <th className="px-4 py-2.5">date</th>
-              <th className="px-4 py-2.5">place</th>
-              <th className="px-4 py-2.5">product</th>
-              <th className="px-4 py-2.5">qty</th>
-              <th className="px-4 py-2.5">notes</th>
+              <th className="px-4 py-2.5">Date</th>
+              <th className="px-4 py-2.5">Place</th>
+              <th className="px-4 py-2.5">Product</th>
+              <th className="px-4 py-2.5">Qty</th>
+              <th className="px-4 py-2.5">Notes</th>
               <th className="px-4 py-2.5" />
             </tr>
           </thead>
@@ -1139,7 +1139,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
                           disabled={!editDate || !editVariantId || !editQuantity || Number(editQuantity) <= 0 || updateLog.isPending}
                           className="pill-btn !py-1 text-[11px] disabled:opacity-40"
                         >
-                          {updateLog.isPending ? "saving…" : "save"}
+                          {updateLog.isPending ? "Saving…" : "Save"}
                         </button>
                         <button
                           type="button"
@@ -1236,9 +1236,9 @@ export default function AdminInventoryPage() {
       aggregateByVariant(rows).some((s) => s.totalRemaining < floor);
 
     const options: FilterOption[] = [
-      { value: SUMMARY_ALL, label: "all (online + Zostel)", warning: hasLow(full, AGGREGATE_LOW_STOCK_FLOOR) },
-      { value: SUMMARY_ALL_ZOSTEL, label: "all Zostel locations", warning: hasLow(zostelRows, AGGREGATE_LOW_STOCK_FLOOR) },
-      { value: SUMMARY_ONLINE, label: "online / delivery", warning: hasLow(onlineRows, AGGREGATE_LOW_STOCK_FLOOR) },
+      { value: SUMMARY_ALL, label: "All (Online + Zostel)", warning: hasLow(full, AGGREGATE_LOW_STOCK_FLOOR) },
+      { value: SUMMARY_ALL_ZOSTEL, label: "All Zostel Locations", warning: hasLow(zostelRows, AGGREGATE_LOW_STOCK_FLOOR) },
+      { value: SUMMARY_ONLINE, label: "Online / Delivery", warning: hasLow(onlineRows, AGGREGATE_LOW_STOCK_FLOOR) },
     ];
     for (const loc of activeZostelLocations) {
       const locRows = full.filter((r) => r.locationId === loc.id);
@@ -1321,7 +1321,7 @@ export default function AdminInventoryPage() {
   return (
     <div>
       <AdminPageHeader
-        title="inventory"
+        title="Inventory"
         description="Stock is tracked per location — an online sale and a Zostel walk-in sale never draw from the same pool."
         action={
           <CsvDownloadButton
@@ -1365,7 +1365,7 @@ export default function AdminInventoryPage() {
                 disabled={addMissing.isPending}
                 className="pill-btn-outline !py-1.5 text-xs disabled:opacity-40"
               >
-                {addMissing.isPending ? "adding…" : `add ${missingCount} missing product${missingCount === 1 ? "" : "s"} (starts at 0)`}
+                {addMissing.isPending ? "Adding…" : `add ${missingCount} missing product${missingCount === 1 ? "" : "s"} (starts at 0)`}
               </button>
             )}
             <FilterDropdown options={scopeOptions} value={summaryScope} onChange={setSummaryScope} searchPlaceholder="Search…" />
@@ -1375,13 +1375,13 @@ export default function AdminInventoryPage() {
           <table className="w-full text-left text-sm">
             <thead>
               <tr className="border-b border-ink/10 text-[11px] uppercase tracking-label text-ink/50">
-                <th className="px-4 py-3">variant</th>
-                <th className="px-4 py-3">price / box</th>
-                <th className="px-4 py-3">remaining stock</th>
-                <th className="px-4 py-3">stock value</th>
-                <th className="px-4 py-3">logged net (in − out)</th>
-                <th className="px-4 py-3">gap vs. log</th>
-                <th className="px-4 py-3">reorder threshold</th>
+                <th className="px-4 py-3">Variant</th>
+                <th className="px-4 py-3">Price / Box</th>
+                <th className="px-4 py-3">Remaining Stock</th>
+                <th className="px-4 py-3">Stock Value</th>
+                <th className="px-4 py-3">Logged net (in − out)</th>
+                <th className="px-4 py-3">Gap vs. log</th>
+                <th className="px-4 py-3">Reorder Threshold</th>
                 <th className="px-4 py-3">status</th>
               </tr>
             </thead>
@@ -1433,7 +1433,7 @@ export default function AdminInventoryPage() {
                         <td className="px-4 py-3 text-ink/70">{formatInr(stockValue)}</td>
                         <td className="px-4 py-3">
                           {loggedNet === null ? (
-                            <span className="text-ink/30">not logged</span>
+                            <span className="text-ink/30">Not Logged</span>
                           ) : (
                             <span className={loggedNet >= 0 ? "text-emerald-700" : "text-red-700"}>
                               {loggedNet >= 0 ? `+${loggedNet}` : loggedNet}
@@ -1445,7 +1445,7 @@ export default function AdminInventoryPage() {
                             <span className="text-ink/30">—</span>
                           ) : gap === 0 ? (
                             <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
-                              matches
+                              Matches
                             </span>
                           ) : (
                             <span className="rounded-full bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-700">
@@ -1458,9 +1458,9 @@ export default function AdminInventoryPage() {
                         </td>
                         <td className="px-4 py-3">
                           {summary.reorderThreshold === null ? (
-                            <span className="text-xs text-ink/40">not set</span>
+                            <span className="text-xs text-ink/40">Not Set</span>
                           ) : isLow ? (
-                            <span className="rounded-full bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">low stock</span>
+                            <span className="rounded-full bg-red-50 px-2 py-1 text-[11px] font-semibold text-red-700">Low Stock</span>
                           ) : (
                             <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">OK</span>
                           )}

@@ -27,28 +27,28 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ConfirmDialogProvider } from "@/contexts/ConfirmDialogContext";
 
 const NAV = [
-  { href: "/admin", label: "dashboard", Icon: BarChart3 },
+  { href: "/admin", label: "Dashboard", Icon: BarChart3 },
   { href: "/admin/orders", label: "orders", Icon: ShoppingBag },
-  { href: "/admin/appointments", label: "appointments", Icon: Calendar },
-  { href: "/admin/availability", label: "availability", Icon: Calendar },
-  { href: "/admin/products", label: "products", Icon: Package },
-  { href: "/admin/coupons", label: "coupons", Icon: Gift },
-  { href: "/admin/pickup-locations", label: "pickup locations", Icon: MapIcon },
-  { href: "/admin/inventory", label: "inventory", Icon: PackageSearch },
-  { href: "/admin/pincodes", label: "pincodes", Icon: MapIcon },
-  { href: "/admin/experts", label: "experts", Icon: UserSquare2 },
-  { href: "/admin/business-leads", label: "business leads", Icon: Briefcase },
-  { href: "/admin/contact-messages", label: "contact messages", Icon: Mail },
-  { href: "/admin/feedback", label: "feedback", Icon: MessageSquareHeart },
-  { href: "/admin/expert-applications", label: "expert applications", Icon: UserSquare2 },
-  { href: "/admin/feelz-preorders", label: "feelz preorders", Icon: Package },
+  { href: "/admin/appointments", label: "Appointments", Icon: Calendar },
+  { href: "/admin/availability", label: "Availability", Icon: Calendar },
+  { href: "/admin/products", label: "Products", Icon: Package },
+  { href: "/admin/coupons", label: "Coupons", Icon: Gift },
+  { href: "/admin/pickup-locations", label: "Pickup Locations", Icon: MapIcon },
+  { href: "/admin/inventory", label: "Inventory", Icon: PackageSearch },
+  { href: "/admin/pincodes", label: "Pincodes", Icon: MapIcon },
+  { href: "/admin/experts", label: "Experts", Icon: UserSquare2 },
+  { href: "/admin/business-leads", label: "Business Leads", Icon: Briefcase },
+  { href: "/admin/contact-messages", label: "Contact Messages", Icon: Mail },
+  { href: "/admin/feedback", label: "Feedback", Icon: MessageSquareHeart },
+  { href: "/admin/expert-applications", label: "Expert Applications", Icon: UserSquare2 },
+  { href: "/admin/feelz-preorders", label: "Feelz Preorders", Icon: Package },
   { href: "/admin/reviews", label: "reviews", Icon: Star },
-  { href: "/admin/faqs", label: "faqs", Icon: FileQuestion },
-  { href: "/admin/therapy-categories", label: "therapy categories", Icon: FileQuestion },
-  { href: "/admin/milestones", label: "milestones", Icon: MilestoneIcon },
-  { href: "/admin/site-settings", label: "site settings", Icon: Sliders },
-  { href: "/admin/newsletter", label: "newsletter", Icon: Mail },
-  { href: "/admin/users", label: "users & roles", Icon: Users },
+  { href: "/admin/faqs", label: "FAQs", Icon: FileQuestion },
+  { href: "/admin/therapy-categories", label: "Therapy Categories", Icon: FileQuestion },
+  { href: "/admin/milestones", label: "Milestones", Icon: MilestoneIcon },
+  { href: "/admin/site-settings", label: "Site Settings", Icon: Sliders },
+  { href: "/admin/newsletter", label: "Newsletter", Icon: Mail },
+  { href: "/admin/users", label: "Users & Roles", Icon: Users },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -73,10 +73,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!isAdmin) {
     return (
       <div className="mx-auto flex min-h-[50vh] max-w-md flex-col items-center justify-center px-4 py-16 text-center sm:px-6">
-        <h1 className="font-display text-2xl font-bold lowercase text-ink">access denied</h1>
+        <h1 className="font-display text-2xl font-bold text-ink">Access Denied</h1>
         <p className="mt-2 text-sm text-ink/60">This account doesn&apos;t have admin access.</p>
         <Link href="/account" className="pill-btn mt-6">
-          back to your account
+          Back to Your Account
         </Link>
       </div>
     );

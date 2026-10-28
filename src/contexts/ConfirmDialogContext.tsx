@@ -54,14 +54,14 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
           <p className="text-sm text-ink/70">{options?.message}</p>
           <div className="flex gap-2">
             <button type="button" onClick={() => settle(false)} className="pill-btn-outline flex-1 !py-2 text-xs">
-              {options?.cancelLabel ?? "cancel"}
+              {options?.cancelLabel ?? "Cancel"}
             </button>
             <button
               type="button"
               onClick={() => settle(true)}
               className={`pill-btn flex-1 !py-2 text-xs ${options?.danger ? "!bg-red-600 !text-white hover:!bg-red-700" : ""}`}
             >
-              {options?.confirmLabel ?? (options?.danger ? "delete" : "confirm")}
+              {options?.confirmLabel ?? (options?.danger ? "Delete" : "Confirm")}
             </button>
           </div>
         </div>

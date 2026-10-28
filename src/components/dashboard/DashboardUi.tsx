@@ -94,7 +94,7 @@ export function DashboardShell({
             </nav>
             <div className="mt-auto border-t border-[#eee4e9] px-3 pb-1 pt-4 text-[11px] leading-relaxed text-[#7f8794]">
               <strong className="mb-0.5 block text-xs text-brand-navy">Need a hand?</strong>
-              Contact Mindcafe support
+              Contact mindcafe support
               <br />
               <a href="mailto:team@mindcafe.app" className="text-brand hover:underline">
                 team@mindcafe.app

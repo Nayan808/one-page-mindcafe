@@ -134,7 +134,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="only needed for a new account"
+              placeholder="Only needed for a new account"
               className="input"
             />
           </div>
@@ -198,7 +198,7 @@ export function AuthForm({ returnTo, onSuccess }: { returnTo?: string; onSuccess
             <span className="font-medium text-ink">{identifierLabel}</span>.
           </p>
           <div>
-            <label className="mb-1 block text-sm text-ink/70">verification code</label>
+            <label className="mb-1 block text-sm text-ink/70">Verification Code</label>
             <input
               inputMode="numeric"
               autoComplete="one-time-code"

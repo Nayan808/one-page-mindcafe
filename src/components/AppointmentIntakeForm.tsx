@@ -65,17 +65,17 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="mb-1 block text-xs font-medium text-ink/70">age</label>
+          <label className="mb-1 block text-xs font-medium text-ink/70">Age</label>
           <input value={age} onChange={(e) => setAge(e.target.value)} placeholder="e.g. 24" className="input" />
         </div>
         <div>
-          <label className="mb-1 block text-xs font-medium text-ink/70">pronouns</label>
+          <label className="mb-1 block text-xs font-medium text-ink/70">Pronouns</label>
           <input value={pronouns} onChange={(e) => setPronouns(e.target.value)} placeholder="e.g. she/her" className="input" />
         </div>
       </div>
 
       <div className="mt-3">
-        <label className="mb-1 block text-xs font-medium text-ink/70">occupation</label>
+        <label className="mb-1 block text-xs font-medium text-ink/70">Occupation</label>
         <input
           value={occupation}
           onChange={(e) => setOccupation(e.target.value)}
@@ -85,7 +85,7 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
       </div>
 
       <div className="mt-3">
-        <label className="mb-1 block text-xs font-medium text-ink/70">what brought you here?</label>
+        <label className="mb-1 block text-xs font-medium text-ink/70">What brought you here?</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
@@ -105,7 +105,7 @@ export function AppointmentIntakeForm({ appointmentId }: { appointmentId: string
                 type="text"
                 value={concernSearch}
                 onChange={(e) => setConcernSearch(e.target.value)}
-                placeholder="search concerns…"
+                placeholder="Search concerns…"
                 className="input pl-9 text-sm"
               />
             </div>

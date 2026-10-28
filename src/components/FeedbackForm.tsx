@@ -82,7 +82,7 @@ export function FeedbackForm() {
             <h1 className="mt-4 font-[family-name:var(--font-display)] text-2xl font-bold text-brand-navy">
               Thank you{name.trim() ? `, ${name.trim().split(" ")[0]}` : ""}!
             </h1>
-            <p className="mt-2 text-sm text-[#718096]">Your feedback has reached the Mindcafe team. We read every response.</p>
+            <p className="mt-2 text-sm text-[#718096]">Your feedback has reached the mindcafe team. We read every response.</p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Link href="/feelz" className="pill-btn">
                 Explore Feelz
@@ -95,12 +95,12 @@ export function FeedbackForm() {
         ) : (
           <>
             <div className="mb-6 text-center">
-              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand">Mindcafe · Feelz</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-brand">mindcafe · Feelz</p>
               <h1 className="mt-2 font-[family-name:var(--font-display)] text-3xl font-bold tracking-[-0.02em] text-brand-navy sm:text-4xl">
                 How was your experience?
               </h1>
               <p className="mx-auto mt-2 max-w-md text-sm text-[#718096]">
-                Tell us how Feelz or your Mindcafe session worked for you. It takes about a minute.
+                Tell us how Feelz or your mindcafe session worked for you. It takes about a minute.
               </p>
             </div>
 
@@ -235,7 +235,7 @@ export function FeedbackForm() {
                   onChange={(e) => setCanPublish(e.target.checked)}
                   className="mt-0.5 h-4 w-4 accent-[#986178]"
                 />
-                <span>Mindcafe can show my name on the website.</span>
+                <span>mindcafe can show my name on the website.</span>
               </label>
 
               {error && <p className="text-sm font-medium text-red-600">{error}</p>}
@@ -244,7 +244,7 @@ export function FeedbackForm() {
                 {isSubmitting ? "Sending…" : "Send feedback"}
               </button>
               <p className="text-center text-[11px] text-[#8992a0]">
-                Your contact details are only used by the Mindcafe team and are never shown publicly.
+                Your contact details are only used by the mindcafe team and are never shown publicly.
               </p>
             </form>
           </>

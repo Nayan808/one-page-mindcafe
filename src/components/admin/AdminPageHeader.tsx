@@ -1,3 +1,5 @@
+import { titleCase } from "@/lib/textCase";
+
 export function AdminPageHeader({
   title,
   description,
@@ -10,7 +12,7 @@ export function AdminPageHeader({
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
       <div>
-        <h1 className="font-display text-2xl font-bold lowercase text-ink">{title}</h1>
+        <h1 className="font-display text-2xl font-bold text-ink">{titleCase(title)}</h1>
         {description && <p className="mt-1 text-sm text-ink/60">{description}</p>}
       </div>
       {action}

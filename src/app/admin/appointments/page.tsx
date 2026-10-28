@@ -15,12 +15,13 @@ import { useConfirmDialog } from "@/contexts/ConfirmDialogContext";
 import { useDebouncedValue } from "@/lib/useDebouncedValue";
 import { formatDateTime, formatInr } from "@/lib/utils";
 import type { AppointmentWithDetails } from "@/types/domain";
+import { titleCase } from "@/lib/textCase";
 
 const STATUSES = ["pending", "confirmed", "completed", "cancelled"];
 const PAGE_SIZE = 20;
 
 const STATUS_FILTER_OPTIONS: FilterOption[] = [
-  { value: "", label: "all statuses" },
+  { value: "", label: "All Statuses" },
   ...STATUSES.map((s) => ({ value: s, label: s })),
 ];
 
@@ -104,7 +105,7 @@ export default function AdminAppointmentsPage() {
   const columns: AdminColumn<AppointmentWithDetails>[] = [
     {
       key: "customer",
-      label: "customer",
+      label: "Customer",
       render: (a) => (
         <div>
           <p className="font-medium text-ink">{a.profiles?.full_name ?? "—"}</p>
@@ -112,10 +113,10 @@ export default function AdminAppointmentsPage() {
         </div>
       ),
     },
-    { key: "category", label: "category", render: (a) => <span className="capitalize">{a.therapy_category.replace(/-/g, " ")}</span> },
+    { key: "category", label: "Category", render: (a) => <span className="capitalize">{a.therapy_category.replace(/-/g, " ")}</span> },
     {
       key: "expert",
-      label: "expert",
+      label: "Expert",
       render: (a) => (
         <select
           value={a.expert_id ?? ""}
@@ -131,10 +132,10 @@ export default function AdminAppointmentsPage() {
         </select>
       ),
     },
-    { key: "when", label: "requested time", render: (a) => <span className="text-ink/60">{a.scheduled_at ? formatDateTime(a.scheduled_at) : "—"}</span> },
+    { key: "when", label: "Requested Time", render: (a) => <span className="text-ink/60">{a.scheduled_at ? formatDateTime(a.scheduled_at) : "—"}</span> },
     {
       key: "payment",
-      label: "payment",
+      label: "Payment",
       render: (a) => (
         <div>
           <p className="font-medium text-ink">{formatInr(a.total ?? 0)}</p>
@@ -153,7 +154,7 @@ export default function AdminAppointmentsPage() {
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {titleCase(s.replace(/_/g, " "))}
             </option>
           ))}
         </select>
@@ -170,7 +171,7 @@ export default function AdminAppointmentsPage() {
             ✗ failed
           </span>
         ) : a.last_notification_status === "no_email" ? (
-          <span className="text-xs font-medium text-amber-600">no email on file</span>
+          <span className="text-xs font-medium text-amber-600">No Email on File</span>
         ) : (
           <span className="text-xs text-ink/30">—</span>
         ),
@@ -180,7 +181,7 @@ export default function AdminAppointmentsPage() {
       label: "",
       render: (a) => (
         <button type="button" onClick={() => setDetailsAppointment(a)} className="text-xs font-medium text-ink underline">
-          details
+          Details
         </button>
       ),
     },
@@ -189,7 +190,7 @@ export default function AdminAppointmentsPage() {
   return (
     <div>
       <AdminPageHeader
-        title="appointments"
+        title="Appointments"
         description={`${total} total`}
         action={
           <CsvDownloadButton
@@ -246,7 +247,7 @@ export default function AdminAppointmentsPage() {
             ? async (a) => {
                 if (
                   await confirmDialog({
-                    title: "delete appointment",
+                    title: "Delete Appointment",
                     message: "Delete this appointment permanently? This can't be undone.",
                     danger: true,
                   })
@@ -261,45 +262,45 @@ export default function AdminAppointmentsPage() {
       {totalPages > 1 && (
         <div className="mt-4 flex items-center justify-center gap-3 text-xs">
           <button type="button" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} className="pill-btn-outline !py-1.5 disabled:opacity-40">
-            previous
+            Previous
           </button>
           <span className="text-ink/50">
             page {page + 1} of {totalPages}
           </span>
           <button type="button" onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))} disabled={page >= totalPages - 1} className="pill-btn-outline !py-1.5 disabled:opacity-40">
-            next
+            Next
           </button>
         </div>
       )}
 
-      <Modal isOpen={!!detailsAppointment} onClose={() => setDetailsAppointment(null)} title="appointment details">
+      <Modal isOpen={!!detailsAppointment} onClose={() => setDetailsAppointment(null)} title="Appointment Details">
         {detailsAppointment && (
           <div className="space-y-4 text-sm">
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">customer</p>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Customer</p>
               <p className="mt-1 text-ink">{detailsAppointment.profiles?.full_name ?? "—"}</p>
               <p className="text-ink/60">{detailsAppointment.profiles?.phone ?? "—"}</p>
             </div>
 
             <div>
-              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">payment</p>
+              <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Payment</p>
               <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-ink/70">
-                <dt className="text-ink/40">price</dt>
+                <dt className="text-ink/40">Price</dt>
                 <dd>{formatInr(detailsAppointment.price ?? 0)}</dd>
-                <dt className="text-ink/40">discount</dt>
+                <dt className="text-ink/40">Discount</dt>
                 <dd>{formatInr(detailsAppointment.discount_amount ?? 0)}</dd>
-                <dt className="text-ink/40">coupon</dt>
+                <dt className="text-ink/40">Coupon</dt>
                 <dd>{detailsAppointment.coupon_code ?? "—"}</dd>
-                <dt className="text-ink/40">total</dt>
+                <dt className="text-ink/40">Total</dt>
                 <dd className="font-medium text-ink">{formatInr(detailsAppointment.total ?? 0)}</dd>
-                <dt className="text-ink/40">payment status</dt>
+                <dt className="text-ink/40">Payment Status</dt>
                 <dd className="capitalize">{detailsAppointment.payment_status}</dd>
               </dl>
             </div>
 
             {detailsAppointment.meet_link && (
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">meet link</p>
+                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Meet Link</p>
                 <a href={detailsAppointment.meet_link} target="_blank" rel="noreferrer" className="mt-1 block truncate text-ink underline">
                   {detailsAppointment.meet_link}
                 </a>
@@ -312,25 +313,25 @@ export default function AdminAppointmentsPage() {
                 <dl className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1 text-ink/70">
                   {detailsAppointment.intake_age && (
                     <>
-                      <dt className="text-ink/40">age</dt>
+                      <dt className="text-ink/40">Age</dt>
                       <dd>{detailsAppointment.intake_age}</dd>
                     </>
                   )}
                   {detailsAppointment.intake_pronouns && (
                     <>
-                      <dt className="text-ink/40">pronouns</dt>
+                      <dt className="text-ink/40">Pronouns</dt>
                       <dd>{detailsAppointment.intake_pronouns}</dd>
                     </>
                   )}
                   {detailsAppointment.intake_occupation && (
                     <>
-                      <dt className="text-ink/40">occupation</dt>
+                      <dt className="text-ink/40">Occupation</dt>
                       <dd>{detailsAppointment.intake_occupation}</dd>
                     </>
                   )}
                   {detailsAppointment.intake_concern && (
                     <>
-                      <dt className="text-ink/40">concern</dt>
+                      <dt className="text-ink/40">Concern</dt>
                       <dd>{detailsAppointment.intake_concern}</dd>
                     </>
                   )}
@@ -356,13 +357,13 @@ export default function AdminAppointmentsPage() {
                     <dl className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 border-t border-ink/10 pt-2 text-ink/70">
                       {detailsAppointment.intake_energy_level && (
                         <>
-                          <dt className="text-ink/40">energy</dt>
+                          <dt className="text-ink/40">Energy</dt>
                           <dd className="capitalize">{detailsAppointment.intake_energy_level}</dd>
                         </>
                       )}
                       {detailsAppointment.intake_comfort_level && (
                         <>
-                          <dt className="text-ink/40">comfort</dt>
+                          <dt className="text-ink/40">Comfort</dt>
                           <dd className="capitalize">{detailsAppointment.intake_comfort_level}</dd>
                         </>
                       )}

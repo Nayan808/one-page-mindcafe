@@ -91,7 +91,7 @@ export function ScanOrderPayment({
         amount: result.amount,
         currency: result.currency,
         razorpayOrderId: result.razorpay_order_id,
-        name: "Mindcafe",
+        name: "mindcafe",
         prefill: {
           name: profile?.full_name ?? undefined,
           email: user?.email ?? undefined,
@@ -247,7 +247,7 @@ export function ScanOrderPayment({
 
       <div className="flex gap-2">
         <button type="button" onClick={onBack} disabled={isSubmitting} className="pill-btn-outline flex-1">
-          back
+          Back
         </button>
         <button
           type="button"

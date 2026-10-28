@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useAuth } from "@/contexts/AuthContext";
+import { titleCase } from "@/lib/textCase";
 
 const schema = z.object({
   email: z.string().min(1, "Required").email("Enter a valid email"),
@@ -92,9 +93,9 @@ function RoleLoginFormInner({ role, roleLabel, dashboardHref, loginHref }: RoleL
 
   return (
     <div className="mx-auto flex min-h-[70vh] max-w-sm flex-col justify-center px-4 py-16 sm:px-6">
-      <h1 className="font-display text-3xl font-bold lowercase text-ink">{roleLabel} sign in</h1>
+      <h1 className="font-display text-3xl font-bold text-ink">{titleCase(`${roleLabel} sign in`)}</h1>
       <p className="mt-2 text-sm text-ink/60">
-        Accounts are set up by Mindcafe — reach out if you don&apos;t have credentials yet.
+        Accounts are set up by mindcafe — reach out if you don&apos;t have credentials yet.
       </p>
 
       {oauthError && (
@@ -104,7 +105,7 @@ function RoleLoginFormInner({ role, roleLabel, dashboardHref, loginHref }: RoleL
       )}
 
       <button type="button" onClick={handleGoogle} disabled={isGoogleLoading} className="pill-btn mt-6 w-full">
-        {isGoogleLoading ? "redirecting…" : "Continue with Google"}
+        {isGoogleLoading ? "Redirecting…" : "Continue with Google"}
       </button>
 
       <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-label text-ink/40">
@@ -128,7 +129,7 @@ function RoleLoginFormInner({ role, roleLabel, dashboardHref, loginHref }: RoleL
         {formError && <p className="text-sm text-red-600">{formError}</p>}
 
         <button type="submit" disabled={isSubmitting} className="pill-btn w-full">
-          {isSubmitting ? "signing in…" : "sign in"}
+          {isSubmitting ? "Signing in…" : "Sign in"}
         </button>
       </form>
     </div>

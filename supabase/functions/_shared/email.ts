@@ -10,7 +10,7 @@
 // actually see it. This is what makes a guest checkout/booking's *only*
 // notification channel — there's no account/dashboard to fall back on —
 // no longer a silent single point of failure.
-const FROM_ADDRESS = "Mindcafe <notifications@mindcafe.app>";
+const FROM_ADDRESS = "mindcafe <notifications@mindcafe.app>";
 
 export const SITE_URL = Deno.env.get("SITE_URL") ?? "https://mindcafe.app";
 
@@ -63,7 +63,17 @@ export type EmailBody = {
 // Table-based layout with inline styles only (no <style> blocks, no
 // flexbox) because that's what actually survives Gmail/Outlook's markup
 // stripping, not because it's the nicest way to write HTML.
-export function renderEmail({ heading, paragraphs, cta }: EmailBody): { text: string; html: string } {
+// House style: buttons and headings in normal case, except the brand,
+// which is always "mindcafe". Callers pass labels like "view your order".
+function sentenceCase(text: string): string {
+  const fixed = text.replace(/\bmindcafe\b/gi, "mindcafe");
+  return fixed.startsWith("mindcafe") ? fixed : fixed.charAt(0).toUpperCase() + fixed.slice(1);
+}
+
+export function renderEmail({ heading: rawHeading, paragraphs: rawParagraphs, cta: rawCta }: EmailBody): { text: string; html: string } {
+  const heading = sentenceCase(rawHeading);
+  const paragraphs = rawParagraphs.map((paragraph) => paragraph.replace(/\bMindcafe\b/g, "mindcafe"));
+  const cta = { ...rawCta, label: sentenceCase(rawCta.label) };
   const text = [heading, "", ...paragraphs, "", `${cta.label}: ${cta.url}`].join("\n");
 
   const html = `
@@ -93,7 +103,7 @@ export function renderEmail({ heading, paragraphs, cta }: EmailBody): { text: st
         </tr>
         <tr>
           <td style="padding:18px 32px 26px;border-top:1px solid #efe9dd;">
-            <p style="margin:0;font-size:11px;line-height:1.6;color:#a89f8f;">Automated notification from Mindcafe — you're receiving this because of activity on your account.</p>
+            <p style="margin:0;font-size:11px;line-height:1.6;color:#a89f8f;">Automated notification from mindcafe — you're receiving this because of activity on your account.</p>
           </td>
         </tr>
       </table>

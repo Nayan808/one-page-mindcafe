@@ -21,8 +21,8 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
       {
         heading: "1. Introduction",
         paragraphs: [
-          "This Privacy Policy explains what personal data Mindcafe collects when you use our website and Platform — including Feelz (our mood-strip products), our counselling booking service, and Scan & Order (QR-linked ordering at partner Zostel properties) — and how we use, share, and protect it.",
-          "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “Mindcafe.”",
+          "This Privacy Policy explains what personal data mindcafe collects when you use our website and Platform — including Feelz (our mood-strip products), our counselling booking service, and Scan & Order (QR-linked ordering at partner Zostel properties) — and how we use, share, and protect it.",
+          "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “mindcafe.”",
           "By using the Platform, you agree to the collection and use of information as described here.",
         ],
       },
@@ -86,7 +86,7 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
       {
         heading: "5. Counselling & Sensitive Information",
         paragraphs: [
-          "If you book a counselling session, information you share during booking or in an intake form — including anything about your mental health or personal circumstances — is used only to support the counselling relationship between you and the expert you're booked with. It is accessible only to you, that expert, and authorised Mindcafe administrators, never shared for marketing or with any other user.",
+          "If you book a counselling session, information you share during booking or in an intake form — including anything about your mental health or personal circumstances — is used only to support the counselling relationship between you and the expert you're booked with. It is accessible only to you, that expert, and authorised mindcafe administrators, never shared for marketing or with any other user.",
         ],
       },
       {
@@ -161,13 +161,13 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
       {
         heading: "1. Acceptance of Terms",
         paragraphs: [
-          "These Terms of Service (“Terms”) govern your use of the Mindcafe website and Platform, including Feelz (our mood-strip products), our counselling booking service, and Scan & Order. By accessing or using the Platform, you agree to be bound by these Terms. If you don't agree, please don't use the Platform.",
+          "These Terms of Service (“Terms”) govern your use of the mindcafe website and Platform, including Feelz (our mood-strip products), our counselling booking service, and Scan & Order. By accessing or using the Platform, you agree to be bound by these Terms. If you don't agree, please don't use the Platform.",
         ],
       },
       {
         heading: "2. About Us",
         paragraphs: [
-          "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “Mindcafe.”",
+          "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “mindcafe.”",
         ],
       },
       {
@@ -243,13 +243,13 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
       {
         heading: "11. Reviews & User Content",
         paragraphs: [
-          "By submitting a review or other content to the Platform, you confirm it reflects your own genuine experience, and you grant Mindcafe a non-exclusive licence to display it on the Platform.",
+          "By submitting a review or other content to the Platform, you confirm it reflects your own genuine experience, and you grant mindcafe a non-exclusive licence to display it on the Platform.",
         ],
       },
       {
         heading: "12. Intellectual Property",
         paragraphs: [
-          "The Mindcafe and Feelz names, logos, and all content on the Platform are the property of Sneh Care Club Private Limited or its licensors, and may not be used without our prior written permission.",
+          "The mindcafe and Feelz names, logos, and all content on the Platform are the property of Sneh Care Club Private Limited or its licensors, and may not be used without our prior written permission.",
         ],
       },
       {
@@ -267,7 +267,7 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
       {
         heading: "15. Limitation of Liability",
         paragraphs: [
-          "To the maximum extent permitted by law, Mindcafe's total liability arising from your use of the Platform, an order, or a counselling session is limited to the amount you paid for that specific order or session.",
+          "To the maximum extent permitted by law, mindcafe's total liability arising from your use of the Platform, an order, or a counselling session is limited to the amount you paid for that specific order or session.",
         ],
       },
       {
@@ -314,8 +314,8 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
       {
         heading: "1. Overview",
         paragraphs: [
-          "This Refund & Cancellation Policy (“Policy”) applies to all orders placed for Feelz by Mindcafe products — Focus, Joy, Extrovert, and Rest — purchased through our website, mobile site, or any authorised online channel (“Platform”). Feelz products are consumable wellness items. Please read this Policy carefully before placing an order, as it explains when a cancellation, replacement, or refund is and is not available.",
-          "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “Mindcafe.”",
+          "This Refund & Cancellation Policy (“Policy”) applies to all orders placed for Feelz by mindcafe products — Focus, Joy, Extrovert, and Rest — purchased through our website, mobile site, or any authorised online channel (“Platform”). Feelz products are consumable wellness items. Please read this Policy carefully before placing an order, as it explains when a cancellation, replacement, or refund is and is not available.",
+          "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “mindcafe.”",
         ],
       },
       {

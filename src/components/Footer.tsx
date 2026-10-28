@@ -100,7 +100,7 @@ export function Footer() {
         <div>
           <p className="font-display text-2xl font-bold">Feelz</p>
           <p className="mx-auto mt-2 max-w-xs text-sm text-ink/60 sm:mx-0">
-            Sublingual mood strips, made by Mindcafe, incubated at Zo World, distributed by Zostel.
+            Sublingual mood strips, made by mindcafe, incubated at Zo World, distributed by Zostel.
           </p>
           <ul className="mt-3 space-y-1 text-sm text-ink/70">
             {MOOD_GRID.map((mood) => (
@@ -233,7 +233,7 @@ export function Footer() {
                 <Mail className="h-3.5 w-3.5 text-ink/40" aria-hidden />
                 team@mindcafe.app
               </a>
-              <span className="mt-0.5 block text-xs text-ink/50">response within 24 hours</span>
+              <span className="mt-0.5 block text-xs text-ink/50">Response Within 24 Hours</span>
             </li>
             <li>
               <a
@@ -278,7 +278,7 @@ export function Footer() {
       </StaggerGroup>
 
       <div className="mt-8 flex flex-col items-center gap-3 border-t border-ink/10 pt-6 text-xs text-ink/50 sm:flex-row sm:items-center sm:justify-between">
-        <p>© 2026 Mindcafe, a venture of Sneh Care Club Pvt. Ltd. All rights reserved.</p>
+        <p>© 2026 mindcafe, a venture of Sneh Care Club Pvt. Ltd. All rights reserved.</p>
         <div className="flex gap-4">
           <Link href="/legal/privacy" className="hover:text-brand hover:underline">
             Privacy

@@ -123,7 +123,7 @@ function CustomerNote({ notes, className = "" }: { notes: string | null; classNa
     <div className={`flex gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 ${className}`}>
       <StickyNote className="h-3.5 w-3.5 shrink-0 text-amber-700" aria-hidden />
       <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-label text-amber-800">customer note</p>
+        <p className="text-[10px] font-semibold uppercase tracking-label text-amber-800">Customer Note</p>
         <p className="mt-0.5 whitespace-pre-wrap break-words text-xs text-amber-900">{notes.trim()}</p>
       </div>
     </div>
@@ -322,7 +322,7 @@ export default function StaffDashboard() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-ink text-cream">
             <Lock className="h-5 w-5" aria-hidden />
           </div>
-          <h1 className="font-display mt-4 text-2xl font-bold lowercase">feelz staff</h1>
+          <h1 className="font-display mt-4 text-2xl font-bold">Feelz Staff</h1>
           <p className="mt-1 text-sm text-ink/60">Enter the dashboard password, or your location&apos;s staff PIN.</p>
 
           <div className="mt-6 space-y-3">
@@ -342,7 +342,7 @@ export default function StaffDashboard() {
               className="pill-btn w-full gap-2"
             >
               <Lock className="h-4 w-4" aria-hidden />
-              {isCheckingPassword ? "checking…" : "unlock"}
+              {isCheckingPassword ? "Checking…" : "Unlock"}
             </button>
           </div>
           {authError && <p className="mt-3 text-sm text-red-600">{authError}</p>}
@@ -355,9 +355,9 @@ export default function StaffDashboard() {
     <div className="mx-auto min-h-screen max-w-lg space-y-8 bg-cream px-4 py-8">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold lowercase">feelz staff</h1>
+          <h1 className="font-display text-2xl font-bold">Feelz Staff</h1>
           <p className="text-xs text-ink/50">
-            {scopedLocation ? `pickup desk — ${scopedLocation.name}, ${scopedLocation.city}` : "pickup desk — all locations"}
+            {scopedLocation ? `pickup desk — ${scopedLocation.name}, ${scopedLocation.city}` : "Pickup desk — all locations"}
           </p>
         </div>
         <button
@@ -373,7 +373,7 @@ export default function StaffDashboard() {
           className="pill-btn-outline gap-1.5 !py-2 text-xs"
         >
           <LogOut className="h-3.5 w-3.5" aria-hidden />
-          lock
+          Lock
         </button>
       </header>
 
@@ -381,15 +381,15 @@ export default function StaffDashboard() {
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
             <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsSold : "—"}</p>
-            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units sold</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">Units Sold</p>
           </div>
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
             <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsRemaining : "—"}</p>
-            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">units remaining</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">Units Remaining</p>
           </div>
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
             <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.revenue) : "—"}</p>
-            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">revenue</p>
+            <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">Revenue</p>
           </div>
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
             <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.commission) : "—"}</p>
@@ -421,14 +421,14 @@ export default function StaffDashboard() {
           onClick={() => setActiveTab("inventory")}
           className={`ml-5 px-1 pb-2.5 text-sm font-semibold ${activeTab === "inventory" ? "border-b-2 border-ink text-ink" : "text-ink/50"}`}
         >
-          inventory
+          Inventory
         </button>
         <button
           type="button"
           onClick={() => setActiveTab("history")}
           className={`ml-5 px-1 pb-2.5 text-sm font-semibold ${activeTab === "history" ? "border-b-2 border-ink text-ink" : "text-ink/50"}`}
         >
-          history
+          History
         </button>
       </div>
 
@@ -446,7 +446,7 @@ export default function StaffDashboard() {
             className="input uppercase"
           />
           <button type="button" onClick={() => void handleLookup(code)} disabled={isLookingUp} className="pill-btn shrink-0">
-            {isLookingUp ? "…" : "look up"}
+            {isLookingUp ? "…" : "Look Up"}
           </button>
         </div>
         {lookupError && <p className="text-sm text-red-600">{lookupError}</p>}
@@ -458,7 +458,7 @@ export default function StaffDashboard() {
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${lookedUpOrder.status === "picked_up" ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"}`}
               >
-                {lookedUpOrder.status === "picked_up" ? "collected" : "ready for pickup"}
+                {lookedUpOrder.status === "picked_up" ? "Collected" : "Ready for Pickup"}
               </span>
             </div>
             <p>
@@ -489,7 +489,7 @@ export default function StaffDashboard() {
               disabled={isCollecting || lookedUpOrder.status === "picked_up"}
               className="pill-btn w-full"
             >
-              {lookedUpOrder.status === "picked_up" ? "already collected" : isCollecting ? "marking…" : "mark as collected"}
+              {lookedUpOrder.status === "picked_up" ? "Already Collected" : isCollecting ? "marking…" : "mark as collected"}
             </button>
           </div>
         )}
@@ -508,7 +508,7 @@ export default function StaffDashboard() {
             className="pill-btn-outline gap-1.5 !py-2 text-xs"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${isLoadingPending ? "animate-spin" : ""}`} aria-hidden />
-            refresh
+            Refresh
           </button>
         </div>
 
@@ -560,7 +560,7 @@ export default function StaffDashboard() {
               className="pill-btn-outline gap-1.5 !py-2 text-xs"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isLoadingInventory ? "animate-spin" : ""}`} aria-hidden />
-              refresh
+              Refresh
             </button>
           </div>
           <p className="text-xs text-ink/50">View only — real stock, updated live. Editing happens in admin.</p>
@@ -600,19 +600,19 @@ export default function StaffDashboard() {
                   </div>
                   <div className="mt-2 grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs">
                     <div>
-                      <p className="text-ink/50">sold</p>
+                      <p className="text-ink/50">Sold</p>
                       <p className="font-semibold text-ink">{p.unitsSold}</p>
                     </div>
                     <div>
-                      <p className="text-ink/50">remaining</p>
+                      <p className="text-ink/50">Remaining</p>
                       <p className="font-semibold text-ink">{p.unitsRemaining}</p>
                     </div>
                     <div>
-                      <p className="text-ink/50">revenue</p>
+                      <p className="text-ink/50">Revenue</p>
                       <p className="font-semibold text-ink">{formatInr(p.revenue)}</p>
                     </div>
                     <div>
-                      <p className="text-ink/50">commission</p>
+                      <p className="text-ink/50">Commission</p>
                       <p className="font-semibold text-ink">{formatInr(p.commission)}</p>
                     </div>
                   </div>
@@ -636,7 +636,7 @@ export default function StaffDashboard() {
               className="pill-btn-outline gap-1.5 !py-2 text-xs"
             >
               <RefreshCw className={`h-3.5 w-3.5 ${isLoadingHistory ? "animate-spin" : ""}`} aria-hidden />
-              refresh
+              Refresh
             </button>
           </div>
           <p className="text-xs text-ink/50">Every paid, picked-up order — order number, customer, items, and date.</p>

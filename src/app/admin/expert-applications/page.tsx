@@ -10,6 +10,7 @@ import { AdminTable, type AdminColumn } from "@/components/admin/AdminTable";
 import { AdminSearchInput } from "@/components/admin/AdminSearchInput";
 import { formatDate } from "@/lib/utils";
 import type { ExpertApplication } from "@/types/domain";
+import { titleCase } from "@/lib/textCase";
 
 const STATUSES: ExpertApplication["status"][] = ["new", "contacted", "closed"];
 
@@ -48,12 +49,12 @@ export default function AdminExpertApplicationsPage() {
   });
 
   const columns: AdminColumn<ExpertApplication>[] = [
-    { key: "name", label: "name", render: (a) => <span className="font-medium text-ink">{a.name}</span> },
+    { key: "name", label: "Name", render: (a) => <span className="font-medium text-ink">{a.name}</span> },
     { key: "email", label: "email", render: (a) => (a.email ? <a href={`mailto:${a.email}`} className="text-ink underline">{a.email}</a> : <span className="text-ink/40">—</span>) },
-    { key: "phone", label: "phone", render: (a) => <span className="text-ink/60">{a.phone ?? "—"}</span> },
-    { key: "city", label: "city", render: (a) => <span className="text-ink/60">{a.city ?? "—"}</span> },
-    { key: "qualification", label: "qualification", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.qualification ?? ""}>{a.qualification ?? "—"}</span> },
-    { key: "skills", label: "skills", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.skills ?? ""}>{a.skills ?? "—"}</span> },
+    { key: "phone", label: "Phone", render: (a) => <span className="text-ink/60">{a.phone ?? "—"}</span> },
+    { key: "city", label: "City", render: (a) => <span className="text-ink/60">{a.city ?? "—"}</span> },
+    { key: "qualification", label: "Qualification", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.qualification ?? ""}>{a.qualification ?? "—"}</span> },
+    { key: "skills", label: "Skills", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.skills ?? ""}>{a.skills ?? "—"}</span> },
     {
       key: "status",
       label: "status",
@@ -61,18 +62,18 @@ export default function AdminExpertApplicationsPage() {
         <select value={a.status} onChange={(e) => update.mutate({ id: a.id, status: e.target.value as ExpertApplication["status"] })} className="input !w-auto !py-1.5 text-xs">
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s}
+              {titleCase(s.replace(/_/g, " "))}
             </option>
           ))}
         </select>
       ),
     },
-    { key: "date", label: "received", render: (a) => <span className="text-ink/60">{formatDate(a.created_at)}</span> },
+    { key: "date", label: "Received", render: (a) => <span className="text-ink/60">{formatDate(a.created_at)}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="expert applications" description={`${rows.length} of ${query.data?.length ?? 0} total — people who applied to join as an expert`} action={<CsvDownloadButton filename="expert-applications" rows={rows} />} />
+      <AdminPageHeader title="Expert Applications" description={`${rows.length} of ${query.data?.length ?? 0} total — people who applied to join as an expert`} action={<CsvDownloadButton filename="expert-applications" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, email, phone, or city…" />
       <AdminTable columns={columns} rows={rows} getRowId={(a) => a.id} isLoading={query.isLoading} emptyLabel="No applications yet." />
     </div>

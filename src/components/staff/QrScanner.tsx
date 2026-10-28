@@ -79,7 +79,7 @@ export function QrScanner({ onDecode }: { onDecode: (text: string) => void }) {
         className="pill-btn-outline w-full gap-1.5"
       >
         <ScanLine className="h-4 w-4" aria-hidden />
-        scan qr code
+        Scan QR Code
       </button>
     );
   }

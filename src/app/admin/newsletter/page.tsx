@@ -24,13 +24,13 @@ export default function AdminNewsletterPage() {
 
   const columns: AdminColumn<NewsletterSubscriber>[] = [
     { key: "email", label: "email", render: (s) => <span className="font-medium text-ink">{s.email}</span> },
-    { key: "confirmed", label: "confirmed", render: (s) => <span>{s.confirmed ? "yes" : "no"}</span> },
-    { key: "date", label: "subscribed", render: (s) => <span className="text-ink/60">{formatDate(s.subscribed_at)}</span> },
+    { key: "confirmed", label: "Confirmed", render: (s) => <span>{s.confirmed ? "Yes" : "No"}</span> },
+    { key: "date", label: "Subscribed", render: (s) => <span className="text-ink/60">{formatDate(s.subscribed_at)}</span> },
   ];
 
   return (
     <div>
-      <AdminPageHeader title="newsletter subscribers" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="newsletter-subscribers" rows={rows} />} />
+      <AdminPageHeader title="Newsletter Subscribers" description={`${rows.length} of ${query.data?.length ?? 0} total`} action={<CsvDownloadButton filename="newsletter-subscribers" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by email…" />
       <AdminTable columns={columns} rows={rows} getRowId={(s) => s.id} isLoading={query.isLoading} emptyLabel="No matching subscribers." />
     </div>
