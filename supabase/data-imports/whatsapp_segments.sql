@@ -36,11 +36,14 @@ cleaned as (
   select *, right(regexp_replace(coalesce(raw_phone, ''), '\D', '', 'g'), 10) as phone10
   from bundle_orders
 )
+-- Columns match MSG91 template "customer_feedback" (image header +
+-- click-tracked "Share Feedback" button): mobiles, header_1, button_1.
 select distinct on (phone10)
-  '91' || phone10                      as phone,
-  coalesce(nullif(split_part(trim(name), ' ', 1), ''), 'there') as first_name,
-  order_number,
-  to_char(created_at at time zone 'Asia/Kolkata', 'DD Mon YYYY') as ordered_on
+  '91' || phone10                                                    as mobiles,
+  'https://www.mindcafe.app/whatsapp/feelz-header.jpg'               as header_1,
+  'https://www.mindcafe.app/feedback?ref=wa-bundle'                  as button_1,
+  coalesce(nullif(split_part(trim(name), ' ', 1), ''), 'there')      as first_name,
+  order_number
 from cleaned
 where phone10 ~ '^[6-9][0-9]{9}$'
 order by phone10, created_at desc;
