@@ -16,10 +16,10 @@ import type { AppointmentWithExpert } from "@/types/domain";
 // something next.
 function statusInfo(appointment: AppointmentWithExpert): { text: string; className: string; needsAction: boolean } {
   if (appointment.payment_status === "failed") {
-    return { text: "Payment failed — action needed", className: "text-red-600", needsAction: true };
+    return { text: "Payment failed: action needed", className: "text-red-600", needsAction: true };
   }
   if (appointment.payment_status === "pending") {
-    return { text: "Payment pending — action needed", className: "text-amber-600", needsAction: true };
+    return { text: "Payment pending: action needed", className: "text-amber-600", needsAction: true };
   }
   if (appointment.status === "cancelled") return { text: "Cancelled", className: "text-ink/60", needsAction: false };
   if (appointment.status === "completed") return { text: "Completed", className: "text-ink/60", needsAction: false };

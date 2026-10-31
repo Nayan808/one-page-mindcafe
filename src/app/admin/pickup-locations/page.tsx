@@ -73,7 +73,7 @@ function CommissionAdjustmentsSection({ locationId }: { locationId: string }) {
   return (
     <div className="rounded-lg border border-ink/15 bg-cream/60 p-3">
       <p className="mb-1 text-xs font-medium text-ink/70">
-        Commission adjustments — one-off corrections/bonuses/deductions on top of the percent-based commission
+        Commission adjustments: one-off corrections/bonuses/deductions on top of the percent-based commission
       </p>
 
       {adjustments.length > 0 && (
@@ -223,7 +223,7 @@ export default function AdminPickupLocationsPage() {
       if (error) throw new Error(error);
       save.mutate();
     } catch {
-      setReauthError("Incorrect password — the PIN was not changed.");
+      setReauthError("Incorrect password. The PIN was not changed.");
     } finally {
       setIsReauthing(false);
     }
@@ -289,7 +289,7 @@ export default function AdminPickupLocationsPage() {
           <textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Address" rows={2} className="input" />
           <div>
             <label className="mb-1 block text-sm text-ink/70">
-              Commission % — Zostel&apos;s cut of every sale made at this location, shown on /staff
+              Commission %: Zostel&apos;s cut of every sale made at this location, shown on /staff
             </label>
             <input
               type="number"
@@ -309,7 +309,7 @@ export default function AdminPickupLocationsPage() {
           {editing && (
             <div className="rounded-lg border border-ink/15 bg-cream/60 p-3">
               <p className="mb-1 text-xs font-medium text-ink/70">
-                Staff PIN — unlocks <span className="font-mono">/staff</span> scoped to only this location&apos;s pickups
+                Staff PIN: unlocks <span className="font-mono">/staff</span> scoped to only this location&apos;s pickups
               </p>
               <div className="flex items-center gap-2">
                 <span className="flex-1 rounded-md border border-ink/15 bg-white px-3 py-1.5 font-mono tracking-widest text-ink">{pin}</span>
@@ -325,7 +325,7 @@ export default function AdminPickupLocationsPage() {
               {pinChanged && isSuperAdmin && (
                 <div className="mt-3 space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3">
                   <p className="text-xs text-amber-800">
-                    Re-enter your account password to confirm this PIN change — the old PIN stops working the moment
+                    Re-enter your account password to confirm this PIN change. The old PIN stops working the moment
                     it&apos;s saved.
                   </p>
                   <input

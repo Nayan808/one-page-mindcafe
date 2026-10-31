@@ -125,7 +125,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     ],
     painPointHeadline: "More you. In every moment.",
     painPointBody:
-      "Whether it's a new room, a big meeting or a weekend plan, FEELZ Extrovert helps you feel more confident, energetic and present — so you can show up as your best self.",
+      "Whether it's a new room, a big meeting or a weekend plan, FEELZ Extrovert helps you feel more confident, energetic and present, so you can show up as your best self.",
     painPointPhoto: "/feelz-creative/moments/extrovert-hangingout-v3.webp",
     painPointAnnotation: "Social plans? Say yes.",
     painPointNotes: ["New people", "Social events", "Present & confident", "Good conversations"],
@@ -155,7 +155,7 @@ export const FEELZ_PRODUCT_PAGES: Record<FeelzMoodKey, FeelzProductPageCopy> = {
     ],
     painPointHeadline: "Quiet mind. Better nights.",
     painPointBody:
-      "Some days, your mind just doesn't switch off. Thoughts keep running, and sleep feels far away. FEELZ Rest helps you relax, unwind and slip into a more restful sleep — so you can wake up lighter.",
+      "Some days, your mind just doesn't switch off. Thoughts keep running, and sleep feels far away. FEELZ Rest helps you relax, unwind and slip into a more restful sleep, so you can wake up lighter.",
     painPointImage: "/feelz-creative/painpoint-rest.webp",
     comparisonTitle: "Not just counting sheep.",
     comparisonAgainst: "Late-night scrolling",

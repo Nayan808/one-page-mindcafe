@@ -56,7 +56,7 @@ export default function AdminReviewsPage() {
 
   const columns: AdminColumn<Review>[] = [
     { key: "reviewer", label: "Reviewer", render: (r) => <span className="font-medium text-ink">{r.reviewer_name}</span> },
-    { key: "city", label: "City", render: (r) => <span className="text-ink/60">{r.city ?? "—"}</span> },
+    { key: "city", label: "City", render: (r) => <span className="text-ink/60">{r.city ?? "-"}</span> },
     {
       key: "rating",
       label: "Rating",
@@ -68,7 +68,7 @@ export default function AdminReviewsPage() {
         </span>
       ),
     },
-    { key: "comment", label: "Comment", render: (r) => <span className="block max-w-xs truncate text-ink/60">{r.comment ?? "—"}</span> },
+    { key: "comment", label: "Comment", render: (r) => <span className="block max-w-xs truncate text-ink/60">{r.comment ?? "-"}</span> },
     {
       key: "corporate",
       label: "Corporate",

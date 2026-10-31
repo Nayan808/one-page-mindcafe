@@ -60,9 +60,9 @@ export default function AdminUsersPage() {
   });
 
   const columns: AdminColumn<AdminUserRow>[] = [
-    { key: "email", label: "email", render: (u) => <span className="font-medium text-ink">{u.email ?? "—"}</span> },
-    { key: "phone", label: "Phone", render: (u) => <span className="font-medium text-ink">{u.phone ?? "—"}</span> },
-    { key: "name", label: "Name", render: (u) => <span className="text-ink/60">{u.full_name ?? "—"}</span> },
+    { key: "email", label: "email", render: (u) => <span className="font-medium text-ink">{u.email ?? "-"}</span> },
+    { key: "phone", label: "Phone", render: (u) => <span className="font-medium text-ink">{u.phone ?? "-"}</span> },
+    { key: "name", label: "Name", render: (u) => <span className="text-ink/60">{u.full_name ?? "-"}</span> },
     { key: "created", label: "Joined", render: (u) => <span className="text-ink/60">{formatDate(u.created_at)}</span> },
     {
       key: "role",
@@ -90,7 +90,7 @@ export default function AdminUsersPage() {
 
       {!isSuperAdmin && (
         <p className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs text-amber-800">
-          Role changes are super_admin-only — you can see everyone&apos;s role here but the dropdown is disabled for
+          Role changes are super_admin-only. You can see everyone&apos;s role here but the dropdown is disabled for
           your account. See AUTH_AND_ROLES.md for why.
         </p>
       )}

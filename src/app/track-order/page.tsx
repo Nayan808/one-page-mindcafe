@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { TrackOrderContent } from "@/components/TrackOrderContent";
 
 export const metadata: Metadata = {
-  title: "Track your order — mindcafe",
+  title: "Track your order | mindcafe",
   description: "Check where your Feelz order is with your order number and phone number.",
 };
 

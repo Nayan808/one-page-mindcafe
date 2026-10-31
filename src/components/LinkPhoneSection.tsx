@@ -74,7 +74,7 @@ export function LinkPhoneSection() {
       </p>
 
       {step === "done" ? (
-        <p className="mt-4 text-sm text-emerald-700">Phone number linked — you can now sign in with it too.</p>
+        <p className="mt-4 text-sm text-emerald-700">Phone number linked. You can now sign in with it too.</p>
       ) : step === "phone" ? (
         <form onSubmit={handleSend} className="mt-4 flex flex-wrap items-end gap-3">
           <div>

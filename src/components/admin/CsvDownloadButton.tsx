@@ -69,7 +69,7 @@ export function CsvDownloadButton<T extends object>({
       downloadCsv(`${filename}-${new Date().toISOString().slice(0, 10)}.csv`, csv);
     } catch (error) {
       console.error("CSV export failed", error);
-      window.alert("Couldn't export — please try again.");
+      window.alert("Couldn't export. Please try again.");
     } finally {
       setIsExporting(false);
     }

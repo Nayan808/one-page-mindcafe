@@ -68,7 +68,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
       products.flatMap((product) =>
         product.product_variants.map((variant) => ({
           id: variant.id,
-          label: product.product_variants.length > 1 ? `${product.name} — ${variant.variant_label}` : product.name,
+          label: product.product_variants.length > 1 ? `${product.name} · ${variant.variant_label}` : product.name,
         })),
       ),
     [products],
@@ -229,7 +229,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
       <div className="border-b border-ink/10 bg-cream/60 px-4 py-3">
         <p className="text-sm font-semibold text-ink">Transaction log</p>
         <p className="mt-0.5 text-xs text-ink/50">
-          A manual ledger for reconciling manufacturer receipts and Zostel shipments — separate from live stock
+          A manual ledger for reconciling manufacturer receipts and Zostel shipments, separate from live stock
           above.
         </p>
       </div>
@@ -325,7 +325,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
         </div>
         {comboCount > 1 && Number(quantity) >= comboCount && (
           <p className="mt-2 text-[11px] text-ink/50">
-            Will log {comboCount} entries — {Math.floor(Number(quantity) / comboCount)}
+            Will log {comboCount} entries: {Math.floor(Number(quantity) / comboCount)}
             {Number(quantity) % comboCount > 0 ? `–${Math.ceil(Number(quantity) / comboCount)}` : ""} units each, split evenly.
           </p>
         )}
@@ -442,7 +442,7 @@ function TransactionLogSection({ products, locations }: { products: ProductWithV
                     <td className="px-4 py-2.5 font-medium text-ink">
                       {t.product_variants.products.name}
                       {t.product_variants.variant_label !== t.product_variants.products.name && (
-                        <span className="text-ink/50"> — {t.product_variants.variant_label}</span>
+                        <span className="text-ink/50"> · {t.product_variants.variant_label}</span>
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-emerald-700">{t.quantity_in ?? ""}</td>
@@ -806,7 +806,7 @@ function MissingSummaryTableRow({
           variantId,
           locationId,
           quantity,
-          notes: "Initial stock — added from Inventory summary",
+          notes: "Initial stock (added from Inventory summary)",
         });
       }
     },
@@ -820,7 +820,7 @@ function MissingSummaryTableRow({
     <tr className="border-b border-dashed border-ink/15 bg-cream/40 last:border-0">
       <td className="px-4 py-3 font-medium text-ink">
         {productName}
-        {variantLabel !== productName && <span className="text-ink/50"> — {variantLabel}</span>}
+        {variantLabel !== productName && <span className="text-ink/50"> · {variantLabel}</span>}
         <span className="ml-2 rounded-full bg-ink/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-label text-ink/50">
           missing
         </span>
@@ -851,11 +851,11 @@ function MissingSummaryTableRow({
           <p className="mt-1 text-xs text-red-600">{add.error instanceof Error ? add.error.message : "Failed to add"}</p>
         )}
       </td>
-      <td className="px-4 py-3 text-ink/30">—</td>
-      <td className="px-4 py-3 text-ink/30">—</td>
-      <td className="px-4 py-3 text-ink/30">—</td>
-      <td className="px-4 py-3 text-ink/30">—</td>
-      <td className="px-4 py-3 text-ink/30">—</td>
+      <td className="px-4 py-3 text-ink/30">-</td>
+      <td className="px-4 py-3 text-ink/30">-</td>
+      <td className="px-4 py-3 text-ink/30">-</td>
+      <td className="px-4 py-3 text-ink/30">-</td>
+      <td className="px-4 py-3 text-ink/30">-</td>
     </tr>
   );
 }
@@ -881,7 +881,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
       products.flatMap((product) =>
         product.product_variants.map((variant) => ({
           id: variant.id,
-          label: product.product_variants.length > 1 ? `${product.name} — ${variant.variant_label}` : product.name,
+          label: product.product_variants.length > 1 ? `${product.name} · ${variant.variant_label}` : product.name,
         })),
       ),
     [products],
@@ -975,7 +975,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
       <div className="border-b border-ink/10 bg-cream/60 px-4 py-3">
         <p className="text-sm font-semibold text-ink">Missing / misplaced stock</p>
         <p className="mt-0.5 text-xs text-ink/50">
-          A manual log for units that went missing or got misplaced at a place — separate from the Transaction Log
+          A manual log for units that went missing or got misplaced at a place, separate from the Transaction Log
           above.
         </p>
       </div>
@@ -1025,7 +1025,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
             <input
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Optional — what happened"
+              placeholder="Optional: what happened"
               className="input"
             />
           </div>
@@ -1055,7 +1055,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
         <div className="col-span-2 rounded-xl border border-ink/10 p-3">
           <p className="mb-1 text-[11px] uppercase tracking-label text-ink/50">by place</p>
           {byPlace.length === 0 ? (
-            <p className="text-xs text-ink/40">—</p>
+            <p className="text-xs text-ink/40">-</p>
           ) : (
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-ink/70">
               {byPlace.map((p) => (
@@ -1160,7 +1160,7 @@ function MisplacedStockLogSection({ products, locations }: { products: ProductWi
                     <td className="px-4 py-2.5 font-medium text-ink">
                       {l.product_variants.products.name}
                       {l.product_variants.variant_label !== l.product_variants.products.name && (
-                        <span className="text-ink/50"> — {l.product_variants.variant_label}</span>
+                        <span className="text-ink/50"> · {l.product_variants.variant_label}</span>
                       )}
                     </td>
                     <td className="px-4 py-2.5 text-red-700">{l.quantity}</td>
@@ -1322,7 +1322,7 @@ export default function AdminInventoryPage() {
     <div>
       <AdminPageHeader
         title="Inventory"
-        description="Stock is tracked per location — an online sale and a Zostel walk-in sale never draw from the same pool."
+        description="Stock is tracked per location. An online sale and a Zostel walk-in sale never draw from the same pool."
         action={
           <CsvDownloadButton
             filename="inventory"
@@ -1351,9 +1351,9 @@ export default function AdminInventoryPage() {
                 : LOCATION_LOW_STOCK_FLOOR}{" "}
               units left on some product. &quot;Logged net&quot; and &quot;gap&quot; compare live stock against the
               Transaction log below (real order sales are folded in automatically so a routine sale never shows as
-              a discrepancy — only genuine gaps do), for whatever scope is selected here. Remaining stock is
+              a discrepancy, only genuine gaps do), for whatever scope is selected here. Remaining stock is
               editable at every
-              scope — editing &quot;all&quot; or &quot;all Zostel&quot; splits the new number across each real
+              scope, editing &quot;all&quot; or &quot;all Zostel&quot; splits the new number across each real
               location proportionally to its current share, rather than writing one row directly.
             </p>
           </div>
@@ -1419,7 +1419,7 @@ export default function AdminInventoryPage() {
                         <td className="px-4 py-3 font-medium text-ink">
                           {summary.productName}
                           {summary.variantLabel !== summary.productName && (
-                            <span className="text-ink/50"> — {summary.variantLabel}</span>
+                            <span className="text-ink/50"> · {summary.variantLabel}</span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-ink/70">{formatInr(summary.price)}</td>
@@ -1442,7 +1442,7 @@ export default function AdminInventoryPage() {
                         </td>
                         <td className="px-4 py-3">
                           {gap === null ? (
-                            <span className="text-ink/30">—</span>
+                            <span className="text-ink/30">-</span>
                           ) : gap === 0 ? (
                             <span className="rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700">
                               Matches

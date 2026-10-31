@@ -50,11 +50,11 @@ export default function AdminExpertApplicationsPage() {
 
   const columns: AdminColumn<ExpertApplication>[] = [
     { key: "name", label: "Name", render: (a) => <span className="font-medium text-ink">{a.name}</span> },
-    { key: "email", label: "email", render: (a) => (a.email ? <a href={`mailto:${a.email}`} className="text-ink underline">{a.email}</a> : <span className="text-ink/40">—</span>) },
-    { key: "phone", label: "Phone", render: (a) => <span className="text-ink/60">{a.phone ?? "—"}</span> },
-    { key: "city", label: "City", render: (a) => <span className="text-ink/60">{a.city ?? "—"}</span> },
-    { key: "qualification", label: "Qualification", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.qualification ?? ""}>{a.qualification ?? "—"}</span> },
-    { key: "skills", label: "Skills", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.skills ?? ""}>{a.skills ?? "—"}</span> },
+    { key: "email", label: "email", render: (a) => (a.email ? <a href={`mailto:${a.email}`} className="text-ink underline">{a.email}</a> : <span className="text-ink/40">-</span>) },
+    { key: "phone", label: "Phone", render: (a) => <span className="text-ink/60">{a.phone ?? "-"}</span> },
+    { key: "city", label: "City", render: (a) => <span className="text-ink/60">{a.city ?? "-"}</span> },
+    { key: "qualification", label: "Qualification", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.qualification ?? ""}>{a.qualification ?? "-"}</span> },
+    { key: "skills", label: "Skills", render: (a) => <span className="block max-w-xs truncate text-ink/60" title={a.skills ?? ""}>{a.skills ?? "-"}</span> },
     {
       key: "status",
       label: "status",
@@ -73,7 +73,7 @@ export default function AdminExpertApplicationsPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Expert Applications" description={`${rows.length} of ${query.data?.length ?? 0} total — people who applied to join as an expert`} action={<CsvDownloadButton filename="expert-applications" rows={rows} />} />
+      <AdminPageHeader title="Expert Applications" description={`${rows.length} of ${query.data?.length ?? 0} total · people who applied to join as an expert`} action={<CsvDownloadButton filename="expert-applications" rows={rows} />} />
       <AdminSearchInput value={search} onChange={setSearch} placeholder="Search by name, email, phone, or city…" />
       <AdminTable columns={columns} rows={rows} getRowId={(a) => a.id} isLoading={query.isLoading} emptyLabel="No applications yet." />
     </div>

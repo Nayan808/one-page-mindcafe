@@ -108,8 +108,8 @@ export default function AdminAppointmentsPage() {
       label: "Customer",
       render: (a) => (
         <div>
-          <p className="font-medium text-ink">{a.profiles?.full_name ?? "—"}</p>
-          <p className="text-ink/50">{a.profiles?.phone ?? "—"}</p>
+          <p className="font-medium text-ink">{a.profiles?.full_name ?? "-"}</p>
+          <p className="text-ink/50">{a.profiles?.phone ?? "-"}</p>
         </div>
       ),
     },
@@ -132,7 +132,7 @@ export default function AdminAppointmentsPage() {
         </select>
       ),
     },
-    { key: "when", label: "Requested Time", render: (a) => <span className="text-ink/60">{a.scheduled_at ? formatDateTime(a.scheduled_at) : "—"}</span> },
+    { key: "when", label: "Requested Time", render: (a) => <span className="text-ink/60">{a.scheduled_at ? formatDateTime(a.scheduled_at) : "-"}</span> },
     {
       key: "payment",
       label: "Payment",
@@ -173,7 +173,7 @@ export default function AdminAppointmentsPage() {
         ) : a.last_notification_status === "no_email" ? (
           <span className="text-xs font-medium text-amber-600">No Email on File</span>
         ) : (
-          <span className="text-xs text-ink/30">—</span>
+          <span className="text-xs text-ink/30">-</span>
         ),
     },
     {
@@ -278,8 +278,8 @@ export default function AdminAppointmentsPage() {
           <div className="space-y-4 text-sm">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">Customer</p>
-              <p className="mt-1 text-ink">{detailsAppointment.profiles?.full_name ?? "—"}</p>
-              <p className="text-ink/60">{detailsAppointment.profiles?.phone ?? "—"}</p>
+              <p className="mt-1 text-ink">{detailsAppointment.profiles?.full_name ?? "-"}</p>
+              <p className="text-ink/60">{detailsAppointment.profiles?.phone ?? "-"}</p>
             </div>
 
             <div>
@@ -290,7 +290,7 @@ export default function AdminAppointmentsPage() {
                 <dt className="text-ink/40">Discount</dt>
                 <dd>{formatInr(detailsAppointment.discount_amount ?? 0)}</dd>
                 <dt className="text-ink/40">Coupon</dt>
-                <dd>{detailsAppointment.coupon_code ?? "—"}</dd>
+                <dd>{detailsAppointment.coupon_code ?? "-"}</dd>
                 <dt className="text-ink/40">Total</dt>
                 <dd className="font-medium text-ink">{formatInr(detailsAppointment.total ?? 0)}</dd>
                 <dt className="text-ink/40">Payment Status</dt>

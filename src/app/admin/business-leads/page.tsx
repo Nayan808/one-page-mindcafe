@@ -54,8 +54,8 @@ export default function AdminBusinessLeadsPage() {
     { key: "company", label: "Company", render: (l) => <span className="font-medium text-ink">{l.company_name}</span> },
     { key: "contact", label: "Contact", render: (l) => <span>{l.contact_name}</span> },
     { key: "email", label: "email", render: (l) => <a href={`mailto:${l.email}`} className="text-ink underline">{l.email}</a> },
-    { key: "phone", label: "Phone", render: (l) => <span className="text-ink/60">{l.phone ?? "—"}</span> },
-    { key: "message", label: "Message", render: (l) => <span className="block max-w-xs truncate text-ink/60" title={l.message ?? ""}>{l.message ?? "—"}</span> },
+    { key: "phone", label: "Phone", render: (l) => <span className="text-ink/60">{l.phone ?? "-"}</span> },
+    { key: "message", label: "Message", render: (l) => <span className="block max-w-xs truncate text-ink/60" title={l.message ?? ""}>{l.message ?? "-"}</span> },
     {
       key: "status",
       label: "status",

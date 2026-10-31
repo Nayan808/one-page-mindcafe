@@ -142,7 +142,7 @@ function AppointmentNoteEditor({
             value={draft}
             onChange={(event) => setDraft(event.target.value)}
             rows={3}
-            placeholder="Only visible to you — not shown to the client."
+            placeholder="Only visible to you, not shown to the client."
             className="input text-xs"
           />
           <div className="mt-1.5 flex items-center gap-2">
@@ -347,7 +347,7 @@ export default function ExpertDashboardPage() {
         <Eyebrow>Counsellor workspace</Eyebrow>
         <h1 className="font-[family-name:var(--font-display)] text-2xl font-bold text-brand-navy">No expert profile linked</h1>
         <p className="mt-2 text-sm text-[#718096]">
-          Your account has expert access, but isn&apos;t linked to a directory entry yet — reach out to get that set up.
+          Your account has expert access, but isn&apos;t linked to a directory entry yet. Reach out to get that set up.
         </p>
       </StatusScreen>
     );
@@ -808,7 +808,7 @@ export default function ExpertDashboardPage() {
           <CardHead
             eyebrow="Bookings"
             title={`Needs your response (${pending.length})`}
-            description="Paid requests — confirm with a meeting link, or decline."
+            description="Paid requests: confirm with a meeting link, or decline."
           />
           {pending.length === 0 ? (
             <p className="text-sm text-[#718096]">Nothing pending.</p>
@@ -822,7 +822,7 @@ export default function ExpertDashboardPage() {
             <CardHead
               eyebrow="Bookings"
               title={`Awaiting payment (${awaitingPayment.length})`}
-              description="Requested, not yet paid for — nothing to do until the customer completes payment."
+              description="Requested, not yet paid for. Nothing to do until the customer completes payment."
             />
             <ul className="grid gap-3 xl:grid-cols-2">{awaitingPayment.map(renderAppointment)}</ul>
           </DashCard>

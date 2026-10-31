@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { FeedbackForm } from "@/components/FeedbackForm";
 
 export const metadata: Metadata = {
-  title: "Share your feedback — mindcafe",
+  title: "Share your feedback | mindcafe",
   description: "Tell us how Feelz or your mindcafe session worked for you. It takes about a minute.",
 };
 

@@ -270,7 +270,7 @@ function BookingForm({ initialCategory, initialExpertId }: { initialCategory: st
 
       <div>
         <h2 className="text-sm font-semibold uppercase tracking-label text-ink/70">2. category</h2>
-        <p className="mt-1 text-xs text-ink/50">Optional — leave it as &ldquo;other&rdquo; if you're not sure.</p>
+        <p className="mt-1 text-xs text-ink/50">Optional. Leave it as &ldquo;other&rdquo; if you're not sure.</p>
         {/* Native select/date-input icons don't reliably line up with each
             other across browsers even with identical padding (their default
             icon insets differ) — appearance-none plus a shared custom icon,

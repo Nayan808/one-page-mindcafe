@@ -222,9 +222,9 @@ export default function AdminExpertsPage() {
 
   const columns: AdminColumn<Expert>[] = [
     { key: "name", label: "Name", render: (e) => <span className="font-medium text-ink">{e.name}</span> },
-    { key: "certifications", label: "Certifications", render: (e) => <span className="text-ink/60">{e.certifications.join(", ") || "—"}</span> },
+    { key: "certifications", label: "Certifications", render: (e) => <span className="text-ink/60">{e.certifications.join(", ") || "-"}</span> },
     { key: "login", label: "Login Access", render: (e) => <span>{e.profile_id ? "Yes" : "No"}</span> },
-    { key: "specialties", label: "Specialties", render: (e) => <span className="text-ink/60">{e.specialties.join(", ") || "—"}</span> },
+    { key: "specialties", label: "Specialties", render: (e) => <span className="text-ink/60">{e.specialties.join(", ") || "-"}</span> },
     { key: "bookable", label: "Bookable", render: (e) => <span>{e.is_bookable ? "Yes" : "No"}</span> },
     { key: "active", label: "Active", render: (e) => <span>{e.is_active ? "Yes" : "No"}</span> },
   ];
@@ -253,7 +253,7 @@ export default function AdminExpertsPage() {
         }}
       />
 
-      <Modal isOpen={Boolean(editing)} onClose={() => setEditing(null)} title={`edit — ${editing?.name ?? ""}`}>
+      <Modal isOpen={Boolean(editing)} onClose={() => setEditing(null)} title={`edit: ${editing?.name ?? ""}`}>
         {editForm && (
           <div className="space-y-3">
             <input value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} placeholder="Name" className="input" />
@@ -319,13 +319,13 @@ export default function AdminExpertsPage() {
               ) : isSuperAdmin ? (
                 <div className="space-y-2">
                   <p className="text-xs text-ink/50">
-                    Not linked — if this person already signed up (e.g. via Google), link their existing account
+                    Not linked. If this person already signed up (e.g. via Google), link their existing account
                     here instead of creating a new one with &quot;create expert account&quot;.
                   </p>
                   <FilterDropdown
                     options={(usersQuery.data ?? [])
                       .filter((u) => u.role === "customer")
-                      .map((u) => ({ value: u.id, label: `${u.email ?? "—"} ${u.full_name ? `(${u.full_name})` : ""}`.trim() }))}
+                      .map((u) => ({ value: u.id, label: `${u.email ?? "-"} ${u.full_name ? `(${u.full_name})` : ""}`.trim() }))}
                     value={linkUserId}
                     onChange={setLinkUserId}
                     placeholder={usersQuery.isLoading ? "Loading accounts…" : "Select an account"}
@@ -339,7 +339,7 @@ export default function AdminExpertsPage() {
                 </div>
               ) : (
                 <p className="text-xs text-ink/50">
-                  Not linked — linking an existing account requires super_admin (it changes the account&apos;s role).
+                  Not linked. Linking an existing account requires super_admin (it changes the account&apos;s role).
                   Use &quot;create expert account&quot; for a brand-new login, or ask a super_admin to link one here.
                 </p>
               )}
@@ -356,7 +356,7 @@ export default function AdminExpertsPage() {
               <p>Email: {createResult.email}</p>
               <p>Password: {createResult.password}</p>
             </div>
-            <p className="text-xs text-ink/50">Save this password now — it won&apos;t be shown again. Share it with them securely.</p>
+            <p className="text-xs text-ink/50">Save this password now. It won&apos;t be shown again. Share it with them securely.</p>
             <button type="button" onClick={() => setCreateOpen(false)} className="pill-btn w-full">
               Done
             </button>

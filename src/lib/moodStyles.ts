@@ -114,7 +114,7 @@ export const FEELZ_COLOR_CLASSES: Record<
 MOOD_STYLES["feelz bundle"] = {
   ...MOOD_STYLES.focus,
   tagline: "All four moods.",
-  description: "One pack of each mood — Extrovert, Focus, Joy and Rest.",
+  description: "One pack of each mood: Extrovert, Focus, Joy and Rest.",
   ingredients: [],
   feelzColor: "feelz-berry",
   heroSrc: "/feelz-creative/00-feelz-bundle-hero-v4.webp",

@@ -34,9 +34,9 @@ export default function AdminFeelzPreordersPage() {
   const columns: AdminColumn<FeelzPreorder>[] = [
     { key: "name", label: "Name", render: (p) => <span className="font-medium text-ink">{p.full_name}</span> },
     { key: "product", label: "Product", render: (p) => <span className="uppercase text-ink/70">{p.product}</span> },
-    { key: "email", label: "email", render: (p) => (p.email ? <a href={`mailto:${p.email}`} className="text-ink underline">{p.email}</a> : <span className="text-ink/40">—</span>) },
-    { key: "mobile", label: "Mobile", render: (p) => <span className="text-ink/60">{p.mobile ?? "—"}</span> },
-    { key: "city", label: "City", render: (p) => <span className="text-ink/60">{p.city ?? "—"}</span> },
+    { key: "email", label: "email", render: (p) => (p.email ? <a href={`mailto:${p.email}`} className="text-ink underline">{p.email}</a> : <span className="text-ink/40">-</span>) },
+    { key: "mobile", label: "Mobile", render: (p) => <span className="text-ink/60">{p.mobile ?? "-"}</span> },
+    { key: "city", label: "City", render: (p) => <span className="text-ink/60">{p.city ?? "-"}</span> },
     { key: "date", label: "Received", render: (p) => <span className="text-ink/60">{formatDate(p.created_at)}</span> },
   ];
 

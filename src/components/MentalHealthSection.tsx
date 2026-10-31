@@ -42,7 +42,7 @@ const MYTHS = [
   {
     myth: "Therapy is only for when things get really bad.",
     reality:
-      "Counselling can help you understand patterns, manage everyday challenges, and build healthier ways of coping — before a crisis.",
+      "Counselling can help you understand patterns, manage everyday challenges, and build healthier ways of coping, before a crisis.",
   },
   {
     myth: "Talking about your mental health makes you weaker.",

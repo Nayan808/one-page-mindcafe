@@ -150,7 +150,7 @@ export default function AdminFeedbackPage() {
         </span>
       ),
     },
-    { key: "source", label: "Source", render: (f) => <span className="text-ink/60">{f.source ?? "—"}</span> },
+    { key: "source", label: "Source", render: (f) => <span className="text-ink/60">{f.source ?? "-"}</span> },
     {
       key: "publish",
       label: "On Website",
@@ -218,7 +218,7 @@ export default function AdminFeedbackPage() {
             remove.mutate(f.id);
           }
         }}
-        emptyLabel="No feedback yet — share the link above to start collecting it."
+        emptyLabel="No feedback yet. Share the link above to start collecting it."
       />
     </div>
   );

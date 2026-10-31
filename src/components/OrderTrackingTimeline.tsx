@@ -5,7 +5,7 @@ type Step = { status: string; label: string; hint: string };
 
 const DELIVERY_STEPS: Step[] = [
   { status: "placed", label: "Order placed", hint: "We've received your order." },
-  { status: "confirmed", label: "Confirmed", hint: "Payment received — your order is being prepared." },
+  { status: "confirmed", label: "Confirmed", hint: "Payment received. Your order is being prepared." },
   { status: "packed", label: "Packed", hint: "Packed and handed over for shipping." },
   { status: "shipped", label: "Shipped", hint: "On its way with our courier partner." },
   { status: "out_for_delivery", label: "Out for delivery", hint: "Arriving today." },
@@ -14,7 +14,7 @@ const DELIVERY_STEPS: Step[] = [
 
 const PICKUP_STEPS: Step[] = [
   { status: "placed", label: "Order placed", hint: "We've received your order." },
-  { status: "confirmed", label: "Confirmed", hint: "Payment received — the Zostel team is getting it ready." },
+  { status: "confirmed", label: "Confirmed", hint: "Payment received. The Zostel team is getting it ready." },
   { status: "ready_for_pickup", label: "Ready for pickup", hint: "Show your pickup code at the front desk." },
   { status: "picked_up", label: "Collected", hint: "Enjoy your Feelz!" },
 ];
@@ -70,7 +70,7 @@ export function OrderTrackingTimeline({
     <div>
       {paymentStatus === "pending" && !cancelled && (
         <p className="mb-4 rounded-xl bg-amber-50 p-3 text-xs text-amber-800">
-          Waiting for payment confirmation — this updates automatically.
+          Waiting for payment confirmation. This updates automatically.
         </p>
       )}
 

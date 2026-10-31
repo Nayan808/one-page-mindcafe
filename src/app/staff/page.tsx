@@ -357,7 +357,7 @@ export default function StaffDashboard() {
         <div>
           <h1 className="font-display text-2xl font-bold">Feelz Staff</h1>
           <p className="text-xs text-ink/50">
-            {scopedLocation ? `pickup desk — ${scopedLocation.name}, ${scopedLocation.city}` : "Pickup desk — all locations"}
+            {scopedLocation ? `pickup desk · ${scopedLocation.name}, ${scopedLocation.city}` : "Pickup desk · all locations"}
           </p>
         </div>
         <button
@@ -380,19 +380,19 @@ export default function StaffDashboard() {
       <div>
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
-            <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsSold : "—"}</p>
+            <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsSold : "-"}</p>
             <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">Units Sold</p>
           </div>
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
-            <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsRemaining : "—"}</p>
+            <p className="font-display text-xl font-bold text-ink">{inventory ? inventory.totals.unitsRemaining : "-"}</p>
             <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">Units Remaining</p>
           </div>
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
-            <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.revenue) : "—"}</p>
+            <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.revenue) : "-"}</p>
             <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">Revenue</p>
           </div>
           <div className="rounded-xl border border-ink/10 bg-white p-3 text-center shadow-sm">
-            <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.commission) : "—"}</p>
+            <p className="font-display text-xl font-bold text-ink">{inventory ? formatInr(inventory.totals.commission) : "-"}</p>
             <p className="mt-0.5 text-[10px] uppercase tracking-label text-ink/50">
               commission ({inventory ? `${Math.round(inventory.totals.commissionRate * 100)}%` : "10%"})
             </p>
@@ -405,7 +405,7 @@ export default function StaffDashboard() {
             )}
           </div>
         </div>
-        {inventory && <p className="mt-1.5 text-center text-[11px] text-ink/40">sold, revenue &amp; commission — {RANGE_LABELS[range]} · remaining is live</p>}
+        {inventory && <p className="mt-1.5 text-center text-[11px] text-ink/40">sold, revenue &amp; commission · {RANGE_LABELS[range]} · remaining is live</p>}
       </div>
 
       <div className="flex gap-1 border-b border-ink/10">
@@ -551,7 +551,7 @@ export default function StaffDashboard() {
         <section className="space-y-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">
-              inventory {inventory?.location ? `— ${inventory.location.name}` : ""}
+              inventory {inventory?.location ? `· ${inventory.location.name}` : ""}
             </h2>
             <button
               type="button"
@@ -563,7 +563,7 @@ export default function StaffDashboard() {
               Refresh
             </button>
           </div>
-          <p className="text-xs text-ink/50">View only — real stock, updated live. Editing happens in admin.</p>
+          <p className="text-xs text-ink/50">View only: real stock, updated live. Editing happens in admin.</p>
 
           <div className="flex flex-wrap gap-1.5">
             {(Object.keys(RANGE_LABELS) as DateRange[]).map((r) => (
@@ -627,7 +627,7 @@ export default function StaffDashboard() {
         <section className="space-y-3 rounded-2xl border border-ink/10 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-ink/60">
-              sold history {history?.location ? `— ${history.location.name}` : ""}
+              sold history {history?.location ? `· ${history.location.name}` : ""}
             </h2>
             <button
               type="button"
@@ -639,7 +639,7 @@ export default function StaffDashboard() {
               Refresh
             </button>
           </div>
-          <p className="text-xs text-ink/50">Every paid, picked-up order — order number, customer, items, and date.</p>
+          <p className="text-xs text-ink/50">Every paid, picked-up order: order number, customer, items, and date.</p>
 
           <input
             value={historySearch}
