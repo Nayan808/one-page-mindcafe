@@ -40,7 +40,7 @@ export function CounsellingHowItWorks() {
             <span className="font-tagline block italic text-brand">to start.</span>
           </h2>
           <p className="mt-6 max-w-sm text-base leading-relaxed text-ink/60">
-            Three short steps, at your own pace — from knowing what you need to sitting down with the right
+            Three short steps, at your own pace, from knowing what you need to sitting down with the right
             person.
           </p>
           <Link href="/experts" className="pill-btn mt-8 px-6 py-3">

@@ -478,13 +478,13 @@ function AppointmentsSection({
                       <td className={`${TABLE_CELL} font-semibold capitalize text-brand-navy`}>
                         {categoryLabel(appointment.therapy_category)}
                       </td>
-                      <td className={TABLE_CELL}>{appointment.experts?.name ?? "—"}</td>
+                      <td className={TABLE_CELL}>{appointment.experts?.name ?? "-"}</td>
                       <td className={`${TABLE_CELL} whitespace-nowrap`}>
                         {appointment.scheduled_at ? formatDateTime(appointment.scheduled_at) : "To be confirmed"}
                       </td>
                       <td className={`${TABLE_CELL} whitespace-nowrap font-semibold text-brand-navy`}>
                         {appointment.total === null
-                          ? "—"
+                          ? "-"
                           : appointment.total === 0
                             ? "Free"
                             : formatInr(appointment.total)}

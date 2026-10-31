@@ -10,8 +10,6 @@ import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog, getRecentReviews, getReviewsSummary } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthModal } from "@/contexts/AuthModalContext";
 import { Reveal } from "@/components/Reveal";
 import { AccordionFaq } from "@/components/AccordionFaq";
 import { MOOD_GRID, MOOD_STYLES, FEELZ_COLOR_CLASSES } from "@/lib/moodStyles";
@@ -48,28 +46,28 @@ const NOTE_POSITIONS = [
 
 const PRODUCT_FAQS: Record<FeelzMoodKey, { question: string; answer: string }[]> = {
   focus: [
-    { question: "What is FEELZ Focus?", answer: "A melt-in-mouth wellness strip formulated around cognitive clarity, focus and calm — for work, study and demanding moments when sustained attention matters." },
+    { question: "What is FEELZ Focus?", answer: "A melt-in-mouth wellness strip formulated around cognitive clarity, focus and calm, for work, study and demanding moments when sustained attention matters." },
     { question: "How do I use it?", answer: "Tear open the sachet, place one strip on your tongue, and let it dissolve. No water needed." },
     { question: "How many strips are in one pack?", answer: "10 strips per pack." },
     { question: "Is FEELZ a medicine?", answer: "No. FEELZ is a wellness product and is not intended to diagnose, treat, cure or prevent any disease." },
   ],
   joy: [
-    { question: "What is FEELZ Joy?", answer: "A melt-in-mouth wellness strip formulated around mood calm and inner happiness — for the days that need a little more you." },
+    { question: "What is FEELZ Joy?", answer: "A melt-in-mouth wellness strip formulated around mood calm and inner happiness, for the days that need a little more you." },
     { question: "How do I use it?", answer: "Tear open the sachet, place one strip on your tongue, and let it dissolve. No water needed." },
     { question: "How many strips are in one pack?", answer: "10 strips per pack." },
     { question: "Is FEELZ a medicine?", answer: "No. FEELZ is a wellness product and is not intended to diagnose, treat, cure or prevent any disease." },
   ],
   extrovert: [
-    { question: "What is FEELZ Extrovert?", answer: "A melt-in-mouth wellness strip formulated around confidence, energy and social vitality — for the moments you want to feel more at ease being yourself." },
+    { question: "What is FEELZ Extrovert?", answer: "A melt-in-mouth wellness strip formulated around confidence, energy and social vitality, for the moments you want to feel more at ease being yourself." },
     { question: "How do I use it?", answer: "Tear open the sachet, place one strip on your tongue, and let it dissolve. No water needed." },
     { question: "How many strips are in one pack?", answer: "10 strips per pack." },
     { question: "Is FEELZ a medicine?", answer: "No. FEELZ is a wellness product and is not intended to diagnose, treat, cure or prevent any disease." },
   ],
   rest: [
-    { question: "What is FEELZ Rest?", answer: "A melt-in-mouth wellness strip formulated around relaxation, sleep readiness and a calmer mind — for when the day is over but your mind is still running." },
+    { question: "What is FEELZ Rest?", answer: "A melt-in-mouth wellness strip formulated around relaxation, sleep readiness and a calmer mind, for when the day is over but your mind is still running." },
     { question: "How do I use it?", answer: "Tear open the sachet, place one strip on your tongue, and let it dissolve. No water needed." },
     { question: "How many strips are in one pack?", answer: "10 strips per pack." },
-    { question: "Does FEELZ Rest contain melatonin?", answer: "Yes — one strip every 24 hours is all you need. Skip driving or machinery use right after." },
+    { question: "Does FEELZ Rest contain melatonin?", answer: "Yes, one strip every 24 hours is all you need. Skip driving or machinery use right after." },
   ],
 };
 
@@ -109,13 +107,10 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
 
   const router = useRouter();
   const { items, addItem, isReady, cartId, openDrawer, notifyAdded } = useCartContext();
-  const { user } = useAuth();
-  const { openAuthModal } = useAuthModal();
   const [quantity, setQuantity] = useState(1);
   const [isPending, setIsPending] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [pendingAdd, setPendingAdd] = useState<"cart" | "buy" | false>(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [openSection, setOpenSection] = useState<"description" | "benefits" | "info" | null>(null);
   const [faqTab, setFaqTab] = useState<"product" | "shipping">("product");
@@ -176,8 +171,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
   const cartItem = variant ? items.find((item) => item.variant_id === variant.id) : undefined;
 
   // The Feelz Bundle is its own product (products.is_bundle) with its own
-  // price and stock — useAddBundle adds that one line, handling sign-in the
-  // same way as the single-mood buttons. bundleOriginalPrice is what the
+  // price and stock — useAddBundle adds that one line. bundleOriginalPrice is what the
   // four moods cost separately, shown struck through to make the saving
   // visible.
   const bundle = useAddBundle();
@@ -219,21 +213,8 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
     }
   }
 
-  useEffect(() => {
-    if (pendingAdd && user && isReady && cartId) {
-      const action = pendingAdd;
-      setPendingAdd(false);
-      void performAddToCart(product, action === "buy");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingAdd, user, isReady, cartId]);
-
+  // Guests shop on a guest cart; sign-in waits until "Pay Now".
   async function handleAddToCart(thenBuy = false) {
-    if (!user) {
-      setPendingAdd(thenBuy ? "buy" : "cart");
-      openAuthModal();
-      return;
-    }
     await performAddToCart(product, thenBuy);
   }
 
@@ -389,7 +370,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                 </span>
                 <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Pack of 1</p>
                 <p className="mt-2 text-xl font-bold text-feelz-ink sm:text-2xl">
-                  {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
+                  {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "-"}
                 </p>
                 <p className="mt-1.5 text-[10px] text-feelz-ink/40">10 strips</p>
               </button>
@@ -406,7 +387,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                 </span>
                 <p className="text-[11px] font-semibold uppercase tracking-label text-feelz-ink/40">Pack of 2</p>
                 <p className="mt-2 text-xl font-bold text-feelz-ink sm:text-2xl">
-                  {price !== null ? formatInr(price * 2) : catalogQuery.isLoading ? "…" : "—"}
+                  {price !== null ? formatInr(price * 2) : catalogQuery.isLoading ? "…" : "-"}
                 </p>
                 <p className="mt-1.5 text-[10px] text-feelz-ink/40">20 strips</p>
                 <p className={`mt-1.5 text-[10px] font-semibold ${colors.text}`}>10% off at checkout</p>
@@ -453,7 +434,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                 className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full ${colors.bgTint} px-6 py-3.5 text-sm font-semibold uppercase tracking-label ${colors.text}`}
               >
                 <ShoppingBag className="h-4 w-4" aria-hidden />
-                In cart · {cartItem.quantity} — view cart
+                In cart · {cartItem.quantity} · view cart
               </button>
             ) : (
               <div className="mt-4 grid grid-cols-2 gap-3">
@@ -529,7 +510,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                     {copy.benefits.map((benefit) => (
                       <li key={benefit.label} className="text-xs">
                         <span className="font-semibold text-feelz-ink">{benefit.label}</span>
-                        <span className="text-feelz-ink/60"> — {benefit.sub}</span>
+                        <span className="text-feelz-ink/60">: {benefit.sub}</span>
                       </li>
                     ))}
                   </ul>
@@ -570,7 +551,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
               disabled={!bundleReady || !isReady || !cartId || bundlePending}
               className="relative mt-6 block aspect-[1774/887] w-full overflow-hidden rounded-2xl text-left transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <Image src="/feelz-creative/bundle-banner-949.webp" alt={`Get the FEELZ bundle — ${formatInr(bundlePrice)}`} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+              <Image src="/feelz-creative/bundle-banner-949.webp" alt={`Get the FEELZ bundle for ${formatInr(bundlePrice)}`} fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
             </button>
           </div>
         </div>
@@ -810,7 +791,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
                   )}
 
                   <p className={`mt-7 text-[10px] font-semibold uppercase tracking-[0.3em] ${colors.text}`}>
-                    {String(index + 1).padStart(2, "0")} — {ingredient.amount}
+                    {String(index + 1).padStart(2, "0")} · {ingredient.amount}
                   </p>
                   <p className="font-display mt-2 text-lg font-bold leading-tight text-feelz-ink sm:text-xl">{ingredient.name}</p>
                   <p className="mt-2 max-w-[16rem] text-sm leading-relaxed text-feelz-ink/55">{ingredient.cardHeadline}</p>
@@ -944,7 +925,7 @@ export function FeelzProductPageContent({ mood }: { mood: FeelzMoodKey }) {
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-feelz-ink">FEELZ {label}</p>
-            <p className="text-xs text-feelz-ink/50">{price !== null ? formatInr(price) : "—"}</p>
+            <p className="text-xs text-feelz-ink/50">{price !== null ? formatInr(price) : "-"}</p>
           </div>
           {cartItem ? (
             <button

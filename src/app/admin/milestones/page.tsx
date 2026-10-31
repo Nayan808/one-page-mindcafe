@@ -65,7 +65,7 @@ export default function AdminMilestonesPage() {
   const columns: AdminColumn<Milestone>[] = [
     { key: "year", label: "Year", render: (m) => <span className="font-medium text-ink">{m.year}</span> },
     { key: "title", label: "Title", render: (m) => <span>{m.title}</span> },
-    { key: "description", label: "description", render: (m) => <span className="text-ink/60">{m.description ?? "—"}</span> },
+    { key: "description", label: "description", render: (m) => <span className="text-ink/60">{m.description ?? "-"}</span> },
   ];
 
   return (

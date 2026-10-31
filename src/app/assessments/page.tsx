@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "mindcafe Assessments — Coming Soon",
+  title: "mindcafe Assessments | Coming Soon",
   description:
     "Our mental health self-assessments are coming soon. Take a moment to check in with yourself and think about what support may help.",
 };

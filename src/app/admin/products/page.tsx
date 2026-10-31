@@ -156,7 +156,7 @@ export default function AdminProductsPage() {
     { key: "price", label: "Price", render: (p) => <span>{formatInr(p.price)}</span> },
     { key: "variants", label: "Variants", render: (p) => (
       <button type="button" onClick={() => { setVariantsFor(p); setVariantError(null); }} className="text-xs font-medium text-ink underline">
-        {p.product_variants.length} — manage
+        {p.product_variants.length} · manage
       </button>
     ) },
     { key: "active", label: "Active", render: (p) => <span>{p.is_active ? "Yes" : "No"}</span> },
@@ -218,7 +218,7 @@ export default function AdminProductsPage() {
         </div>
       </Modal>
 
-      <Modal isOpen={Boolean(variantsFor)} onClose={() => setVariantsFor(null)} title={`variants — ${variantsFor?.name ?? ""}`}>
+      <Modal isOpen={Boolean(variantsFor)} onClose={() => setVariantsFor(null)} title={`variants: ${variantsFor?.name ?? ""}`}>
         <div className="space-y-3">
           {variantError && <p className="text-sm text-red-600">{variantError}</p>}
           {(variantsFor
@@ -285,8 +285,8 @@ export default function AdminProductsPage() {
                 <div className="flex items-center justify-between">
                   <span>
                     {variant.variant_label}
-                    {variant.price_override ? ` — ${formatInr(variant.price_override)}` : ""}
-                    {variant.weight_grams ? ` — ${variant.weight_grams}g` : ""}
+                    {variant.price_override ? ` · ${formatInr(variant.price_override)}` : ""}
+                    {variant.weight_grams ? ` · ${variant.weight_grams}g` : ""}
                   </span>
                   <div className="flex gap-3">
                     <button

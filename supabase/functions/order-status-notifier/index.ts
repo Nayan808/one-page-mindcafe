@@ -25,6 +25,7 @@
 import { serviceRoleClient } from "../_shared/supabaseClients.ts";
 import { sendEmail, renderEmail, SITE_URL, type SendEmailResult } from "../_shared/email.ts";
 import { jsonResponse } from "../_shared/cors.ts";
+import { sendWhatsAppTemplate, toWhatsAppNumber } from "../_shared/whatsapp.ts";
 
 const STATUS_MESSAGES: Record<string, string> = {
   confirmed: "Your order has been confirmed!",
@@ -136,6 +137,70 @@ async function sendCustomerEmail(
   return result.ok;
 }
 
+// WhatsApp order updates — sent alongside the email at the same moments.
+// Each needs a Utility template approved in MSG91 with exactly these body
+// variables, in this order (buttons, if any, must be static URLs). Off
+// unless the WHATSAPP_ORDER_UPDATES secret is "on", so nothing is sent
+// before the templates are approved.
+type WaContext = { name: string; orderNumber: string; total: string };
+const WHATSAPP_TEMPLATES: Record<string, { template: string; values: (c: WaContext) => string[] }> = {
+  confirmed: { template: "feelz_order_confirmed", values: (c) => [c.name, c.orderNumber, c.total] },
+  // Delivery orders end at "delivered", Zostel pickups at "picked_up" — same message.
+  delivered: { template: "feelz_order_delivered", values: (c) => [c.name, c.orderNumber] },
+  picked_up: { template: "feelz_order_delivered", values: (c) => [c.name, c.orderNumber] },
+  cancelled: { template: "feelz_order_cancelled", values: (c) => [c.name, c.orderNumber] },
+};
+
+// Customer's WhatsApp number and first name for an order — guest phone,
+// then delivery-address phone, then profile/login phone.
+async function resolveCustomerWhatsApp(
+  sb: ReturnType<typeof serviceRoleClient>,
+  orderId: string,
+): Promise<{ to: string | null; name: string }> {
+  const { data: order } = await sb
+    .from("orders")
+    .select("user_id, guest_phone, guest_name, address_id")
+    .eq("id", orderId)
+    .single();
+  if (!order) return { to: null, name: "there" };
+
+  const [address, profile] = await Promise.all([
+    order.address_id ? sb.from("addresses").select("phone, full_name").eq("id", order.address_id).maybeSingle() : Promise.resolve({ data: null }),
+    order.user_id ? sb.from("profiles").select("phone, full_name").eq("id", order.user_id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+  let authPhone: string | null = null;
+  if (order.user_id) {
+    const { data: authUser } = await sb.auth.admin.getUserById(order.user_id);
+    authPhone = authUser?.user?.phone ?? null;
+  }
+
+  const to =
+    toWhatsAppNumber(order.guest_phone) ??
+    toWhatsAppNumber(address.data?.phone) ??
+    toWhatsAppNumber(profile.data?.phone) ??
+    toWhatsAppNumber(authPhone);
+  const fullName = (profile.data?.full_name || address.data?.full_name || order.guest_name || "").trim();
+  return { to, name: fullName.split(/\s+/)[0] || "there" };
+}
+
+async function sendWhatsAppUpdate(sb: ReturnType<typeof serviceRoleClient>, record: OrderRecord): Promise<boolean> {
+  if (Deno.env.get("WHATSAPP_ORDER_UPDATES") !== "on") return false;
+  const config = WHATSAPP_TEMPLATES[record.status];
+  if (!config) return false;
+  const { to, name } = await resolveCustomerWhatsApp(sb, record.id);
+  if (!to) {
+    console.log("WhatsApp skipped — no valid phone for order", record.order_number);
+    return false;
+  }
+  const result = await sendWhatsAppTemplate(
+    to,
+    config.template,
+    config.values({ name, orderNumber: record.order_number, total: `₹${record.total}` }),
+  );
+  if (!result.ok) console.error("WhatsApp order update failed", record.order_number, record.status, result.reason);
+  return result.ok;
+}
+
 Deno.serve(async (req) => {
   const payload = (await req.json()) as DbWebhookPayload;
   const { type, record, old_record } = payload;
@@ -207,6 +272,11 @@ Deno.serve(async (req) => {
         : { label: "view your order", url: `${SITE_URL}/account` };
 
     const sent = await sendCustomerEmail(sb, record.id, `Order ${record.order_number}: ${STATUS_MESSAGES[record.status]}`, paragraphs, cta);
+    sentAny = sentAny || sent;
+  }
+
+  if (statusChanged) {
+    const sent = await sendWhatsAppUpdate(sb, record);
     sentAny = sentAny || sent;
   }
 

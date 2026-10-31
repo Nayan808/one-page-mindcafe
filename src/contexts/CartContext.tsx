@@ -2,13 +2,18 @@
 
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getOrCreateCart } from "@/lib/api";
-import { getOrCreateGuestSessionId } from "@/lib/guestSession";
+import { getOrCreateCart, mergeGuestCart } from "@/lib/api";
+import { clearGuestSessionId, getOrCreateGuestSessionId, readGuestSessionId } from "@/lib/guestSession";
 import { useCart } from "@/lib/query/hooks";
 import { useAuth } from "@/contexts/AuthContext";
 
 type CartContextValue = {
   cartId: string | null;
+  /** Whose cart `cartId` is: the signed-in user's id, or null for the guest
+   * cart. Lags `user` for a moment after sign-in, while the guest cart is
+   * merged in, so anything that must act on the account cart (paying right
+   * after signing in) waits for this to match. */
+  cartUserId: string | null;
   isReady: boolean;
   isDrawerOpen: boolean;
   openDrawer: () => void;
@@ -31,6 +36,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const sb = useMemo(() => createClient(), []);
   const { status, user } = useAuth();
   const [cartId, setCartId] = useState<string | null>(null);
+  const [cartUserId, setCartUserId] = useState<string | null>(null);
   // True until the *identity* resolution (getOrCreateCart) itself has
   // settled — separate from useCart's own isLoading, which is only about
   // the items query and reports false (not loading) while cartId is still
@@ -52,9 +58,23 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ? { userId: user.id, sessionId: null }
       : { userId: null, sessionId: getOrCreateGuestSessionId() };
 
-    getOrCreateCart(sb, identity)
+    // Guests shop signed out and only sign in at "Pay Now", so their guest
+    // cart has to be folded into the account cart *before* the account
+    // cart is loaded. Merging in the background instead would show the
+    // account cart without the guest's items (and race merge-guest-cart
+    // into creating a second active cart). Best-effort: a failed merge
+    // still loads the account cart.
+    const guestSessionId = user ? readGuestSessionId() : null;
+    const merged = guestSessionId
+      ? mergeGuestCart(sb, guestSessionId).then(() => clearGuestSessionId())
+      : Promise.resolve();
+
+    merged
+      .then(() => getOrCreateCart(sb, identity))
       .then((cart) => {
-        if (!cancelled) setCartId(cart.id);
+        if (cancelled) return;
+        setCartId(cart.id);
+        setCartUserId(identity.userId);
       })
       .catch(() => {
         if (!cancelled) setCartId(null);
@@ -72,6 +92,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const value: CartContextValue = {
     cartId,
+    cartUserId,
     isReady: status !== "loading",
     isDrawerOpen,
     openDrawer: () => {

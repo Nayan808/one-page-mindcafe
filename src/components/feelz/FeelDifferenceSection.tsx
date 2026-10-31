@@ -99,7 +99,7 @@ export function FeelDifferenceSection({ label, bgClass, benefits }: { label: str
               ))}
             </h2>
             <p className="feeldiff-headcopy mt-5 max-w-sm text-sm leading-relaxed text-feelz-cream/80">
-              A thoughtfully crafted blend to support your {mood} — for the moments that matter.
+              A thoughtfully crafted blend to support your {mood}, for the moments that matter.
             </p>
           </div>
 

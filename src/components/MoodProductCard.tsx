@@ -4,8 +4,6 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getAvailableStock } from "@/lib/api";
 import { useCartContext } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthModal } from "@/contexts/AuthModalContext";
 import { formatInr } from "@/lib/utils";
 import { moodStyleFor } from "@/lib/moodStyles";
 import type { ProductWithVariants } from "@/types/domain";
@@ -33,16 +31,6 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
   // doesn't interrupt someone still comparing/picking other products.
   const [justAdded, setJustAdded] = useState(false);
   const { addItem, isReady, cartId, openDrawer, notifyAdded } = useCartContext();
-  const { user } = useAuth();
-  const { openAuthModal } = useAuthModal();
-  // Set when "Add to Cart" is clicked while signed out, so the add can
-  // finish on its own once sign-in completes instead of costing a second
-  // click. Waits on `cartId` too, not just `user` — CartProvider resolves
-  // the signed-in cart asynchronously after `user` changes, so acting the
-  // instant `user` appears could still fire against a not-yet-ready cart.
-  // Only actually fires for the phone/email path: Google navigates away
-  // and reloads the page, which drops this in-memory flag anyway.
-  const [pendingAfterAuth, setPendingAfterAuth] = useState(false);
 
   useEffect(() => {
     if (!variantId) return;
@@ -74,21 +62,9 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
     notifyAdded(product.name, quantity);
   }
 
-  useEffect(() => {
-    if (pendingAfterAuth && user && isReady && cartId) {
-      setPendingAfterAuth(false);
-      void performAddToCart();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingAfterAuth, user, isReady, cartId]);
-
   async function handleAddToCart() {
+    // Guests shop on a guest cart; sign-in waits until "Pay Now".
     if (!variant) return;
-    if (!user) {
-      setPendingAfterAuth(true);
-      openAuthModal();
-      return;
-    }
     await performAddToCart();
   }
 
@@ -177,7 +153,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
           disabled={!isReady || isOutOfStock || addItem.isPending || !variant}
           className="flex-1 rounded-full bg-black/85 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-50"
         >
-          {addItem.isPending ? "Adding…" : user ? "Add to Cart" : "Sign In to Add"}
+          {addItem.isPending ? "Adding…" : "Add to Cart"}
         </button>
       </div>
 
@@ -187,7 +163,7 @@ export function MoodProductCard({ product, index }: { product: ProductWithVarian
           onClick={openDrawer}
           className="mt-2 w-full rounded-full border border-white/40 bg-white/10 px-4 py-2 text-xs font-semibold backdrop-blur transition hover:bg-white/20"
         >
-          Added to cart — view cart
+          Added to cart · view cart
         </button>
       )}
 

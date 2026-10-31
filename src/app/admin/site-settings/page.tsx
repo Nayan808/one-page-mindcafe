@@ -76,7 +76,7 @@ export default function AdminSiteSettingsPage() {
     <div>
       <AdminPageHeader
         title="Site Settings"
-        description="Generic key/value CMS store — powers the announcement bar and homepage stat chips."
+        description="Generic key/value CMS store that powers the announcement bar and homepage stat chips."
         action={<button type="button" onClick={() => openNew()} className="pill-btn !py-2 text-xs">+ new key</button>}
       />
 
@@ -109,7 +109,7 @@ export default function AdminSiteSettingsPage() {
         }}
       />
 
-      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? `edit — ${key}` : "New Setting"}>
+      <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title={editing ? `edit: ${key}` : "New Setting"}>
         <div className="space-y-3">
           <input value={key} onChange={(e) => setKey(e.target.value)} placeholder="Key" disabled={Boolean(editing)} className="input disabled:opacity-60" />
           <textarea value={valueText} onChange={(e) => setValueText(e.target.value)} rows={6} className="input font-mono text-xs" />

@@ -49,7 +49,7 @@ export default function IngredientsPage() {
           <p className="mt-4 text-sm font-medium text-feelz-ink/70 sm:text-base">Ancient wisdom. Modern formulation.</p>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-feelz-ink/60">
             Every ingredient has a reason to be here. FEELZ brings together traditional botanicals, researched
-            compounds and nutritional ingredients — each selected for a specific role within a particular formula.
+            compounds and nutritional ingredients, each selected for a specific role within a particular formula.
           </p>
 
           <div className="mx-auto mt-8 flex w-fit flex-wrap justify-center gap-2 rounded-full border border-feelz-ink/10 bg-feelz-cream p-1.5">
@@ -86,7 +86,7 @@ export default function IngredientsPage() {
             {activeMood === "focus" && "Focus, formulated."}
             {activeMood === "joy" && "Joy, without the noise."}
             {activeMood === "extrovert" && "The social formula."}
-            {activeMood === "rest" && "When the day is over — but your brain isn't."}
+            {activeMood === "rest" && "When the day is over, but your brain isn't."}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm text-feelz-ink/60">{activeStyle.description}</p>
           <p className="mt-3 text-xs font-semibold uppercase tracking-label text-feelz-ink/40">
@@ -176,7 +176,7 @@ export default function IngredientsPage() {
             <h2 className="font-display text-2xl font-bold text-feelz-ink sm:text-3xl">One ingredient. Different roles.</h2>
             <p className="mx-auto mt-3 max-w-lg text-sm text-feelz-ink/60">
               The same ingredient can play a different role depending on the formula around it. Because FEELZ isn&apos;t
-              about individual ingredients alone — it&apos;s about formulation.
+              about individual ingredients alone. It&apos;s about formulation.
             </p>
           </div>
 
@@ -206,7 +206,7 @@ export default function IngredientsPage() {
         <h2 className="font-display mt-3 text-3xl font-bold text-feelz-ink sm:text-4xl">Every ingredient has a job.</h2>
         <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-feelz-ink/60">
           From a tea-leaf amino acid to an Ayurvedic botanical. From saffron to melatonin. From black pepper extract to
-          Vitamin B6. FEELZ isn&apos;t built around one magic ingredient — it&apos;s built around formulation, bringing
+          Vitamin B6. FEELZ isn&apos;t built around one magic ingredient. It&apos;s built around formulation, bringing
           different ingredients together for different moments of your day.
         </p>
 
@@ -235,7 +235,7 @@ export default function IngredientsPage() {
           <p className="mt-3 text-sm leading-relaxed text-feelz-ink/60">
             We believe you should know what&apos;s inside the products you use. The research linked throughout this page
             is provided to explain the ingredients used in FEELZ and the scientific questions being explored around
-            them. Ingredient research isn&apos;t the same thing as a clinical claim about a finished product — studies
+            them. Ingredient research isn&apos;t the same thing as a clinical claim about a finished product. Studies
             may use different extracts, preparations, doses, durations and participant groups from those used in FEELZ.
           </p>
         </div>

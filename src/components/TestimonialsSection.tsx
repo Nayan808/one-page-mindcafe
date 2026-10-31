@@ -75,7 +75,7 @@ function ReviewCard({ review }: { review: Review }) {
         </button>
       )}
       <p className={`mt-5 text-sm font-semibold ${tone.name}`}>
-        — {review.reviewer_name}
+        {review.reviewer_name}
         {review.city ? <span className="font-normal text-ink/50"> · {review.city}</span> : null}
       </p>
     </div>

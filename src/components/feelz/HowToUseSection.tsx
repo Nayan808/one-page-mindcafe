@@ -107,7 +107,7 @@ export function HowToUseSection({
 
           <div className="lg:justify-self-end lg:text-right">
             <p className="max-w-xs text-sm leading-relaxed text-feelz-cream/80 lg:ml-auto">
-              A simple, no-fuss routine — {countWord} steps, anywhere your day takes you.
+              A simple, no-fuss routine: {countWord} steps, anywhere your day takes you.
             </p>
             <div className="mt-5 flex flex-wrap gap-2 lg:justify-end">
               {["No water", "No waiting", "Melts in seconds"].map((chip) => (

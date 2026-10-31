@@ -53,8 +53,8 @@ export default function AdminContactMessagesPage() {
   const columns: AdminColumn<ContactMessage>[] = [
     { key: "name", label: "Name", render: (m) => <span className="font-medium text-ink">{m.name}</span> },
     { key: "email", label: "email", render: (m) => <a href={`mailto:${m.email}`} className="text-ink underline">{m.email}</a> },
-    { key: "phone", label: "Phone", render: (m) => <span className="text-ink/60">{m.phone ?? "—"}</span> },
-    { key: "message", label: "Message", render: (m) => <span className="block max-w-sm truncate text-ink/60" title={m.message ?? ""}>{m.message ?? "—"}</span> },
+    { key: "phone", label: "Phone", render: (m) => <span className="text-ink/60">{m.phone ?? "-"}</span> },
+    { key: "message", label: "Message", render: (m) => <span className="block max-w-sm truncate text-ink/60" title={m.message ?? ""}>{m.message ?? "-"}</span> },
     {
       key: "status",
       label: "status",

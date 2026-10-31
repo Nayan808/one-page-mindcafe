@@ -80,7 +80,7 @@ export default function AdminPincodesPage() {
     { key: "pincode", label: "Pincode", render: (p) => <span className="font-medium text-ink">{p.pincode}</span> },
     { key: "city", label: "City", render: (p) => <span>{p.city}</span> },
     { key: "fee", label: "Delivery Fee", render: (p) => <span>{formatInr(p.delivery_fee)}</span> },
-    { key: "free_at", label: "Free Above", render: (p) => <span className="text-ink/60">{p.free_delivery_threshold ? formatInr(p.free_delivery_threshold) : "—"}</span> },
+    { key: "free_at", label: "Free Above", render: (p) => <span className="text-ink/60">{p.free_delivery_threshold ? formatInr(p.free_delivery_threshold) : "-"}</span> },
   ];
 
   return (

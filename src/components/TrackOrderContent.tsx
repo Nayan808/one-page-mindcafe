@@ -30,7 +30,7 @@ export function TrackOrderContent() {
       setOrder(result);
       if (!result) setError("We couldn't find an order with that number and phone. Check both and try again.");
     } catch {
-      setError("Something went wrong — please try again.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }

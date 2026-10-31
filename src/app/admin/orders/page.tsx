@@ -356,7 +356,7 @@ export default function AdminOrdersPage() {
       downloadCsv(`orders-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(header, rows));
     } catch (error) {
       console.error("Order export failed", error);
-      window.alert("Couldn't export orders — please try again.");
+      window.alert("Couldn't export orders. Please try again.");
     } finally {
       setIsExporting(false);
     }
@@ -377,7 +377,7 @@ export default function AdminOrdersPage() {
         // have a contact number even when the profile's is empty. Phone
         // and email are both shown, not one-or-the-other.
         const { name, phone, email } = contactFor(o);
-        if (!name && !phone && !email) return <span className="text-ink/30">—</span>;
+        if (!name && !phone && !email) return <span className="text-ink/30">-</span>;
         return (
           <div className="space-y-0.5 text-xs">
             {name && <p className="font-medium text-ink">{name}</p>}
@@ -415,23 +415,23 @@ export default function AdminOrdersPage() {
             {o.pickup_locations.city ? `, ${o.pickup_locations.city}` : ""}
           </span>
         ) : (
-          <span className="text-ink/30">—</span>
+          <span className="text-ink/30">-</span>
         ),
     },
     {
       key: "city_pincode",
       label: "City / Pincode",
       render: (o) => {
-        if (o.fulfillment_type !== "delivery") return <span className="text-ink/30">—</span>;
+        if (o.fulfillment_type !== "delivery") return <span className="text-ink/30">-</span>;
         // Signed-in checkout carries city/pincode via the saved address row
         // (o.addresses); guest checkout has no address_id and instead
         // stores them directly on the order (guest_address_city/pincode).
         const city = o.addresses?.city ?? o.guest_address_city;
         const pincode = o.addresses?.pincode ?? o.guest_address_pincode;
-        if (!city && !pincode) return <span className="text-ink/30">—</span>;
+        if (!city && !pincode) return <span className="text-ink/30">-</span>;
         return (
           <span className="text-xs">
-            {city ?? "—"}
+            {city ?? "-"}
             {pincode ? ` · ${pincode}` : ""}
           </span>
         );
@@ -448,7 +448,7 @@ export default function AdminOrdersPage() {
             {o.discount_amount > 0 && <span className="text-ink/50"> · −{formatInr(o.discount_amount)}</span>}
           </span>
         ) : (
-          <span className="text-ink/30">—</span>
+          <span className="text-ink/30">-</span>
         ),
     },
     { key: "payment", label: "Payment", render: (o) => <span className="capitalize">{o.payment_status}</span> },
@@ -474,7 +474,7 @@ export default function AdminOrdersPage() {
       label: "Tracking",
       render: (o) =>
         o.fulfillment_type !== "delivery" ? (
-          <span className="text-ink/30">—</span>
+          <span className="text-ink/30">-</span>
         ) : o.awb_code ? (
           <div>
             <p className="text-ink">{o.awb_code}</p>
@@ -504,7 +504,7 @@ export default function AdminOrdersPage() {
         ) : o.last_notification_status === "no_email" ? (
           <span className="text-xs font-medium text-amber-600">No Email on File</span>
         ) : (
-          <span className="text-xs text-ink/30">—</span>
+          <span className="text-xs text-ink/30">-</span>
         ),
     },
   ];
@@ -696,7 +696,7 @@ export default function AdminOrdersPage() {
         </div>
       )}
 
-      <Modal isOpen={!!editingOrder} onClose={() => setEditingOrder(null)} title={editingOrder ? `edit — ${editingOrder.order_number}` : "Edit Order"}>
+      <Modal isOpen={!!editingOrder} onClose={() => setEditingOrder(null)} title={editingOrder ? `edit: ${editingOrder.order_number}` : "Edit Order"}>
         {editingOrder && (
           <div className="space-y-5">
             <div>
@@ -752,7 +752,7 @@ export default function AdminOrdersPage() {
               </div>
               {updateItemQty.isError && (
                 <p className="mt-1.5 text-xs text-red-600">
-                  {updateItemQty.error instanceof Error ? updateItemQty.error.message : "Couldn't update quantity — not enough stock?"}
+                  {updateItemQty.error instanceof Error ? updateItemQty.error.message : "Couldn't update quantity. Not enough stock?"}
                 </p>
               )}
               <div className="mt-2 flex justify-between text-xs text-ink/60">
@@ -783,7 +783,7 @@ export default function AdminOrdersPage() {
                   onChange={(e) => setDetailsForm({ ...detailsForm, location_id: e.target.value || null })}
                   className="input"
                 >
-                  <option value="">— none —</option>
+                  <option value="">None</option>
                   {(locationsQuery.data ?? []).map((l) => (
                     <option key={l.id} value={l.id}>
                       {l.name}
@@ -805,8 +805,8 @@ export default function AdminOrdersPage() {
                 <div>
                   <label className="mb-1 block text-sm text-ink/70">Delivery address</label>
                   <p className="rounded-lg border border-ink/15 bg-cream/60 p-3 text-xs text-ink/60">
-                    This order ships to the customer&apos;s saved address ({editingOrder.addresses?.city ?? "—"}
-                    {editingOrder.addresses?.pincode ? ` · ${editingOrder.addresses.pincode}` : ""}) — edit it from their account,
+                    This order ships to the customer&apos;s saved address ({editingOrder.addresses?.city ?? "-"}
+                    {editingOrder.addresses?.pincode ? ` · ${editingOrder.addresses.pincode}` : ""}). Edit it from their account,
                     not here.
                   </p>
                 </div>

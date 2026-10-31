@@ -24,7 +24,7 @@ import type { CartItemWithVariant } from "@/types/domain";
 export function CartDrawer() {
   const { isDrawerOpen, closeDrawer, items, subtotal, isLoading } = useCartContext();
   const router = useRouter();
-  const bundle = useAddBundle({ onAuthRequired: closeDrawer });
+  const bundle = useAddBundle();
 
   const singlesSubtotal = discountableSubtotal(items);
   const autoDiscount = autoDiscountFor(items);
@@ -271,7 +271,7 @@ function BundleUpsell({ bundle }: { bundle: ReturnType<typeof useAddBundle> }) {
             Get the Feelz Bundle
           </p>
           <p className="mt-0.5 text-xs leading-relaxed text-feelz-ink/60">
-            All 4 moods, 40 strips —{" "}
+            All 4 moods, 40 strips for{" "}
             {bundle.regularPrice !== null && <span className="line-through">{formatInr(bundle.regularPrice)}</span>}{" "}
             <span className="font-semibold text-feelz-ink">{formatInr(bundle.price)}</span>.
           </p>

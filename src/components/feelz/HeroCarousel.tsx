@@ -16,10 +16,10 @@ import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
 // four-pack "10-Day Routine" banner, to the bundle card.
 // Embla swallows the click that ends a swipe, so dragging never navigates.
 const HERO_SLIDES = [
-  { key: "ayurvedic", src: "/feelz-creative/hero-revised/1.webp", target: "shop", label: "India's first supplement with Ayurvedic and active food ingredients — shop Feelz" },
-  { key: "tiny-strip", src: "/feelz-creative/hero-revised/2.webp", target: "shop", label: "Your supplement, in a tiny strip — shop Feelz" },
-  { key: "routine", src: "/feelz-creative/hero-revised/3.webp", target: "bundle", label: "Your 10-day Feelz routine — shop the bundle" },
-  { key: "big-day", src: "/feelz-creative/hero-revised/4.webp", target: "shop", label: "Big day? Tiny strip — shop Feelz" },
+  { key: "ayurvedic", src: "/feelz-creative/hero-revised/1.webp", target: "shop", label: "India's first supplement with Ayurvedic and active food ingredients. Shop Feelz" },
+  { key: "tiny-strip", src: "/feelz-creative/hero-revised/2.webp", target: "shop", label: "Your supplement, in a tiny strip. Shop Feelz" },
+  { key: "routine", src: "/feelz-creative/hero-revised/3.webp", target: "bundle", label: "Your 10-day Feelz routine. Shop the bundle" },
+  { key: "big-day", src: "/feelz-creative/hero-revised/4.webp", target: "shop", label: "Big day? Tiny strip. Shop Feelz" },
 ] as const;
 
 export function HeroCarousel({

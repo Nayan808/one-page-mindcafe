@@ -38,7 +38,7 @@ const FAQS = [
   {
     question: "How many strips can I take?",
     answer:
-      "Always follow the usage instructions on your respective Feelz pack. Rest contains melatonin, so it's limited to one strip every 24 hours — skip driving or machinery use right after.",
+      "Always follow the usage instructions on your respective Feelz pack. Rest contains melatonin, so it's limited to one strip every 24 hours. Skip driving or machinery use right after.",
   },
   {
     question: "Where can I buy Feelz?",

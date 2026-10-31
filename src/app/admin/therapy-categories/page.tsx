@@ -38,7 +38,7 @@ export default function AdminTherapyCategoriesPage() {
 
   return (
     <div>
-      <AdminPageHeader title="Therapy Categories" description="These 4 are fixed slugs — edit their copy, not their existence." />
+      <AdminPageHeader title="Therapy Categories" description="These 4 are fixed slugs. Edit their copy, not their existence." />
 
       <div className="space-y-3">
         {(query.data ?? []).map((category) => (
@@ -57,7 +57,7 @@ export default function AdminTherapyCategoriesPage() {
         ))}
       </div>
 
-      <Modal isOpen={Boolean(editing)} onClose={() => setEditing(null)} title={`edit — ${editing?.title ?? ""}`}>
+      <Modal isOpen={Boolean(editing)} onClose={() => setEditing(null)} title={`edit: ${editing?.title ?? ""}`}>
         <div className="space-y-3">
           <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title" className="input" />
           <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Body" rows={4} className="input" />

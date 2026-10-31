@@ -30,7 +30,7 @@ export function QrScanner({ onDecode }: { onDecode: (text: string) => void }) {
         await videoRef.current.play();
         tick();
       } catch {
-        setError("Couldn't access the camera — use manual entry below instead.");
+        setError("Couldn't access the camera. Use manual entry below instead.");
         setIsActive(false);
       }
     }

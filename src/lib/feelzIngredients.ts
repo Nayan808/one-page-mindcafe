@@ -71,7 +71,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       cardHeadline: "More than a spice.",
       cardHook: "What does it have to do with Focus?",
       whatIsIt:
-        "Saffron comes from the flowers of Crocus sativus — the plant commonly known for producing saffron spice. It contains naturally occurring compounds such as crocin, which have been studied in relation to mood, emotional wellbeing and cognitive function.",
+        "Saffron comes from the flowers of Crocus sativus, the plant commonly known for producing saffron spice. It contains naturally occurring compounds such as crocin, which have been studied in relation to mood, emotional wellbeing and cognitive function.",
       whyInFeelz:
         "Focus isn't only about attention. Sometimes you're trying to concentrate while your mental state isn't quite settled. Saffron is included as part of the formula's broader approach to focus, calm and emotional wellbeing.",
       research:
@@ -88,9 +88,9 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       cardHeadline: "Black pepper. Unexpectedly.",
       cardHook: "Why is it hiding inside a Focus formula?",
       whatIsIt:
-        "BioPerine® is a standardized extract of black pepper (Piper nigrum). Its key active compound is piperine — the compound responsible for black pepper's characteristic pungency.",
+        "BioPerine® is a standardized extract of black pepper (Piper nigrum). Its key active compound is piperine, the compound responsible for black pepper's characteristic pungency.",
       whyInFeelz:
-        "Not every ingredient in a formulation needs to be the star. Piperine has been studied for its ability to influence the absorption and bioavailability of certain compounds, making BioPerine® a supporting player within the formulation. Piperine's effects can vary depending on the specific compound, dose and formulation — BioPerine® does not automatically mean more absorption of everything.",
+        "Not every ingredient in a formulation needs to be the star. Piperine has been studied for its ability to influence the absorption and bioavailability of certain compounds, making BioPerine® a supporting player within the formulation. Piperine's effects can vary depending on the specific compound, dose and formulation. BioPerine® does not automatically mean more absorption of everything.",
       research:
         "Pharmacology reviews have examined piperine's effects on drug-metabolizing enzymes, intestinal absorption and pharmacokinetic interactions.",
       formulationNote:
@@ -140,7 +140,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       whatIsIt:
         "Ashwagandha is a traditional Ayurvedic botanical associated with stress adaptation, resilience and emotional stability.",
       whyInFeelz:
-        "Imagine a day where one thing after another demands your attention. By evening, you're not necessarily unhappy — you're just mentally drained. Ashwagandha fits Joy because of its relationship with stress resilience and emotional stability.",
+        "Imagine a day where one thing after another demands your attention. By evening, you're not necessarily unhappy. You're just mentally drained. Ashwagandha fits Joy because of its relationship with stress resilience and emotional stability.",
       research:
         "A 2024 systematic review and meta-analysis of 9 randomized controlled trials involving 558 participants reported improvements in measures of stress and anxiety.",
       formulationNote:
@@ -205,7 +205,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       whatIsIt:
         "Ashwagandha is a traditional Ayurvedic botanical studied in relation to stress management, resilience and emotional wellbeing.",
       whyInFeelz:
-        "You're at a networking event. You want to introduce yourself. But your mind starts: what if they don't want to talk to me? What should I say? Am I making this awkward? Ashwagandha fits into Extrovert because of its connection with stress adaptation and resilience — relevant to moments when social situations feel overwhelming.",
+        "You're at a networking event. You want to introduce yourself. But your mind starts: what if they don't want to talk to me? What should I say? Am I making this awkward? Ashwagandha fits into Extrovert because of its connection with stress adaptation and resilience, relevant to moments when social situations feel overwhelming.",
       research: "Human clinical research has investigated Ashwagandha in relation to stress and anxiety.",
       formulationNote:
         "Research uses different extracts, doses and durations. It should not be presented as proof that 20 mg in FEELZ Extrovert produces the same outcomes.",
@@ -220,10 +220,10 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       whatIsIt:
         "Vitamin B6 is an essential vitamin involved in more than 100 enzyme reactions in the body. It contributes to normal nervous-system and psychological function.",
       whyInFeelz:
-        "Extrovert isn't about simply becoming \"more social.\" The formulation also considers the nutritional and physiological systems involved in everyday mental wellbeing — Vitamin B6 provides a nutritional role within the formula. It should not be described as an ingredient that directly makes someone confident, outgoing or extroverted; its role is nutritional.",
+        "Extrovert isn't about simply becoming \"more social.\" The formulation also considers the nutritional and physiological systems involved in everyday mental wellbeing. Vitamin B6 provides a nutritional role within the formula. It should not be described as an ingredient that directly makes someone confident, outgoing or extroverted; its role is nutritional.",
       research: "Vitamin B6 is an official NIH-recognized nutrient with a well-established nutritional role.",
       formulationNote:
-        "A controlled human study has examined high-dose B6 and anxiety, but at doses well above FEELZ's 2 mg — that study should not be used to claim the same effect at this dose.",
+        "A controlled human study has examined high-dose B6 and anxiety, but at doses well above FEELZ's 2 mg. That study should not be used to claim the same effect at this dose.",
       image: "/feelz-creative/ingredients/vitamin-b6.webp",
     },
     {
@@ -234,7 +234,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       whatIsIt:
         "Saffron comes from Crocus sativus and contains naturally occurring compounds that have been studied in relation to mood and emotional wellbeing.",
       whyInFeelz:
-        "Imagine you're going to meet people but you're already feeling emotionally off. Sometimes the challenge isn't the room — it's how you feel walking into it. Saffron complements Extrovert's ingredients focused on emotional wellbeing, resilience and composure.",
+        "Imagine you're going to meet people but you're already feeling emotionally off. Sometimes the challenge isn't the room. It's how you feel walking into it. Saffron complements Extrovert's ingredients focused on emotional wellbeing, resilience and composure.",
       research:
         "A 2026 meta-analysis of 34 randomized controlled trials involving 1,769 adults found improvements in some self-reported depression and anxiety measures, but not across all clinician-rated measures.",
       formulationNote:
@@ -286,7 +286,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
         "Imagine lying in bed after a long day. Your body is tired, but your mind is still processing everything that happened. Brahmi is positioned in Rest as part of the formula's relaxation-support architecture, alongside L-Theanine and Ashwagandha.",
       research:
         "Most human research on Bacopa has focused on cognition rather than sleep; a 2024 randomized controlled trial examining sleep quality did not find a significant overall improvement.",
-      formulationNote: "Brahmi should not be presented as a proven sleep ingredient — its role in FEELZ Rest is part of the broader relaxation-support formulation.",
+      formulationNote: "Brahmi should not be presented as a proven sleep ingredient. Its role in FEELZ Rest is part of the broader relaxation-support formulation.",
       researchUrl: "https://pubmed.ncbi.nlm.nih.gov/22747190/",
       image: "/feelz-creative/ingredients/brahmi.webp",
     },
@@ -298,7 +298,7 @@ export const FEELZ_INGREDIENTS: Record<FeelzMoodKey, FeelzIngredient[]> = {
       whatIsIt:
         "Ashwagandha is a traditional Ayurvedic botanical associated with stress adaptation, resilience and recovery.",
       whyInFeelz:
-        "Sleep isn't only about being physically tired. Sometimes it's about whether your mind has actually finished the day — work is done, but the stress of the day is still sitting somewhere in the background. Ashwagandha is included in Rest as part of the formula's stress-management and recovery profile.",
+        "Sleep isn't only about being physically tired. Sometimes it's about whether your mind has actually finished the day: work is done, but the stress of the day is still sitting somewhere in the background. Ashwagandha is included in Rest as part of the formula's stress-management and recovery profile.",
       research:
         "A systematic review and meta-analysis of five randomized controlled trials involving 400 participants found a small overall improvement in sleep, with stronger effects reported in studies using 600 mg/day or more and treatment lasting at least eight weeks.",
       formulationNote:

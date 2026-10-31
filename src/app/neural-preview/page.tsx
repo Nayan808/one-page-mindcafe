@@ -50,7 +50,7 @@ export default function NeuralPreview() {
         <div className="mx-auto max-w-xl py-24 text-center">
           <h2 className="font-display text-3xl font-bold text-cream sm:text-5xl">Dispersed field</h2>
           <p className="mt-4 text-sm text-cream/60">
-            Maximum density, default intensity — the ambient state after the silhouette dissolves.
+            Maximum density, default intensity, the ambient state after the silhouette dissolves.
           </p>
         </div>
       </NeuralBand>

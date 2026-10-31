@@ -31,16 +31,15 @@ const STEPS = [
     body: "Deadlines, notifications and a never-ending to-do list can throw you off balance.",
     color: FEELZ_COLOR_CLASSES["feelz-berry"],
     image: "/feelz-creative/calmer/daydream.webp",
-    focus: "50% 50%",
-    // A collage with moments in every corner — shown whole.
-    fit: "contain",
+    // Wide collage in a tall panel: crop in on the daydreaming centre.
+    focus: "52% 50%",
     caption: "The everyday noise",
   },
   {
     n: "02",
     icon: Droplet,
     title: "A small strip. A big shift.",
-    body: "Place a FEELZ strip on your tongue — no water needed. It starts dissolving in seconds.",
+    body: "Place a FEELZ strip on your tongue. No water needed. It starts dissolving in seconds.",
     color: FEELZ_COLOR_CLASSES["feelz-orange"],
     image: "/feelz-creative/calmer/strip-tongue.webp",
     focus: "38% 50%",
@@ -53,16 +52,15 @@ const STEPS = [
     body: "A fast-dissolving strip built around botanical actives chosen for mood, calm and clarity.",
     color: FEELZ_COLOR_CLASSES["feelz-navy"],
     image: "/feelz-creative/calmer/joy.webp",
-    focus: "50% 50%",
-    // Four ingredient bowls, one per corner — shown whole.
-    fit: "contain",
+    // Square shot: keep the falling strips centred, bowls at the edges.
+    focus: "50% 45%",
     caption: "Real botanicals",
   },
   {
     n: "04",
     icon: Sparkles,
     title: "Feel the difference.",
-    body: "A calmer, more present you — ready for whatever's next.",
+    body: "A calmer, more present you, ready for whatever's next.",
     color: FEELZ_COLOR_CLASSES["feelz-rest"],
     image: "/feelz-creative/moments/extrovert-everyday-v3.webp",
     focus: "73% 30%",
@@ -129,7 +127,7 @@ export function CalmerYouSection() {
         <Reveal className="text-center">
           <p className="text-[11px] font-semibold uppercase tracking-[0.3em] text-feelz-berry">Feel better. Think better. Live better.</p>
           <h2 className="font-display mt-4 text-3xl font-bold leading-[1.1] text-feelz-ink sm:text-5xl">
-            A calmer, happier you <span className="font-tagline italic font-normal">— in seconds.</span>
+            A calmer, happier you, <span className="font-tagline italic font-normal">in seconds.</span>
           </h2>
         </Reveal>
 
@@ -153,33 +151,18 @@ export function CalmerYouSection() {
                     data-active={isActive ? "" : undefined}
                     className="calmer-panel group relative min-w-0 overflow-hidden rounded-[1.75rem] bg-feelz-paper text-left shadow-[0_30px_60px_-36px_rgba(16,35,63,0.5)] ring-1 ring-feelz-ink/10"
                   >
-                    {"fit" in step && step.fit === "contain" ? (
-                      <>
-                        {/* Whole image, centred, over a soft blurred copy of
-                            itself — a wide/square shot in this tall panel
-                            would otherwise lose its corners. */}
-                        <Image src={step.image} alt="" fill sizes="10rem" quality={40} className="scale-125 object-cover blur-2xl" aria-hidden />
-                        <Image
-                          src={step.image}
-                          alt={step.caption}
-                          fill
-                          sizes="(min-width: 1024px) 32rem, 90vw"
-                          quality={90}
-                          className="calmer-panel-img object-contain drop-shadow-[0_18px_30px_rgba(16,35,63,0.25)]"
-                        />
-                      </>
-                    ) : (
-                      <Image
-                        src={step.image}
-                        alt={step.caption}
-                        fill
-                        sizes="(min-width: 1024px) 32rem, 90vw"
-                        quality={90}
-                        className="calmer-panel-img object-cover"
-                        // Landscape shots in a tall panel: keep each subject in frame.
-                        style={{ objectPosition: step.focus }}
-                      />
-                    )}
+                    <Image
+                      src={step.image}
+                      alt={step.caption}
+                      fill
+                      // Covering a 32rem-tall panel scales a landscape shot
+                      // well past the panel's width, so ask for enough pixels
+                      // to stay sharp once it's open.
+                      sizes="(min-width: 1024px) 44rem, 100vw"
+                      quality={90}
+                      className="calmer-panel-img object-cover"
+                      style={{ objectPosition: step.focus }}
+                    />
                     {index === 0 && (
                       <span className="calmer-panel-noise absolute inset-0 bg-feelz-ink/25" aria-hidden>
                         {NOISE.map((item, n) => (

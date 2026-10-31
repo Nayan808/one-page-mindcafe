@@ -16,12 +16,12 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
     draft: false,
     title: "Privacy policy",
     lastUpdated: "5 August 2026",
-    reviewNote: "Drafted in-house from how the Platform actually operates — recommended for a formal legal review before treating it as final.",
+    reviewNote: "Drafted in-house from how the Platform actually operates, recommended for a formal legal review before treating it as final.",
     sections: [
       {
         heading: "1. Introduction",
         paragraphs: [
-          "This Privacy Policy explains what personal data mindcafe collects when you use our website and Platform — including Feelz (our mood-strip products), our counselling booking service, and Scan & Order (QR-linked ordering at partner Zostel properties) — and how we use, share, and protect it.",
+          "This Privacy Policy explains what personal data mindcafe collects when you use our website and Platform, including Feelz (our mood-strip products), our counselling booking service, and Scan & Order (QR-linked ordering at partner Zostel properties), and how we use, share, and protect it.",
           "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “mindcafe.”",
           "By using the Platform, you agree to the collection and use of information as described here.",
         ],
@@ -37,7 +37,7 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
               "Guest checkout details: name and phone (email optional), if you order without creating an account",
               "Order information: items purchased, order notes, and coupon codes used",
               "Counselling booking information: therapy category, expert preference, scheduled time, and any notes you add",
-              "Intake form responses, if you complete one before a session: age, pronouns, occupation, presenting concern, a description of what brought you in, and your answers to any assessment questions — used only to support the expert preparing for your session",
+              "Intake form responses, if you complete one before a session: age, pronouns, occupation, presenting concern, a description of what brought you in, and your answers to any assessment questions, used only to support the expert preparing for your session",
               "Reviews you choose to submit",
               "Your email address, if you subscribe to our newsletter",
               "Anything you send us directly when contacting support",
@@ -46,14 +46,14 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
           {
             heading: "2.2 Information Collected Automatically",
             paragraphs: [
-              "If you check out as a guest, we store a random session identifier in a browser cookie so your cart persists across visits before you sign in or complete an order — this cookie does not identify you personally on its own.",
+              "If you check out as a guest, we store a random session identifier in a browser cookie so your cart persists across visits before you sign in or complete an order. This cookie does not identify you personally on its own.",
               "Our hosting and infrastructure provider may log standard technical information such as IP address and browser/device details, in line with their own security practices.",
             ],
           },
           {
             heading: "2.3 What We Don't Collect",
             paragraphs: [
-              "We never see or store your card, UPI, or net banking details. All payments are processed directly by Razorpay, our payment gateway partner — we only receive a payment reference and status back from them.",
+              "We never see or store your card, UPI, or net banking details. All payments are processed directly by Razorpay, our payment gateway partner. We only receive a payment reference and status back from them.",
             ],
           },
         ],
@@ -76,17 +76,17 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
           "We do not sell your personal data. We share it only with the service providers needed to run the Platform, and only to the extent necessary for the purpose in question:",
         ],
         list: [
-          "Razorpay — to process your payment",
-          "Shiprocket — to deliver Feelz orders, using your delivery address and order details",
+          "Razorpay: to process your payment",
+          "Shiprocket: to deliver Feelz orders, using your delivery address and order details",
           "Our database, authentication, and hosting infrastructure provider",
-          "Our transactional email provider — to deliver order, appointment, and account emails",
+          "Our transactional email provider: to deliver order, appointment, and account emails",
           "The counselling expert you book a session with, limited to what's needed for that session",
         ],
       },
       {
         heading: "5. Counselling & Sensitive Information",
         paragraphs: [
-          "If you book a counselling session, information you share during booking or in an intake form — including anything about your mental health or personal circumstances — is used only to support the counselling relationship between you and the expert you're booked with. It is accessible only to you, that expert, and authorised mindcafe administrators, never shared for marketing or with any other user.",
+          "If you book a counselling session, information you share during booking or in an intake form (including anything about your mental health or personal circumstances) is used only to support the counselling relationship between you and the expert you're booked with. It is accessible only to you, that expert, and authorised mindcafe administrators, never shared for marketing or with any other user.",
         ],
       },
       {
@@ -156,7 +156,7 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
     draft: false,
     title: "Terms of service",
     lastUpdated: "5 August 2026",
-    reviewNote: "Drafted in-house from how the Platform actually operates — recommended for a formal legal review before treating it as final.",
+    reviewNote: "Drafted in-house from how the Platform actually operates, recommended for a formal legal review before treating it as final.",
     sections: [
       {
         heading: "1. Acceptance of Terms",
@@ -209,7 +209,7 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
         heading: "6. Orders, Pricing & Payment",
         paragraphs: [
           "All prices are listed in Indian Rupees (INR). We reserve the right to correct pricing errors and to cancel any order affected by one (see our Refund & Cancellation Policy).",
-          "Full payment is required upfront, via Razorpay, before any order or counselling session is confirmed — we do not currently offer cash on delivery or pay-later options.",
+          "Full payment is required upfront, via Razorpay, before any order or counselling session is confirmed. We do not currently offer cash on delivery or pay-later options.",
         ],
       },
       {
@@ -314,7 +314,7 @@ const CONTENT: Record<"privacy" | "terms" | "refund", LegalPageContent> = {
       {
         heading: "1. Overview",
         paragraphs: [
-          "This Refund & Cancellation Policy (“Policy”) applies to all orders placed for Feelz by mindcafe products — Focus, Joy, Extrovert, and Rest — purchased through our website, mobile site, or any authorised online channel (“Platform”). Feelz products are consumable wellness items. Please read this Policy carefully before placing an order, as it explains when a cancellation, replacement, or refund is and is not available.",
+          "This Refund & Cancellation Policy (“Policy”) applies to all orders placed for Feelz by mindcafe products (Focus, Joy, Extrovert, and Rest) purchased through our website, mobile site, or any authorised online channel (“Platform”). Feelz products are consumable wellness items. Please read this Policy carefully before placing an order, as it explains when a cancellation, replacement, or refund is and is not available.",
           "Sneh Care Club Private Limited, a company registered under the Companies Act, 2013, having its registered office at Shop No 5, City Centre, Press Complex, MP Nagar Zone-I, Bhopal, 462001, operates this Platform and is referred to as “we,” “us,” or “mindcafe.”",
         ],
       },

@@ -174,7 +174,7 @@ export default function AdminDashboardPage() {
           </div>
 
           <div>
-            <p className="mb-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">performance — {rangeLabel}</p>
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-label text-ink/50">performance · {rangeLabel}</p>
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {segment === "combined" && <StatCard label="Total Revenue" value={formatInr(summary.range.totalRevenue)} />}
               {segment !== "counselling" && <StatCard label="Feelz Revenue" value={formatInr(summary.range.productRevenue)} />}
@@ -194,7 +194,7 @@ export default function AdminDashboardPage() {
           <div className="grid gap-4 sm:grid-cols-2">
             {segment !== "counselling" && (
               <div className="rounded-2xl border border-ink/15 bg-white p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">orders by status — {rangeLabel}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">orders by status · {rangeLabel}</p>
                 <ul className="mt-3 space-y-1.5 text-sm">
                   {Object.entries(summary.range.ordersByStatus).map(([status, count]) => (
                     <li key={status} className="flex items-center justify-between">
@@ -211,7 +211,7 @@ export default function AdminDashboardPage() {
 
             {segment !== "feelz" && (
               <div className="rounded-2xl border border-ink/15 bg-white p-5">
-                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">appointments by status — {rangeLabel}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">appointments by status · {rangeLabel}</p>
                 <ul className="mt-3 space-y-1.5 text-sm">
                   {Object.entries(summary.range.appointmentsByStatus).map(([status, count]) => (
                     <li key={status} className="flex items-center justify-between">
@@ -228,7 +228,7 @@ export default function AdminDashboardPage() {
 
             {segment === "combined" && (
               <div className="rounded-2xl border border-ink/15 bg-white p-5 sm:col-span-2">
-                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">other — {rangeLabel}</p>
+                <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">other · {rangeLabel}</p>
                 <ul className="mt-3 space-y-1.5 text-sm">
                   <li className="flex items-center justify-between">
                     <span className="text-ink/70">New Newsletter Subscribers</span>
@@ -241,7 +241,7 @@ export default function AdminDashboardPage() {
 
           <div className="rounded-2xl border border-ink/15 bg-white p-5">
             <p className="text-[11px] font-semibold uppercase tracking-label text-ink/50">
-              revenue by day — {rangeLabel}{" "}
+              revenue by day · {rangeLabel}{" "}
               {segment === "feelz" ? "(feelz orders only)" : segment === "counselling" ? "(counselling sessions only)" : "(feelz orders + counselling sessions)"}
             </p>
             {summary.range.dailyRevenue.length === 0 ? (

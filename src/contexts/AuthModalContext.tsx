@@ -5,6 +5,8 @@ import { AuthModal } from "@/components/AuthModal";
 
 type AuthModalContextValue = {
   openAuthModal: () => void;
+  /** Lets a caller that opened the modal notice it being dismissed. */
+  isAuthModalOpen: boolean;
 };
 
 const AuthModalContext = createContext<AuthModalContextValue | null>(null);
@@ -13,7 +15,7 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
   const openAuthModal = useCallback(() => setIsOpen(true), []);
   const closeAuthModal = useCallback(() => setIsOpen(false), []);
-  const value = useMemo(() => ({ openAuthModal }), [openAuthModal]);
+  const value = useMemo(() => ({ openAuthModal, isAuthModalOpen: isOpen }), [openAuthModal, isOpen]);
 
   return (
     <AuthModalContext.Provider value={value}>

@@ -139,7 +139,7 @@ export function NotSureHowSection() {
             </span>
           </h2>
           <p className="notsure-fade mx-auto mt-4 max-w-sm text-base leading-relaxed text-feelz-ink/60 sm:text-lg" style={{ "--d": "650ms" } as CSSProperties}>
-            See how a tiny strip can make a big difference — in four simple steps.
+            See how a tiny strip can make a big difference, in four simple steps.
           </p>
 
           <div className="notsure-fade mt-8" style={{ "--d": "850ms" } as CSSProperties}>
