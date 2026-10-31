@@ -1142,6 +1142,14 @@ footer a:not(.pill-btn):not(.pill-btn-outline):not(:has(img)):hover {
 .calmer-panel[data-active] .calmer-panel-label {
   opacity: 0;
 }
+/* Beat 1's noise words only make sense across the open panel; folded,
+   they just spill out of the sliver as cut-off fragments. */
+.calmer-panel-noise > span {
+  transition: opacity 0.5s ease-out;
+}
+.calmer-panel:not([data-active]) .calmer-panel-noise > span {
+  opacity: 0;
+}
 .calmer-panel:not([data-active]):hover .calmer-panel-veil {
   opacity: 0.7;
 }
