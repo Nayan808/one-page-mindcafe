@@ -3,8 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
-import { fetchProfile, mergeGuestCart, claimGuestRecords, updateProfile } from "@/lib/api";
-import { readGuestSessionId, clearGuestSessionId } from "@/lib/guestSession";
+import { fetchProfile, claimGuestRecords, updateProfile } from "@/lib/api";
 import type { Profile } from "@/types/domain";
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
@@ -83,10 +82,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === "SIGNED_IN" && session?.user) {
         void loadProfile(session.user.id);
 
-        const guestSessionId = readGuestSessionId();
-        if (guestSessionId) {
-          void mergeGuestCart(sb, guestSessionId).then(() => clearGuestSessionId());
-        }
+        // The guest cart is merged into the account cart by CartProvider,
+        // which has to wait for it before loading the account cart.
 
         // Only phone sign-ins have anything to claim (see claim-guest-records) —
         // harmless no-op for Google/email sign-ins, but skip the round-trip.

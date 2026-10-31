@@ -10,8 +10,6 @@ import { createClient } from "@/lib/supabase/client";
 import { getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthModal } from "@/contexts/AuthModalContext";
 import { TimelineContent } from "@/components/ui/timeline-animation";
 import { HeroCarousel } from "@/components/feelz/HeroCarousel";
 import { MeetFeelzSection } from "@/components/feelz/MeetFeelzSection";
@@ -47,8 +45,6 @@ export function Hero() {
   const timelineRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const { items, addItem, isReady, cartId, openDrawer, notifyAdded } = useCartContext();
-  const { user } = useAuth();
-  const { openAuthModal } = useAuthModal();
   const [pendingKey, setPendingKey] = useState<string | null>(null);
   const [addedKey, setAddedKey] = useState<string | null>(null);
   const [errorKey, setErrorKey] = useState<string | null>(null);
@@ -56,13 +52,6 @@ export function Hero() {
   // to MeetFeelzSection above so its "Your brain needs" word jumps to
   // match whatever's being hovered, instead of only auto-cycling.
   const [hoveredMoodKey, setHoveredMoodKey] = useState<string | null>(null);
-  // Which mood was being added when "Add to Cart" was clicked signed out —
-  // resumed automatically once sign-in completes (see the effect below).
-  // Matches MoodProductCard.tsx's pendingAfterAuth pattern; only actually
-  // fires for the phone/email path, not Google (page reload drops it).
-  const [pendingAdd, setPendingAdd] = useState<{ moodKey: string; product: ProductWithVariants | undefined } | null>(
-    null,
-  );
 
   const catalogQuery = useQuery({
     queryKey: queryKeys.feelzCatalog(),
@@ -94,14 +83,6 @@ export function Hero() {
     }
   }
 
-  useEffect(() => {
-    if (pendingAdd && user && isReady && cartId) {
-      setPendingAdd(null);
-      void performAddToCart(pendingAdd.moodKey, pendingAdd.product);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingAdd, user, isReady, cartId]);
-
   // Older links (bookmarks, anything not yet updated) may still point at
   // /feelz#focus from before each mood got its own real page — redirect
   // those straight to /feelz/focus instead of scrolling to a hash that no
@@ -111,12 +92,10 @@ export function Hero() {
     if (MOOD_GRID.some((mood) => mood.key === key)) router.replace(`/feelz/${key}`);
   }, [router]);
 
+  // No sign-in needed to shop: signed-out visitors fill a guest cart
+  // (CartProvider), and sign-in is only asked for at "Pay Now"
+  // (FulfillmentAndPayment.tsx).
   async function handleAddToCart(moodKey: string, product: ProductWithVariants | undefined) {
-    if (!user) {
-      setPendingAdd({ moodKey, product });
-      openAuthModal();
-      return;
-    }
     await performAddToCart(moodKey, product);
   }
 
@@ -199,7 +178,7 @@ export function Hero() {
                     <h3 className="font-display text-lg font-bold leading-tight sm:text-xl">{mood.label}</h3>
                     <p className="mt-1 text-xs leading-none text-feelz-ink/50">(Pack of 10)</p>
                     <p className="mt-1.5 text-lg font-bold leading-tight text-feelz-ink/70">
-                      {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "—"}
+                      {price !== null ? formatInr(price) : catalogQuery.isLoading ? "…" : "-"}
                     </p>
                   </Link>
 
@@ -268,7 +247,7 @@ function BundleCard() {
       <div className="relative aspect-[1774/887] w-full md:w-1/2">
         <Image
           src="/feelz-creative/bundle-banner-949.webp"
-          alt={`FEELZ bundle — all four moods for ${formatInr(bundle.price)}`}
+          alt={`FEELZ bundle: all four moods for ${formatInr(bundle.price)}`}
           fill
           sizes="(min-width: 768px) 45vw, 90vw"
           className="object-cover"
@@ -284,7 +263,7 @@ function BundleCard() {
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-label text-feelz-berry">Best value</p>
           <h3 className="font-display mt-1 text-xl font-bold leading-tight sm:text-2xl">Feelz Bundle</h3>
-          <p className="mt-1 text-xs text-feelz-ink/50">Extrovert · Focus · Joy · Rest — 40 strips</p>
+          <p className="mt-1 text-xs text-feelz-ink/50">Extrovert · Focus · Joy · Rest (40 strips)</p>
           <p className="mt-2 flex items-baseline justify-center gap-2">
             {bundle.regularPrice !== null && (
               <span className="text-sm font-semibold text-feelz-ink/40 line-through">{formatInr(bundle.regularPrice)}</span>

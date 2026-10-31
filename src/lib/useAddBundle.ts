@@ -1,13 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createClient } from "@/lib/supabase/client";
 import { getAvailableStock, getFeelzCatalog } from "@/lib/api";
 import { queryKeys } from "@/lib/query/hooks";
 import { useCartContext } from "@/contexts/CartContext";
-import { useAuth } from "@/contexts/AuthContext";
-import { useAuthModal } from "@/contexts/AuthModalContext";
 import { MOOD_GRID, FEELZ_BUNDLE_PRICE } from "@/lib/moodStyles";
 import type { ProductWithVariants } from "@/types/domain";
 
@@ -19,16 +17,13 @@ function priceOf(product: ProductWithVariants) {
 // card (Hero.tsx), the cart upsell (CartDrawer.tsx) and the product pages
 // (FeelzProductPageContent.tsx). The bundle is its own product
 // (products.is_bundle) with its own stock, so this adds one cart line, not
-// four packs. Same sign-in gate + resume-after-auth pattern as every other
-// add-to-cart entry point (Hero.tsx, MoodProductCard.tsx).
-export function useAddBundle({ onAuthRequired }: { onAuthRequired?: () => void } = {}) {
+// four packs. Like every add-to-cart entry point, it needs no sign-in:
+// guests shop on a guest cart and sign in at "Pay Now".
+export function useAddBundle() {
   const { items, addItem, isReady, cartId, notifyAdded } = useCartContext();
-  const { user } = useAuth();
-  const { openAuthModal } = useAuthModal();
   const [isPending, setIsPending] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [pendingAfterAuth, setPendingAfterAuth] = useState(false);
 
   const catalogQuery = useQuery({
     queryKey: queryKeys.feelzCatalog(),
@@ -78,21 +73,7 @@ export function useAddBundle({ onAuthRequired }: { onAuthRequired?: () => void }
     }
   }
 
-  useEffect(() => {
-    if (pendingAfterAuth && user && isReady && cartId) {
-      setPendingAfterAuth(false);
-      void performAdd();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pendingAfterAuth, user, isReady, cartId]);
-
   async function addBundle() {
-    if (!user) {
-      setPendingAfterAuth(true);
-      onAuthRequired?.();
-      openAuthModal();
-      return;
-    }
     await performAdd();
   }
 
